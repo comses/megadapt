@@ -1,0 +1,7 @@
+a,40
+layer,antiguedad_escasez_2
+center,60
+min,0
+max,60
+show_map,False
+function_name,campana_invertida

@@ -1,0 +1,7 @@
+layer,horas_servicio_escasez
+center,84
+min,28
+max,168
+k,0.157
+show_map,False
+function_name,logistic

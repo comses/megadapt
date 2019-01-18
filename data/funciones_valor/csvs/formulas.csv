@@ -1,0 +1,4 @@
+concava_decreciente, ( ( math.exp(gama * (100.0 - (100.0*(x - xmin)/(xmax - xmin) ) ) ) ) - 1 )  / ( math.exp(gama * 100) -1 )
+convexa_creciente, 1.0 - ( ( math.exp(gama * (100.0 - (100.0*(x - xmin)/(xmax - xmin) ) ) ) ) - 1 )  / ( math.exp(gama * 100) -1 )
+logistic,  1 / (1.0 + math.exp(-k * (   (100 * ( x - xmin )/( xmax - xmin ) )  - ( 100 * ( center - xmin )/( xmax - xmin ) ) )) )
+logistica_invertida, 1.0 - (1 / (1.0 + math.exp(-k * (   (100 * ( x - xmin )/( xmax - xmin ) )  - ( 100 * ( center - xmin )/( xmax - xmin ) ) )) ))

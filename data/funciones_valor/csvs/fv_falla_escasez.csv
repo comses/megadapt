@@ -1,0 +1,6 @@
+layer,falla_escasez
+min,0
+max,100
+gama,0.01975
+show_map,False
+function_name,convexa_creciente

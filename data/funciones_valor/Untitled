@@ -1,0 +1,10 @@
+from os.path import join
+from os import listdir
+
+folder = "/Users/fidel/Desktop/funciones_valor"
+
+for capa in listdir(folder):
+  if capa.endswith(".json"):
+    print capa
+
+    
