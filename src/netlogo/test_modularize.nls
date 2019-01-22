@@ -1,0 +1,4 @@
+to num_neighborhoods
+  let neighnumber count patches with [neighborhood_here? = TRUE]
+print neighnumber
+end

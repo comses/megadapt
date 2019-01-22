@@ -1,5 +1,5 @@
 extensions [matrix csv profiler]
-__includes["test_compartimentalize.nls"]
+__includes["test_modularize.nls"]
 globals [              ;;DEFINE GLOBAL VARIABLES
   real_rain            ;; real annual rainfall
 
