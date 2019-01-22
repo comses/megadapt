@@ -16,7 +16,7 @@ require(gramEvol) #genetic algorithm optimization
 
 #path to data
 path_td<-"../../data/"
-path_to_model<-"../../Statistical_Models/Modelos_region"
+path_to_model<-path_td
 #path_td<-"../data/"
 #path_td<-"home/abaeza/SHV/data/" #path patun
 ##read shape files
