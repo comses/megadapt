@@ -1,0 +1,148 @@
+;#################################################################################
+;; Updating globals and reporters
+;#################################################################################
+
+;############################################################################
+;;neighborhoods evaluate the potential benefits (gains- costs) of each action today and in the future using a discount rate
+;; these cost and benefits are the results of conducting a single (e.g protesting) or multiple actions (e.g protesting and adapting)
+;############################################################################
+to update-lorenz-and-gini ;;;obtained from the netlogo library model "Wealth distribution"
+  let sorted-V sort [V] of patches with [neighborhood_here? = TRUE]
+  let total-V sum sorted-V
+
+
+  let V-sum-so-far 0
+  let index_V 0
+  set gini_V 0
+  set lorenz-points_V []
+
+  ;; now actually plot the Lorenz curve -- along the way, we also
+  ;; calculate the Gini index.
+  ;; (see the Info tab for a description of the curve and measure)
+  let num-people count patches with [neighborhood_here? = TRUE]
+  repeat num-people [
+
+    set V-sum-so-far (V-sum-so-far + item index_V sorted-V)
+    if total-V > 0 [
+      set lorenz-points_V lput ((V-sum-so-far / total-V) * 100) lorenz-points_V
+      set index_V (index_V + 1)
+      set gini_V gini_V + (index_V / num-people) - (V-sum-so-far / total-V)
+    ]
+
+  ]
+end
+;##############################################################################################################################
+;##############################################################################################################################
+to update-lorenz-and-gini_sewer ;;;obtained from the netlogo library model "Wealth distribution"
+  let sorted-F sort [sum exposure_F] of patches with [neighborhood_here? = TRUE]
+  let total-F sum sorted-F
+
+  let F-sum-so-far 0
+  let index_F 0
+  set gini_F 0
+  set lorenz-points_F []
+
+  ;; now actually plot the Lorenz curve -- along the way, we also
+  ;; calculate the Gini index.
+  ;; (see the Info tab for a description of the curve and measure)
+  let num-people count patches with [neighborhood_here? = TRUE]
+  repeat num-people [
+
+    set F-sum-so-far (F-sum-so-far + item index_F sorted-F)
+    if total-F > 0 [
+      set lorenz-points_F lput ((F-sum-so-far / total-F) * 100) lorenz-points_F
+      set index_F (index_F + 1)
+      set gini_F gini_F + (index_F / num-people) - (F-sum-so-far / total-F)
+    ]
+
+  ]
+end
+;##############################################################################################################################
+;##############################################################################################################################
+to update-lorenz-and-gini_potablewater ;;;obtained from the netlogo library model "Wealth distribution"
+  let sorted-S sort [sum exposure_S] of patches with [neighborhood_here? = TRUE]
+  let total-S sum sorted-S
+
+
+  let S-sum-so-far 0
+  let index_S 0
+  set gini_S 0
+  set lorenz-points_S []
+
+  ;; now actually plot the Lorenz curve -- along the way, we also
+  ;; calculate the Gini index.
+  ;; (see the Info tab for a description of the curve and measure)
+  let num-people count patches with [neighborhood_here? = TRUE]
+  repeat num-people [
+
+    set S-sum-so-far (S-sum-so-far + item index_S sorted-S)
+    if total-S > 0 [
+      set lorenz-points_S lput ((S-sum-so-far / total-S) * 100) lorenz-points_S
+      set index_S (index_S + 1)
+      set gini_S gini_S + (index_S / num-people) - (S-sum-so-far / total-S)
+    ]
+
+  ]
+end;##############################################################################################################################
+
+to Update-Globals-Reporters
+  ask patches with [invest_here_S > 1][set invest_here_S 1]
+  ask patches with [invest_here_F > 1][set invest_here_F 1]
+
+  set max_v max [V] of patches with [neighborhood_here? = TRUE] ;max vulnerability of neighborhoods
+  set max_protest_F max [protestas_here_F] of patches with [neighborhood_here? = TRUE]
+  set invest_here_max_F max [invest_here_F] of patches with [neighborhood_here? = TRUE]
+  set invest_here_max_S max [invest_here_S] of patches with [neighborhood_here? = TRUE]
+  if max_v = 0 [set max_v 1]
+
+  update-lorenz-and-gini ;;update innequality state
+  update-lorenz-and-gini_sewer
+  update-lorenz-and-gini_potablewater
+   set max_damage max [sum exposure_F + sum exposure_S] of patches with [neighborhood_here? = TRUE]              ;;Calculate mean damage of city in a time-stepy cakculating the mean damage per year.
+
+  if ticks > 499 [
+    set ExposureIndex precision ((sum [total_exposure_S + total_exposure_F] of patches with [neighborhood_here? = TRUE]) / count patches with [neighborhood_here? = TRUE]) 3
+    set ExposureIndex_S precision ((sum [total_exposure_S] of patches with [neighborhood_here? = TRUE]) / count patches with [neighborhood_here? = TRUE]) 3
+    set ExposureIndex_F precision ((sum [total_exposure_F] of patches with [neighborhood_here? = TRUE]) / count patches with [neighborhood_here? = TRUE] ) 3
+
+    set StateinfraQuantityIndex_S count patches with [infra_supply = 1 and infra_S_age < tau_ageInfra and neighborhood_here? = TRUE]
+    set StateinfraQuantityIndex_F count patches with [infra_flood = 1 and infra_F_age < tau_ageInfra and neighborhood_here? = TRUE]
+
+    set StateinfraAgeIndex_S StateinfraAgeIndex_S + 0.01 * (mean [infra_S_age] of patches with [infra_supply = 1 and neighborhood_here? = TRUE])
+    set StateinfraAgeIndex_F StateinfraAgeIndex_F + 0.01 * (mean [infra_F_age] of patches with [infra_flood = 1 and neighborhood_here? = TRUE])
+
+    set socialpressureIndex_S precision (mean [socialpressureTOTAL_S] of patches with [neighborhood_here? = TRUE]) 3
+    set socialpressureIndex_F precision (mean [socialpressureTOTAL_F] of patches with [neighborhood_here? = TRUE]) 3
+
+    set InequalityExposureIndex InequalityExposureIndex + 0.01 * (gini_V / (count patches with [neighborhood_here? = TRUE]))
+    set InequalityExposureIndex_F InequalityExposureIndex_F + 0.01 * (gini_F / (count patches with [neighborhood_here? = TRUE]))
+    set InequalityExposureIndex_S InequalityExposureIndex_S + 0.01 * (gini_S / (count patches with [neighborhood_here? = TRUE]))
+
+    set distance_metric_maintenanceIndex_F precision (mean [distance_metric_maintenance_F] of patches with [neighborhood_here? = TRUE]) 3 ;;Metric for define distance from ideal point (MDCA)
+    set distance_metric_NewIndex_F        precision (mean [distance_metric_New_F] of patches with [neighborhood_here? = TRUE]) 3   ;;Metric for define distance from ideal point (MDCA)
+    set distance_metric_maintenanceIndex_S  precision (mean [distance_metric_maintenance_S] of patches with [neighborhood_here? = TRUE]) 3 ;;Metric for define distance from ideal point (MDCA)
+    set distance_metric_NewIndex_S      precision (mean [distance_metric_New_S] of patches with [neighborhood_here? = TRUE]) 3     ;;Metric for define distance from ideal point (MDCA)
+
+  ]
+
+  set C1max count [patches in-radius 2] of one-of patches                                               ;#update ideal points by setting the maximum of the natural (physical) scale
+  set C2max 10;ifelse-value (max [C2] of patches > C2max)[max [C2] of patches with [neighborhood_here? = TRUE]][C2max]
+  set C3max tau_ageInfra
+  set C4max 1 + C1max
+  set C5max C1max;ifelse-value (max [C5] of patches > C5max)[max [C5] of patches with [neighborhood_here? = TRUE]][C5max]
+  set C6max 10;ifelse-value (max [C6] of patches > C6max)[max [C6] of patches with [neighborhood_here? = TRUE]][C6max]
+  set C7max tau_ageInfra
+  set C8max C4max;ifelse-value (max [C8] of patches > C8max)[max [C8] of patches with [neighborhood_here? = TRUE]][C8max]
+
+  set C1min min [C1] of patches with [neighborhood_here? = TRUE]                                                ;#update ideal points by setting the minimum of the natural (physical) scale
+  set C2min min [C2] of patches with [neighborhood_here? = TRUE]
+  set C3min min [C3] of patches with [neighborhood_here? = TRUE]
+  set C4min min [C4] of patches with [neighborhood_here? = TRUE]
+
+  set C5min min [C5] of patches with [neighborhood_here? = TRUE]
+  set C6min min [C6] of patches with [neighborhood_here? = TRUE]
+  set C7min min [C7] of patches with [neighborhood_here? = TRUE]
+  set C8min min [C8] of patches with [neighborhood_here? = TRUE]
+
+end
+;##############################################################################################################################

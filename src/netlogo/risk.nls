@@ -1,0 +1,77 @@
+to To-Rain   ;;GENERATE CLIMATIC REALIZATION USING A NORMAL DISTRICUTION AND
+             ;;CONVERTE CLIMATIC REALIZATION TO A RISK FACTOR BY NORMALIZING
+  set real_rain log-normal 1 p_rain              ;;generate a normal realization
+  if (real_rain > rain_max_obs) [set rain_max_obs real_rain]   ;;to update max observation if greater than 200
+  set R real_rain / rain_max_obs                               ;;convert to a risk scale between 0 and 1.
+end
+
+
+;############################################################################### 
+to Hazard                               ;;based on the risk factor calculate if a flooding occur
+  if neighborhood_here? = TRUE [
+      if radius_l = 0[
+        let denominador 1
+      ]
+      if radius_l = 1[
+        let denominador 5
+      ]
+      if radius_l = 2[
+        let denominador 14
+      ]
+      if radius_l = 3[
+        let denominador count patches in-radius radius_l
+      ]
+      let denominador  1 + count patches in-radius radius_l
+
+      let IS_N (sum [1 - c_F] of patches in-radius radius_l + (1 - c_F)) / denominador    ;;14 =(1 + count patches in-radius radius_l)  ;;update the average state of infrastructure in patches in radius 2
+      let IS_S (sum [1 - c_S] of patches in-radius radius_l + (1 - c_S)) / denominador           ;;update the average state of infrastructure in patches in radius 2
+
+      set Prob_H_F R * IS_N  * (1 - A)                                                                                    ;;update probability of hazardous event
+      set H_F ifelse-value (Prob_H_F >= random-float 1) [1][0]                                                      ;;update hazard counter to 1
+      set exposure_F but-first exposure_F
+      set exposure_F lput H_F exposure_F                                       ;;update memory of past events
+      if ticks > 500[
+        set total_exposure_F total_exposure_F + mean exposure_F
+      ]
+    ;;the risk of water supply disruption in each neighborhood
+      set Prob_H_S (IS_S * A)
+      set H_S Prob_H_S
+      set exposure_S  but-first exposure_S                                                                                             ;;update hazard counter to 1
+      set exposure_S lput H_S exposure_S
+      if ticks > 500[                                                          ;;update list (memory) of past events
+        set total_exposure_S total_exposure_S + mean exposure_S
+      ]
+    ]
+end
+
+;###############################################################################
+to vulnerability;;PROCEDURE TO COMPUTE VULNERABILITY INDICE
+  set V precision (sum exposure_F + sum exposure_S) 3                                   ;;calculate vulnerability as the product of exposure
+end
+
+
+;##############################################################################################################################
+
+to Update-Infrastructure
+  ask patches  with [neighborhood_here? = TRUE][
+    if Infra_flood = 1[                                      ;;for patches with infrastructure, its age increases in one unit every tick
+      set infra_F_age infra_F_age + 1
+      set c_F exp(- infra_F_age / 100)             ;;update failure probability
+    ]
+    if Infra_supply = 1[
+      set infra_S_age infra_S_age + 1
+      set c_S exp(- infra_S_age / 100)
+    ]
+
+    if Infra_flood = 0[                                      ;;for patches with infrastructure, its age increases in one unit every tick
+      set infra_F_age 0
+      set c_F 1
+    ]
+
+    if Infra_supply = 0[
+      set infra_S_age 0
+      set c_S 1
+    ]
+
+  ]
+end

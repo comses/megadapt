@@ -1,0 +1,12 @@
+to Protest ;;AN STOCHASTIC PROCESS THAT SIMUALTE A PROTEST RANDOMLY BUT PROPROTIONALY TO TIME ALLOCATED TO PROTESTING
+  set prot_F ifelse-value ((1 - motivation_to_protest) * (mean exposure_F) + motivation_to_protest * (1 - invest_here_F) > (1 -  tolerance_protest) * random-float 1)[1][0]
+  set prot_S ifelse-value ((1 - motivation_to_protest) * (mean exposure_S) + motivation_to_protest * (1 - invest_here_S) > (1 -  tolerance_protest) * random-float 1)[1][0]
+
+  set   protestas_here_F  0.9 * protestas_here_F + prot_F                                       ;;update patch variable to be collected by the government
+  set   protestas_here_S  0.9 * protestas_here_S + prot_S                                       ;;update patch variable to be collected by the government
+
+if ticks > 500 [
+  set   socialpressureTOTAL_S socialpressureTOTAL_S + prot_S
+  set   socialpressureTOTAL_F socialpressureTOTAL_F + prot_F
+]
+end
