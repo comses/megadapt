@@ -6,7 +6,9 @@
 # 
 #    http://shiny.rstudio.com/
 #
-
+require(ggplot2)
+require(rgeos)
+require(rgdal)
 #read setup code
 source("setup.R")
 # Define server logic required to draw 
