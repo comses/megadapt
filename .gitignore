@@ -1,5 +1,6 @@
 # backup files
 *~
+.*.tmp.nlogo
 # History files
 .Rhistory
 .Rapp.history
