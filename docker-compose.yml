@@ -1,0 +1,10 @@
+version: '3'
+services:
+  megadapt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PASSWORD: test
+    ports:
+      - "127.0.0.1:8787:8787"
