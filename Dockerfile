@@ -1,6 +1,6 @@
 FROM rocker/rstudio:3.5.2
 
-RUN apt-get update && apt-get install -y zlib1g-dev
+RUN apt-get update && apt-get install -y zlib1g-dev libpng-dev
 
 # Install R packages
 COPY ./src/r /home/rstudio/code/src/r
