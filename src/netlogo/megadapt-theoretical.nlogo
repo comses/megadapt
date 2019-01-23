@@ -1576,7 +1576,7 @@ NetLogo 6.0.2
       <value value="true"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="investment_on_vuln" repetitions="10" runMetricsEveryStep="false">
+  <experiment name="investment_on_vuln" repetitions="1" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>go</go>
     <timeLimit steps="600"/>
@@ -1588,7 +1588,7 @@ NetLogo 6.0.2
     <enumeratedValueSet variable="radius_l">
       <value value="0"/>
     </enumeratedValueSet>
-    <steppedValueSet variable="New_infra_investment" first="0" step="0.1" last="1"/>
+    <steppedValueSet variable="New_infra_investment" first="0" step="0.2" last="1"/>
     <enumeratedValueSet variable="budget-distribution">
       <value value="&quot;local&quot;"/>
     </enumeratedValueSet>
