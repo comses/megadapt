@@ -660,7 +660,7 @@ New_infra_investment
 New_infra_investment
 0.001
 1
-0.07
+0.0
 0.001
 1
 NIL
@@ -757,7 +757,7 @@ maintenance
 maintenance
 0.001
 1
-0.1
+0.0
 0.001
 1
 NIL
@@ -920,7 +920,7 @@ SWITCH
 665
 designed-scenarios
 designed-scenarios
-0
+1
 1
 -1000
 
@@ -1574,6 +1574,59 @@ NetLogo 6.0.2
     </enumeratedValueSet>
     <enumeratedValueSet variable="designed-scenarios">
       <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="investment_on_vuln" repetitions="10" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="600"/>
+    <metric>count turtles</metric>
+    <metric>mean [V] of patches with [neighborhood_here?]</metric>
+    <enumeratedValueSet variable="motivation_to_protest">
+      <value value="0.3"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="radius_l">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="New_infra_investment" first="0" step="0.1" last="1"/>
+    <enumeratedValueSet variable="budget-distribution">
+      <value value="&quot;local&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="p_rain">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Initial-Condition-Infrastructure">
+      <value value="&quot;New&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reps">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="tolerance_protest">
+      <value value="0.133"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="maintenance">
+      <value value="0.1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="landscape-type">
+      <value value="&quot;closed-watershed&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="scenario_number">
+      <value value="1208"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="policy_scenario">
+      <value value="&quot;Expand Access&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="semilla-aleatoria">
+      <value value="48569"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="tau_ageInfra">
+      <value value="200"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="designed-scenarios">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Visualization">
+      <value value="&quot;Infrastructure_S&quot;"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
