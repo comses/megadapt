@@ -2,7 +2,7 @@
 ############## Run the MEGADAPT MODEL
 ######################################################################################################################
 
-
+set.seed(1000)
 
 path_to_source <- "." #change path to use it
 path_to_output <- "../outputs/" #change path to use it
