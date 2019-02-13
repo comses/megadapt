@@ -1,6 +1,7 @@
 source("r/take_actions_residents.R")
 source("r/protests.R")
 source("r/adaptation_and_sensitivity.R")
+source("r/update_age_infrastructure.R")
 
 #Decision cycle
 #simulate a yearly cycle of the model by week
@@ -27,7 +28,8 @@ for (i in 1:length(ini_date)) {
     }
     studyArea_CVG <- update_adaptation_and_sensitivity(study_area_cvg = studyArea_CVG, resident_actions = resident_actions)
     #Update age and condition of infrastructure
-    source("r/update_age_infrastructure.R")
+    studyArea_CVG <- update_infrastructure_age(study_area_cvg = studyArea_CVG)
+  
     #Save results
     
     TS_res <-
