@@ -1,5 +1,6 @@
 source("r/take_actions_residents.R")
 source("r/protests.R")
+source("r/adaptation_and_sensitivity.R")
 
 #Decision cycle
 #simulate a yearly cycle of the model by week
@@ -20,11 +21,11 @@ for (i in 1:length(ini_date)) {
     #take actions sacmex
     source("r/take_actions_sacmex.R")
     #update the level of adaptation and sensitivity of residents
-    agebs_que_protestan <- take_actions_residents(site_suitability)
-    if (length(agebs_que_protestan)>0){
-      studyArea_CVG <- update_protests(study_area_cvg = studyArea_CVG, agebs_que_protestan = agebs_que_protestan)
+    resident_actions <- take_actions_residents(site_suitability)
+    if (length(resident_actions$agebs_que_protestan)>0){
+      studyArea_CVG <- update_protests(study_area_cvg = studyArea_CVG, resident_actions = resident_actions)
     }
-    source("r/adaptation_and_sensitivity.R")
+    studyArea_CVG <- update_adaptation_and_sensitivity(study_area_cvg = studyArea_CVG, resident_actions = resident_actions)
     #Update age and condition of infrastructure
     source("r/update_age_infrastructure.R")
     #Save results
@@ -38,5 +39,5 @@ for (i in 1:length(ini_date)) {
       )
   }
   #update number of protests
-  studyArea_CVG <- update_protests(study_area_cvg = studyArea_CVG, agebs_que_protestan = agebs_que_protestan)
+  studyArea_CVG <- update_protests(study_area_cvg = studyArea_CVG, resident_actions = resident_actions)
 }

@@ -13,5 +13,5 @@ take_actions_residents <- function(site_suitability) {
   #find those that will protest
   agebs_que_protestan<-HM_Agua[which(distance_ideal_protest[HM_Agua]>distance_ideal_House_mod_agua[HM_Agua])]
 
-  agebs_que_protestan
+  list(agebs_que_protestan=agebs_que_protestan, HM_LL=HM_LL, HM_Agua=HM_Agua)
 }
