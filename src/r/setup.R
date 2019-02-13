@@ -57,9 +57,7 @@ source("r/value_functions.R")
 source("r/value_functions_empirical_parameters.R")
 #read mental models as limit and weighted matrices outputs from SUPERDECITION
 source("r/read_mental_models.R")
-#create MCDA from pairwise comprasisons and create table
-#initiate site suitability
-source("r/site_suitability.R")
+
 #read function to save time-series
 source("r/save_results.R")
 #Adaptation: set parameters of sensitivity such that
