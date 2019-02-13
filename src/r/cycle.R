@@ -42,6 +42,7 @@ for (i in 1:length(ini_date)) {
     
     TS_res <-
       save_TS(
+        study_area_cvg = studyArea_CVG,
         TR = i,
         result_prev_time = TS_res,
         year = year_ts[i],
