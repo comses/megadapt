@@ -10,6 +10,7 @@ require(ggplot2)
 require(rgeos)
 require(rgdal)
 #read setup code
+setwd('..')
 source("r/setup.R")
 # Define server logic required to draw 
 shinyServer(function(input, output,session) {
@@ -45,6 +46,12 @@ output$plot3<-renderPlot({
 
 #########################################################################################################################   
    output$plot2<-renderPlot({
+     distance_ideal_A1_D <- site_suitability$distance_ideal_A1_D
+     distance_ideal_A2_D <- site_suitability$distance_ideal_A2_D
+     distance_ideal_A1_Ab <- site_suitability$distance_ideal_A1_Ab
+     distance_ideal_A2_Ab <- site_suitability$distance_ideal_A2_Ab
+     Output_value_function <- site_suitability$Output_value_function
+    
      Output_value_function@data$id = rownames(Output_value_function@data)
      Output_value_function.points = fortify(Output_value_function, region="id")
      Output_value_function.df = join(Output_value_function.points, Output_value_function@data, by="id")

@@ -211,12 +211,3 @@ determine_site_suitability <- function(study_area_cvg, fv_antiguedad_drenaje, lo
        distance_ideal_House_mod_agua=distance_ideal_House_mod_agua,
        Output_value_function=Output_value_function)
 }
-
-# distance_ideal_A1_D <- site_suitability$distance_ideal_A1_D
-# distance_ideal_A2_D <- site_suitability$distance_ideal_A2_D
-# distance_ideal_A1_Ab <- site_suitability$distance_ideal_A1_Ab
-# distance_ideal_A2_Ab <- site_suitability$distance_ideal_A2_Ab
-# distance_ideal_protest <- site_suitability$distance_ideal_protest
-# distance_ideal_House_mod_lluvia <- site_suitability$distance_ideal_House_mod_lluvia
-# distance_ideal_House_mod_agua <- site_suitability$distance_ideal_House_mod_agua
-# Output_value_function <- site_suitability$Output_value_function
