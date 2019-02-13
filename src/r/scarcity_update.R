@@ -1,6 +1,6 @@
 #update water scarcity  model
 #generate a new prediction
-prob_water<-predict(modelo_zip_escasez,newdata=studyArea_CVG@data,type='prob')
+prob_water<-predict(water_scarcity_model,newdata=studyArea_CVG@data,type='prob')
 #generate the lottery
 water_yes<-rbinom(n=length(prob_water[,7]),size=1,prob=prob_water[,7]) * 7
 water_yes[which(water_yes==0)]<-rbinom(n=length(prob_water[which(water_yes==0),6]),size=1,prob=prob_water[which(water_yes==0),6])*6
