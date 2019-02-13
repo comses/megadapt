@@ -48,4 +48,3 @@ update_ponding <- function(study_area_cvg, ponding_models) {
   
   study_area_cvg
 }
-studyArea_CVG <- update_ponding(study_area_cvg = studyArea_CVG, ponding_models = Modelos)

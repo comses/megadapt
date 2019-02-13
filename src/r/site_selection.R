@@ -40,9 +40,3 @@ determine_site_selection <- function(site_suitability) {
        A3=A3,
        A4=A4)
 }
-
-site_selection <- determine_site_selection(site_suitability)
-A1 <- site_selection$A1
-A2 <- site_selection$A2
-A3 <- site_selection$A3
-A4 <- site_selection$A4

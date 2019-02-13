@@ -37,5 +37,3 @@ take_actions_sacmex <- function(study_area_cvg, site_selection) {
   
   study_area_cvg
 }
-
-studyArea_CVG <- take_actions_sacmex(study_area_cvg = studyArea_CVG, site_selection = site_selection)

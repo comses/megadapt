@@ -1,3 +1,9 @@
+source("r/read_Climate_scenarios.R")
+source("r/scarcity_update.R")
+source("r/update_ponding.R")
+source("r/site_suitability.R")
+source("r/site_selection.R")
+source("r/take_actions_sacmex.R")
 source("r/take_actions_residents.R")
 source("r/protests.R")
 source("r/adaptation_and_sensitivity.R")
@@ -8,19 +14,21 @@ source("r/update_age_infrastructure.R")
 
 
 for (i in 1:length(ini_date)) {
-  source("r/scarcity_update.R")
+  studyArea_CVG <- update_water_scarcity(study_area_cvg = studyArea_CVG, water_scarcity_model = water_scarcity_model)
   
   if (year_change[i] == 1) {
-    source("r/read_Climate_scenarios.R")
-    source("r/update_ponding.R")
+    studyArea_CVG <- setup_climate_scenarios(study_area_cvg = studyArea_CVG, s_85 = S_85)
+    studyArea_CVG <- update_ponding(study_area_cvg = studyArea_CVG, ponding_models = Modelos)
     #run Health model
     
     #run Site suitability
-    source("r/site_suitability.R")
+    site_suitability <- determine_site_suitability(study_area_cvg = studyArea_CVG, fv_antiguedad_drenaje = fv_antiguedad_drenaje, logistic_invertida = logistic_invertida)
     #run Site selection
-    source("r/site_selection.R")
+    site_selection <- determine_site_selection(site_suitability)
+    
     #take actions sacmex
-    source("r/take_actions_sacmex.R")
+    studyArea_CVG <- take_actions_sacmex(study_area_cvg = studyArea_CVG, site_selection = site_selection)
+    
     #update the level of adaptation and sensitivity of residents
     resident_actions <- take_actions_residents(site_suitability)
     if (length(resident_actions$agebs_que_protestan)>0){

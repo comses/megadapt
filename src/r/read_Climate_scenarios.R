@@ -19,4 +19,3 @@ setup_climate_scenarios <- function(study_area_cvg, s_85) {
   study_area_cvg@data$f_esc=sampled_rain_runoff_scenario$runoff[match_values]
   study_area_cvg
 }
-studyArea_CVG <- setup_climate_scenarios(study_area_cvg = studyArea_CVG, s_85 = S_85)
