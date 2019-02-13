@@ -6,7 +6,7 @@ path_to_output<-"../../outputs/"
 path_td<-"../../data/"
 path_to_model<-path_td
 
-source("VBSA.R")
+source("r/VBSA.R")
 simyears=2
 
 exponents<-c(1:2) #change 

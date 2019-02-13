@@ -14,7 +14,7 @@ ss_A2_Ab<-distance_ideal_A2_Ab[order(r)[1:Budget]]
 selected_agebs<-order(r)[1:Budget]
 
 #source Genetic algorith evaluation functions 
-source("genetic_Algorithm.R")
+source("r/genetic_Algorithm.R")
 
 #Run optimization
 cromosoma_resultante<-run_GA()

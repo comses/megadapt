@@ -22,7 +22,7 @@ studyArea_CVG@data$estado<-as.factor(substring(studyArea_CVG@data$cvgeo,1,2))
 #create layer of population growth and filled with data
 #population growth
 studyArea_CVG@data$pop_growth<-rep(1,length(studyArea_CVG@data$AGEB_ID))
-source("population_growth_layer.R")
+source("r/population_growth_layer.R")
 #join the three data sets
 studyArea_CVG@data=join(studyArea_CVG@data,subset(studyArea_CVG_C@data,select=c("AGEB_ID","ingreso","pres_hid","desv_agua","desp_agua","cal_agua","crec_urb","abastecimi","gasto","pet_usr_d")),by="AGEB_ID")
 studyArea_CVG@data=join(studyArea_CVG@data,subset(studyArea_CVG_B@data,select=c("AGEB_ID","PR_2008","ENF_14","PRES_MED")),by="AGEB_ID")

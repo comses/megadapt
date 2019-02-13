@@ -9,7 +9,7 @@ HM_Agua<-which(distance_ideal_House_mod_lluvia<distance_ideal_House_mod_agua)
 agebs_que_protestan<-HM_Agua[which(distance_ideal_protest[HM_Agua]>distance_ideal_House_mod_agua[HM_Agua])]
 
 if (length(agebs_que_protestan)>0){
-  source("protests.R")
+  source("r/protests.R")
 }
 
 

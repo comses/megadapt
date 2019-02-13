@@ -11,5 +11,5 @@ Budget=as.numeric(args[5])
 path_to_source<-"."
 setwd(path_to_source)
 #run setup.R and cycle.R 
-    source("setup.R")
-    source("cycle.R")
+    source("r/setup.R")
+    source("r/cycle.R")

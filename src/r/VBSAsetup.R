@@ -5,16 +5,16 @@ studyArea_CVG<-readShapeSpatial(paste(path_td,'Layer_MEGADAPT_Oct2018.shp',sep="
 #subset are for CDMX
 #Simulation runs only for the city (CDMX) estado=="09"
 studyArea_CVG <- studyArea_CVG[studyArea_CVG$estado== "09",]
-source('new_variables_setup.R')
+source("r/new_variables_setup.R")
 ######################################################################################################################
 ##read data contigency matrix
 contigency_matrix<-as.matrix(data.frame(read.csv(paste(path_td,"W_matrix_low.csv",sep=""),header = T)))
 ######################################################################################################################
 #Initiate biophsiical models
 #floding
-source("ponding_model.R")
+source("r/ponding_model.R")
 #scarcity
-source("water_scarcity_model.R")
+source("r/water_scarcity_model.R")
 #health
 
 ######################################################################################################################
@@ -24,16 +24,16 @@ S_85=read.csv(paste(path_td,"df_prec_esc_85_85.csv",sep=""))
 ######################################################################################################################
 ##define decision-makers agents
 #read file with value functions
-source("value_functions.R")
+source("r/value_functions.R")
 #read value function from workshop with sacmex
-source("value_functions_empirical_parameters.R")
+source("r/value_functions_empirical_parameters.R")
 #read mental models as limit and weighted matrices outputs from SUPERDECITION
-source("read_mental_models.R")
+source("r/read_mental_models.R")
 #create MCDA from pairwise comprasisons and create table
 #initiate site suitability
-source("site_suitability.R")
+source("r/site_suitability.R")
 #read function to save time-series
-source("save_results.R")
+source("r/save_results.R")
 #Adaptation: set parameters of sensitivity such that
 #10 years will take to a neighborhood to be  half sensitivity to hazards
 hsc_Ab<-10

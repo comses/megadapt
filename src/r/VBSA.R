@@ -10,7 +10,7 @@ VBSA<-function(N,simyears=5) {
   
   #Check whether the matrices were already created
   if (!file.exists(ABname)) {
-    source("VBSAMatrices.R")
+    source("r/VBSAMatrices.R")
     createLinearMatrices(N)
   }
 
@@ -25,7 +25,7 @@ VBSA<-function(N,simyears=5) {
   Y<-array(dim=c(2,N,(dim(ABMats)[3])))
   
   #Run simulations
-  source("VBSArunModel.R")
+  source("r/VBSArunModel.R")
 
   Y<-apply(ABMats,c(1,3),normVul) 
   

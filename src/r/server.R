@@ -10,7 +10,7 @@ require(ggplot2)
 require(rgeos)
 require(rgdal)
 #read setup code
-source("setup.R")
+source("r/setup.R")
 # Define server logic required to draw 
 shinyServer(function(input, output,session) {
 
@@ -126,7 +126,7 @@ output$plot3<-renderPlot({
   #########################################################################################################################   
   
   eventReactive(input$setup_sim,{
-    source("setup.R")
+    source("r/setup.R")
   })
   #run simulation  
   model <- eventReactive(input$Go,{
@@ -137,7 +137,7 @@ output$plot3<-renderPlot({
         time_run=time_run+1
         # Increment the progress bar, and update the detail text.
         incProgress(1/input$anios, detail = paste("Parte:", time_run))
-        source("cycle.R",local = T)
+        source("r/cycle.R",local = T)
         if (time_run==input$anios){break}
       }
       
