@@ -4,8 +4,8 @@
 
 
 
-path_to_source<-"." #change path to use it
-path_to_output<-"../outputs/" #change path to use it
+path_to_source <- "." #change path to use it
+path_to_output <- "../outputs/" #change path to use it
 setwd(path_to_source)
 
 #Set Parameter Values of the Simulation
