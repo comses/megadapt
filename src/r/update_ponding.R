@@ -1,11 +1,11 @@
-#update the number of flooding events
+# update the number of flooding events
 
-#flooding_update<-predict(fit_zinbinom,newdata=studyArea_CVG@data,type='response')
-#studyArea_CVG@data$encharca <-flooding_update
+# flooding_update<-predict(fit_zinbinom,newdata=studyArea_CVG@data,type='response')
+# studyArea_CVG@data$encharca <-flooding_update
 
 
 #
-#from regression tree
+# from regression tree
 ## Se hace la prediccion para cada zona (1:9)
 update_ponding <- function(study_area_cvg, ponding_models) {
   for (hh in 1:9) {
@@ -30,10 +30,10 @@ update_ponding <- function(study_area_cvg, ponding_models) {
       )
   }
   print(study_area_cvg@data$encharca[1708])
-  #for ageb 1708 with AGEB_ID =6420 the value of ponding is 10 time larger than the average
-  #check
-  
-  
+  # for ageb 1708 with AGEB_ID =6420 the value of ponding is 10 time larger than the average
+  # check
+
+
   subset(
     study_area_cvg@data,
     select = c(
@@ -45,6 +45,6 @@ update_ponding <- function(study_area_cvg, ponding_models) {
       "rejillas"
     )
   )[1708, ]
-  
+
   study_area_cvg
 }
