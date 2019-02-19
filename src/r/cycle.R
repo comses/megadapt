@@ -1,13 +1,13 @@
-source("r/read_Climate_scenarios.R")
-source("r/scarcity_update.R")
-source("r/update_ponding.R")
-source("r/site_suitability.R")
-source("r/site_selection.R")
-source("r/take_actions_sacmex.R")
-source("r/take_actions_residents.R")
-source("r/protests.R")
 source("r/adaptation_and_sensitivity.R")
+source("r/protests.R")
+source("r/scarcity_update.R")
+source("r/site_selection.R")
+source("r/site_suitability.R")
+source("r/take_actions_residents.R")
+source("r/take_actions_sacmex.R")
 source("r/update_age_infrastructure.R")
+source("r/update_climate.R")
+source("r/update_ponding.R")
 
 # Decision cycle
 # simulate a yearly cycle of the model by week
@@ -17,12 +17,12 @@ for (i in 1:length(ini_date)) {
   studyArea_CVG <- update_water_scarcity(study_area_cvg = studyArea_CVG, water_scarcity_model = water_scarcity_model)
 
   if (year_change[i] == 1) {
-    studyArea_CVG <- setup_climate_scenarios(study_area_cvg = studyArea_CVG, s_85 = S_85)
+    studyArea_CVG <- update_climate(study_area_cvg = studyArea_CVG, s_85 = S_85)
     studyArea_CVG <- update_ponding(study_area_cvg = studyArea_CVG, ponding_models = Modelos)
     # run Health model
 
     # run Site suitability
-    site_suitability <- determine_site_suitability(study_area_cvg = studyArea_CVG, fv_antiguedad_drenaje = fv_antiguedad_drenaje, logistic_invertida = logistic_invertida)
+    site_suitability <- determine_site_suitability(study_area_cvg = studyArea_CVG)
     # run Site selection
     site_selection <- determine_site_selection(site_suitability)
 

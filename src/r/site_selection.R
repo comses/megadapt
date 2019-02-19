@@ -1,6 +1,6 @@
 source("r/genetic_Algorithm.R")
 
-determine_site_selection <- function(site_suitability) {
+determine_site_selection <- function(site_suitability, budget) {
   # first find the ranking of non-dominant solutions in the pareto frontier
   r <- doNondominatedSorting(
     rbind(
@@ -12,14 +12,13 @@ determine_site_selection <- function(site_suitability) {
   )$ranks
 
   # save the solutions up to the budget value (750 now but it will change dinamically)
-  ss_A1_D <- site_suitability$distance_ideal_A1_D[order(r)[1:Budget]]
-  ss_A2_D <- site_suitability$distance_ideal_A2_D[order(r)[1:Budget]]
-  ss_A1_Ab <- site_suitability$distance_ideal_A1_Ab[order(r)[1:Budget]]
-  ss_A2_Ab <- site_suitability$distance_ideal_A2_Ab[order(r)[1:Budget]]
+  ss_A1_D <- site_suitability$distance_ideal_A1_D[order(r)[1:budget]]
+  ss_A2_D <- site_suitability$distance_ideal_A2_D[order(r)[1:budget]]
+  ss_A1_Ab <- site_suitability$distance_ideal_A1_Ab[order(r)[1:budget]]
+  ss_A2_Ab <- site_suitability$distance_ideal_A2_Ab[order(r)[1:budget]]
 
   # save ID of selected agebs
-  # selected_agebs<-studyArea_CVG@data$AGEB_ID[order(r)[1:Budget]]
-  selected_agebs <- order(r)[1:Budget]
+  selected_agebs <- order(r)[1:budget]
 
   # Run optimization
   cromosoma_resultante <- run_GA(
