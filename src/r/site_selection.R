@@ -1,5 +1,3 @@
-source("r/genetic_Algorithm.R")
-
 determine_site_selection <- function(site_suitability, budget) {
   # first find the ranking of non-dominant solutions in the pareto frontier
   r <- doNondominatedSorting(
@@ -17,22 +15,16 @@ determine_site_selection <- function(site_suitability, budget) {
   ss_A1_Ab <- site_suitability$distance_ideal_A1_Ab[order(r)[1:budget]]
   ss_A2_Ab <- site_suitability$distance_ideal_A2_Ab[order(r)[1:budget]]
 
+  choices <- max.col(as.matrix(cbind(ss_A1_D, ss_A2_D, ss_A1_Ab, ss_A2_D)))
+
   # save ID of selected agebs
   selected_agebs <- order(r)[1:budget]
 
-  # Run optimization
-  cromosoma_resultante <- run_GA(
-    ss_A1_D = ss_A1_D,
-    ss_A2_D = ss_A2_D,
-    ss_A1_Ab = ss_A1_Ab,
-    ss_A2_Ab = ss_A2_Ab
-  )
-
   # Store ID of agebs that will be modified by sacmex
-  A1 <- selected_agebs[which(cromosoma_resultante == 1)] # "Mantenimiento" D
-  A2 <- selected_agebs[which(cromosoma_resultante == 2)] # "Nueva_infraestructura" D
-  A3 <- selected_agebs[which(cromosoma_resultante == 3)] # "Mantenimiento" Ab
-  A4 <- selected_agebs[which(cromosoma_resultante == 4)] # "Nueva_infraestructura" Ab
+  A1 <- selected_agebs[which(choices == 1)] # "Mantenimiento" D
+  A2 <- selected_agebs[which(choices == 2)] # "Nueva_infraestructura" D
+  A3 <- selected_agebs[which(choices == 3)] # "Mantenimiento" Ab
+  A4 <- selected_agebs[which(choices == 4)] # "Nueva_infraestructura" Ab
 
   list(
     A1 = A1,
