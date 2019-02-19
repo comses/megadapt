@@ -2,21 +2,35 @@
 
 #Define paths
 path_to_source<-"./" 
-path_to_output<-"../../outputs/" 
-path_td<-"../../data/"
+path_to_output<-"../outputs/" 
+path_td<-"../data/"
 path_to_model<-path_td
 
 source("r/VBSA.R")
-simyears=2
 
-exponents<-c(1:2) #change 
+# Change these parameters
+simyears=1
+exp.min=1
+exp.max=2
+forreal=TRUE
+
+exponents<-c(exp.min:exp.max)
 Ns<-2^exponents
-k=4
-results<-matrix(nrow = 4, ncol = (exponents[2]-exponents[1]+1))
-system.time(
-results<-sapply(Ns,function(x)(VBSA(x,simyears)))  
-)
-  
+Nmax<-2^exp.max
+k<-4
+
+
+stt<-system.time(results<-VBSA(exp.min,exp.max,simyears,k,forreal))
+results
   
 
 #Plot both Si and STi vs N
+par(mfrow=c(2,2))
+colorss<-c("skyblue","orange","magenta")
+for (i in 1:dim(results)[3]){
+  plot(Ns,results[1,,i],ylim=range(results[,,i]))
+  for (j in 2:dim(results)[1]){
+    points(Ns,results[j,,i],col=colorss[j-1])
+  }
+}
+

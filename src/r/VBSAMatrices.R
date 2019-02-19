@@ -1,10 +1,8 @@
 # This file creates the matrices used in the Variance-Based Sensitivity Analysis of MEGADAPT
 # For this version, we are going to test the effect of 4 parameters, whose particular values are taken from a linear transformation of the Sobol' sequence.
 
-createLinearMatrices <- function(N) {
+createLinearMatrices <- function(N,k=4) {
   require(qrng)
-  
-  k=4
   
   # effectivity_newInfra, initially set at 0.07
   par1_min=0.01
@@ -50,7 +48,7 @@ createLinearMatrices <- function(N) {
     ABMats[,j,(j+2)]=S[5:(N+4),j+k]
   }
   
-  ABpath<-paste("../../VBSAMatrices/ABMats",as.character(N),".rds",sep="")
+  ABpath<-paste("../VBSAMatrices/ABMats",as.character(N),".rds",sep="")
   
   saveRDS(ABMats,ABpath)
 
