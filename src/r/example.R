@@ -1,7 +1,5 @@
 source('r/setup.R')
 
-# set.seed(1000)
-
 path_to_source <- "." # change path to use it
 path_td <- "../data/"
 path_to_output <- "../outputs/" # change path to use it
