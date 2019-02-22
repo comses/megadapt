@@ -14,6 +14,7 @@ update_ponding <- function(study_data, ponding_models) {
         ponding_models[[hh]],
         subset(
           study_data,
+          subset = region == hh,
           select = c(
             "f_prec_v",
             "f_esc",
@@ -22,14 +23,14 @@ update_ponding <- function(study_data, ponding_models) {
             "bombeo_tot",
             "rejillas"
           )
-        )[which(study_data$region == hh), ],
+        ),
         # observaciones de todas las variables de la region
         n.trees = 9566,
         # Número de árboles que usa el modelo
         type = "response"
       )
   }
-  print(study_data$encharca[1708])
+  print(study_data$encharca[1708:1710])
 
   study_data
 }
