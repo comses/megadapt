@@ -7,7 +7,6 @@ update_protests <- function(study_data, resident_actions, year_changed) {
 
   study_data$protesta[agebs_que_protestan] <- 1
 
-
   # accumulate protests as social_pressure
   if (year_changed) {
     study_data$social_pressure <- study_data$protesta

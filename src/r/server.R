@@ -11,17 +11,18 @@ require(rgeos)
 require(rgdal)
 # read setup code
 setwd("..")
-source("r/setup.R")
+source("r/example.R")
 # Define server logic required to draw
 shinyServer(function(input, output, session) {
 
   #########################################################################################################################
   # initial setup
   Inicio <- eventReactive(input$Iniciar, {
-    studyArea_CVG@data$id <- rownames(studyArea_CVG@data)
-    studyArea_CVG.points <- fortify(studyArea_CVG, region = "id")
-    studyArea_CVG.df <- join(studyArea_CVG.points, studyArea_CVG@data, by = "id")
-    return(studyArea_CVG.df)
+    study_area <- megadapt$study_area
+    study_area@data$id <- rownames(study_area@data)
+    study_area_points <- fortify(study_area, region = "id")
+    study_data <- join(study_area_points, study_area@data, by = "id")
+    study_data
   })
 
 
