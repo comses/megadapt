@@ -1,3 +1,5 @@
+library("dplyr")
+library("gbm")
 library("pscl")
 
 source("r/adaptation_and_sensitivity.R")
@@ -305,13 +307,12 @@ update_year_megadapt <- function(megadapt, n_weeks) {
   for (week_index in seq(n_weeks - 1)) {
     study_data <-
       update_water_scarcity(study_data = study_data,
-                            water_scarcity_model = water_scarcity_model)
+                            water_scarcity_model = water_scarcity_model,
+                            year_changed = FALSE)
     study_data <-
       update_protests(
         study_data = study_data,
-        resident_actions = resident_actions,
-        year_changed = FALSE
-      )
+        resident_actions = resident_actions)
   }
   
   megadapt$study_area@data <- study_data

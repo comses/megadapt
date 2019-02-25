@@ -2,7 +2,7 @@ source('r/genetic_Algorithm.R')
 
 determine_site_selection <- function(site_suitability, budget) {
   # first find the ranking of non-dominant solutions in the pareto frontier
-  r <- doNondominatedSorting(
+  r <- ecr::doNondominatedSorting(
     rbind(
       site_suitability$distance_ideal_A1_D,
       site_suitability$distance_ideal_A2_D,
