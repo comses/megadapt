@@ -32,7 +32,6 @@ example <- function() {
   # Water Scarcity Model Setup
   #
   water_security_model <- create_water_scarcity_model(study_area@data)
-  study_area@data <- update_water_scarcity(study_data = study_area@data, water_scarcity_model = water_security_model)
 
   #
   # Climate Scenario Setup
