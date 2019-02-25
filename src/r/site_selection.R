@@ -1,3 +1,5 @@
+source('r/genetic_Algorithm.R')
+
 determine_site_selection <- function(site_suitability, budget) {
   # first find the ranking of non-dominant solutions in the pareto frontier
   r <- doNondominatedSorting(
@@ -15,6 +17,11 @@ determine_site_selection <- function(site_suitability, budget) {
   ss_A1_Ab <- site_suitability$distance_ideal_A1_Ab[order(r)[1:budget]]
   ss_A2_Ab <- site_suitability$distance_ideal_A2_Ab[order(r)[1:budget]]
 
+
+  # choices <- run_GA(ss_A1_D = ss_A1_D, 
+  #                   ss_A2_D = ss_A2_D,
+  #                   ss_A1_Ab = ss_A1_Ab,
+  #                   ss_A2_Ab = ss_A2_Ab)
   choices <- max.col(as.matrix(cbind(ss_A1_D, ss_A2_D, ss_A1_Ab, ss_A2_D)))
 
   # save ID of selected agebs
