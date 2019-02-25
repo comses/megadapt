@@ -6,6 +6,7 @@ require(dplyr)
 
 set.seed(1000)
 
+megadapt <- example()
 results <- simulate_megadapt(megadapt)
 print(results %>%
   group_by(year_sim) %>%
