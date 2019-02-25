@@ -283,14 +283,12 @@ update_year_megadapt <- function(megadapt, n_weeks) {
   
   # update the level of adaptation and sensitivity of residents
   resident_actions <- take_actions_residents(site_suitability)
-  if (length(resident_actions$agebs_que_protestan) > 0) {
-    study_data <-
-      update_protests(
-        study_data = study_data,
-        resident_actions = resident_actions,
-        year_changed = TRUE
-      )
-  }
+  study_data <-
+    update_protests(
+      study_data = study_data,
+      resident_actions = resident_actions,
+      year_changed = TRUE
+    )
   study_data <-
     update_adaptation_and_sensitivity(
       study_data = study_data,
@@ -309,10 +307,6 @@ update_year_megadapt <- function(megadapt, n_weeks) {
       update_water_scarcity(study_data = study_data,
                             water_scarcity_model = water_scarcity_model,
                             year_changed = FALSE)
-    study_data <-
-      update_protests(
-        study_data = study_data,
-        resident_actions = resident_actions)
   }
   
   megadapt$study_area@data <- study_data
