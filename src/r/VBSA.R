@@ -25,22 +25,25 @@ VBSA<-function(exp.min,exp.max,simyears=5,k=4,forreal) {
   Y<<-array(dim=c(2,maxN,(dim(ABMats)[3])))
   
   #Run simulations
-  source("r/VBSArunModel.R")
+  # source("r/VBSAmain.R")
 
   Y<<-apply(ABMats,c(1,3),function(x) modelMetrics(x,forreal)) 
   
-  results<-array(dim=c(k,(exp.max-exp.min+1),4))
+  #Calculate sensitivity indices
+  #rows<->parameters, columns<->N, third<->(output metrics)*2: first Si for all metrics, then STi for all metrics
+  resultss<-array(dim=c(k,(exp.max-exp.min+1),4))
   
   for (i in exp.min:exp.max) {
     N<-2^i
     
     Sis<-apply(Y,1,function(x) calc.Si(x,N,k))
+    Sis
     STis<-apply(Y,1,function(x) calc.STi(x,N,k))
     
-    results[1:k,(i-exp.min+1),]<-c(Sis,STis)
+    resultss[1:k,(i-exp.min+1),]<-c(Sis,STis)
   }
   
-  return(results)
+  return(resultss) 
 }
 
 # Function that runs the model (if "for real")
@@ -48,13 +51,14 @@ modelMetrics<-function(x,forreal){
 
   #Run model and get results from last year
   if (forreal) {
+    source("r/VBSAmain.R")
     Vlast<-run(x)
   }
   else {
     Vlast<-matrix(c(x,x/2),ncol=2) #toy function to check everything else makes sense
   }
   
-  means<-apply(Vlast,2,mean)
+  means<<-apply(Vlast,2,function(x) mean(x,na.rm=T))
 
   return(means)
 }
@@ -65,16 +69,18 @@ modelMetrics<-function(x,forreal){
 
 calc.Si<-function(y,N,k) {
   #y is a "slice" from the array Y. Columns (1<j<N) of Y turn into rows in y, and third dim (1<i<k+2) turns into columns.
-  vhat<-calc.Vhat(y,N)
+  vhat<<-calc.Vhat(y,N)
   Ares<-y[1:N,1]
   Bres<-y[1:N,2]
   vis<-apply(y[1:N,3:(k+2)],2,function(x) calc.Vi(x,N,Ares,Bres))
+  print(vis)
   si<-vis/vhat
   si # returns a matrix where rows are the k parameters, columns are the metrics used as model output
 }
 
 calc.Vi<-function(y,N,Ares,Bres) {
   vi<-(sum( Bres * (y - Ares) )) / (N)
+  print(vi)
   vi
 }
 
