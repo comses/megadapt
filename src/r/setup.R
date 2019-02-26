@@ -1,9 +1,8 @@
-library("dplyr")
 library("gbm")
 library("pscl")
+library("dplyr")
 
 source("r/adaptation_and_sensitivity.R")
-source("r/protests.R")
 source("r/save_results.R")
 source("r/site_selection.R")
 source("r/site_suitability.R")
@@ -12,6 +11,7 @@ source("r/take_actions_sacmex.R")
 source("r/update_age_infrastructure.R")
 source("r/update_climate.R")
 source("r/update_ponding.R")
+source("r/update_protests.R")
 
 create_study_data <- function(study_data) {
   study_data$antiguedad_D <- study_data$antiguedad
@@ -246,7 +246,8 @@ create_megadapt <- function(climate_scenario,
   )
 }
 
-update_year_megadapt <- function(megadapt, n_weeks) {
+update_year_megadapt <- function(megadapt, month_step_counts) {
+  n_weeks <- sum(month_step_counts$n_weeks)
   climate_scenario <- megadapt$climate_scenario
   mental_models <- megadapt$mental_models
   params <- megadapt$params
@@ -287,7 +288,7 @@ update_year_megadapt <- function(megadapt, n_weeks) {
     update_protests(
       study_data = study_data,
       resident_actions = resident_actions,
-      year_changed = TRUE
+      n_weeks_in_year = n_weeks
     )
   study_data <-
     update_adaptation_and_sensitivity(
@@ -305,8 +306,7 @@ update_year_megadapt <- function(megadapt, n_weeks) {
   for (week_index in seq(n_weeks - 1)) {
     study_data <-
       update_water_scarcity(study_data = study_data,
-                            water_scarcity_model = water_scarcity_model,
-                            year_changed = FALSE)
+                            water_scarcity_model = water_scarcity_model)
   }
   
   megadapt$study_area@data <- study_data
@@ -318,39 +318,41 @@ create_time_info <- function(n_steps) {
                        to = as.Date(sprintf("20%s/1/1", (19 + n_steps))),
                        by = "week")
   year_ts <- format(as.Date(ini_date), "%Y")
-  
-  n_weeks <- length(ini_date)
   year_change_indices <-
     which(as.logical(c(1, diff(
       as.numeric(year_ts)
     ))))
+  years <- unique(year_ts)
+  month_ts <- format(as.Date(ini_date), '%m')
   
-  tibble::tibble(start = year_change_indices,
-                 end = as.integer(c(year_change_indices[-1] - 1, n_weeks))) %>%
-    dplyr::mutate(
-      n_weeks = end - start + 1,
-      start_date = ini_date[start],
-      end_date = ini_date[end]
-    )
+  month_counts <- tibble::tibble(year = as.integer(year_ts),
+                                 month = as.integer(month_ts)) %>%
+    group_by(year, month) %>%
+    summarize(n_weeks = n())
+
+  month_counts
 }
 
 simulate_megadapt <- function(megadapt) {
-  time_info <- create_time_info(megadapt$params$n_steps)
+  all_month_step_counts <- create_time_info(megadapt$params$n_steps)
+  years <- sort(unique(all_month_step_counts$year))
   results <- initial_state(megadapt$study_area@data)
   
-  for (year_index in seq(nrow(time_info))) {
+  year_index <- 1
+  for (current_year in years) {
+    month_step_counts <- all_month_step_counts %>% filter(year == current_year)
     megadapt <-
-      update_year_megadapt(megadapt = megadapt, n_weeks = time_info$n_weeks[year_index])
-    end_date <- time_info$end_date[year_index]
+      update_year_megadapt(megadapt = megadapt, month_step_counts = month_step_counts)
     
     results <-
       save_TS(
         study_data = megadapt$study_area@data,
         TR = year_index,
         result_prev_time = results,
-        year = format(end_date, '%Y'),
-        month = format(end_date, '%m')
+        year = current_year,
+        month = 12
       )
+    year_index <- year_index + 1
   }
   
   results
