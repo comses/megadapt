@@ -217,3 +217,41 @@ Value_Function_cut_offs <- function(x, xcuts = c(0.0625, 0.125, 0.25, 0.5), xmax
 ideal_distance <- function(x, y, exponent = 1, z) {
   return((z * rowSums((y^exponent) * ((1 - x)^exponent), na.rm = T))^(1 / exponent))
 }
+
+
+load_value_function_config <- function(path) {
+  df <- read.csv(path, stringsAsFactors = FALSE, header = FALSE)
+  params <- as.list(df %>% tidyr::spread(V1, V2))
+  param_names <- names(params)
+  
+  numeric_keys <- c('a', 'center', 'gama', 'k', 'min', 'max')
+  for (numeric_key in numeric_keys) {
+    if (numeric_key %in% param_names) {
+      params[[numeric_key]] <- as.numeric(params[[numeric_key]])
+    }
+  }
+  
+  if ('show_map' %in% param_names) {
+    params[['show_map']] <- as.logical(params[['show_map']])
+  }
+  
+  params
+}
+
+create_value_function_config <- function(sewer_age,
+                                         shortage_age,
+                                         salt_water_quality,
+                                         shortage_failures,
+                                         hours_of_service_failure,
+                                         hydraulic_pressure_failure,
+                                         subsidence) {
+  list(
+    sewer_age = sewer_age,
+    shortage_age = shortage_age,
+    salt_water_quality = salt_water_quality,
+    shortage_failures = shortage_failures,
+    hours_of_service_failure = hours_of_service_failure,
+    hydraulic_pressure_failure = hydraulic_pressure_failure,
+    subsidence = subsidence
+  )
+}

@@ -2,16 +2,15 @@ library("gbm")
 library("pscl")
 library("dplyr")
 
-source("r/adaptation_and_sensitivity.R")
-source("r/save_results.R")
-source("r/site_selection.R")
+source("r/components/climate_model.R")
+source("r/components/mental_models.R")
+source("r/components/ponding_model.R")
+source("r/components/resident_model.R")
+source("r/components/sacmex_model.R")
+source("r/components/water_scarcity_model.R")
+source("r/data_collector.R")
 source("r/site_suitability.R")
-source("r/take_actions_residents.R")
-source("r/take_actions_sacmex.R")
-source("r/update_age_infrastructure.R")
-source("r/update_climate.R")
-source("r/update_ponding.R")
-source("r/update_protests.R")
+source("r/value_functions.R")
 
 create_study_data <- function(study_data) {
   study_data$antiguedad_D <- study_data$antiguedad
@@ -58,155 +57,6 @@ initial_state <- function(study_data) {
     year_sim = rep(2018, length(study_data$AGEB_ID)),
     month_sim = rep(12, length(study_data$AGEB_ID))
   )
-}
-
-create_water_scarcity_model <- function(study_data) {
-  zeroinfl(lambdas ~ CRITICO + antiguedad_Ab |
-             V_SAGUA,
-           dist = "negbin",
-           data = study_data)
-}
-
-update_water_scarcity <-
-  function(water_scarcity_model, study_data) {
-    prob_water <-
-      predict(water_scarcity_model, newdata = study_data, type = "prob")
-    water_yes <-
-      rbinom(n = length(prob_water[, 7]),
-             size = 1,
-             prob = prob_water[, 7]) * 7
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 6]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 6]) * 6
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 5]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 5]) * 5
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 4]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 4]) * 4
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 3]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 3]) * 3
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 2]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 2]) * 2
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 1]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 1]) * 1
-    
-    # update value of days with not water in a week
-    study_data$NOWater_week_pois <- water_yes
-    # update value of days with not water in a month
-    study_data$days_wn_water_month <- study_data$NOWater_week_pois
-    # update value of days with not water in a year
-    study_data$days_wn_water_year <- study_data$NOWater_week_pois
-    study_data
-  }
-
-load_obj <- function(path) {
-  env <- new.env()
-  nm <- load(path, envir = env)[1]
-  env[[nm]]
-}
-
-load_ponding_models <- function(base_path) {
-  models <- list()
-  for (i in 1:9) {
-    path <- paste0(base_path, "/encharcamientos/mod_en_reg", i, ".rda")
-    models[[i]] <- load_obj(path)
-  }
-  models
-}
-
-create_mental_models <- function(mm_water_operator_d_lim,
-                                 mm_water_operator_s_lim,
-                                 mm_iz) {
-  # name criteria
-  names_criteria_sacmex_s <-
-    colnames(mm_water_operator_s_lim)[-c(1:5)]
-  names_criteria_sacmex_d <-
-    colnames(mm_water_operator_d_lim)[-c(1, 2)]
-  
-  # criteria values
-  criteria_sacmcx_ab <- mm_water_operator_s_lim$Antiguedad[-c(1:5)]
-  criteria_sacmcx_d <- mm_water_operator_d_lim$Antiguedad[-c(1:2)]
-  
-  # alternative names
-  names_alternative_sacmex_s <-
-    colnames(mm_water_operator_s_lim)[c(1:5)]
-  names_alternative_sacmex_d <-
-    colnames(mm_water_operator_d_lim)[c(1, 2)]
-  
-  alternative_weights_s <-
-    mm_water_operator_s_lim$Antiguedad[c(1:5)]
-  alternative_weights_d <-
-    mm_water_operator_d_lim$Antiguedad[c(1:2)]
-  
-  names_criteria_resident_iz <- colnames(mm_iz)[-c(1:5)]
-  names_alternative_Resident_iz <- colnames(mm_iz)[c(1:5)]
-  
-  criteria_residents_iz <- mm_iz$Compra.de.agua[-c(1:5)]
-  alternative_weights_iz <- mm_iz$Compra.de.agua[c(1:5)]
-  
-  list(
-    sacmcx = list(
-      criteria = list(ab = criteria_sacmcx_ab,
-                      d = criteria_sacmcx_d),
-      alternative_weights = list(d = alternative_weights_d,
-                                 s = alternative_weights_s)
-    ),
-    residents = list(
-      criteria = list(iz = criteria_residents_iz),
-      alternative_weights = list(iz = alternative_weights_iz)
-    )
-  )
-}
-
-load_value_function_config <- function(path) {
-  df <- read.csv(path, stringsAsFactors = FALSE, header = FALSE)
-  params <- as.list(df %>% tidyr::spread(V1, V2))
-  param_names <- names(params)
-  
-  numeric_keys <- c('a', 'center', 'gama', 'k', 'min', 'max')
-  for (numeric_key in numeric_keys) {
-    if (numeric_key %in% param_names) {
-      params[[numeric_key]] <- as.numeric(params[[numeric_key]])
-    }
-  }
-  
-  if ('show_map' %in% param_names) {
-    params[['show_map']] <- as.logical(params[['show_map']])
-  }
-  
-  params
-}
-
-create_value_function_config <- function(sewer_age,
-                                         shortage_age,
-                                         salt_water_quality,
-                                         shortage_failures,
-                                         hours_of_service_failure,
-                                         hydraulic_pressure_failure,
-                                         subsidence) {
-  list(
-    sewer_age = sewer_age,
-    shortage_age = shortage_age,
-    salt_water_quality = salt_water_quality,
-    shortage_failures = shortage_failures,
-    hours_of_service_failure = hours_of_service_failure,
-    hydraulic_pressure_failure = hydraulic_pressure_failure,
-    subsidence = subsidence
-  )
-}
-
-load_climate_scenario <- function(path) {
-  read.csv(path, stringsAsFactors = FALSE, header = FALSE)
 }
 
 create_params <-

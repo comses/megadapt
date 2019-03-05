@@ -1,6 +1,5 @@
 source('r/setup.R')
 source('r/example.R')
-source('r/verification.R')
 
 require(magrittr)
 require(dplyr)

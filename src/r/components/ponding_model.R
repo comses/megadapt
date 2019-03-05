@@ -1,10 +1,12 @@
-# update the number of flooding events
+load_ponding_models <- function(base_path) {
+  models <- list()
+  for (i in 1:9) {
+    path <- paste0(base_path, "/encharcamientos/mod_en_reg", i, ".rda")
+    models[[i]] <- load_obj(path)
+  }
+  models
+}
 
-# flooding_update<-predict(fit_zinbinom,newdata=studyArea_CVG@data,type='response')
-# studyArea_CVG@data$encharca <-flooding_update
-
-
-#
 # from regression tree
 ## Se hace la prediccion para cada zona (1:9)
 update_ponding <- function(study_data, ponding_models) {
@@ -31,6 +33,6 @@ update_ponding <- function(study_data, ponding_models) {
       )
   }
   print(study_data$encharca[1708:1710])
-
+  
   study_data
 }
