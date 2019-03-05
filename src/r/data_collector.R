@@ -66,9 +66,3 @@ compare_results <- function(new_results, old_results, base_cols) {
        missing_new_columns = setdiff(colnames_new_results, colnames_old_results),
        missing_old_columns = setdiff(colnames_old_results, colnames_new_results))
 }
-
-load_obj <- function(path) {
-  env <- new.env()
-  nm <- load(path, envir = env)[1]
-  env[[nm]]
-}

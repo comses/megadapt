@@ -1,3 +1,9 @@
+load_obj <- function(path) {
+  env <- new.env()
+  nm <- load(path, envir = env)[1]
+  env[[nm]]
+}
+
 load_ponding_models <- function(base_path) {
   models <- list()
   for (i in 1:9) {
