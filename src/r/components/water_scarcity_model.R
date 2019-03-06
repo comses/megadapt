@@ -1,3 +1,8 @@
+#' Create a model estimating the relationship between days without clean water
+#' and water infrastructure age
+#'
+#' @param study_data A data frame with the needed predictor variables
+#' @return A model to predict future clean water availability given census block attributes
 create_water_scarcity_model <- function(study_data) {
   zeroinfl(lambdas ~ CRITICO + antiguedad_Ab |
              V_SAGUA,
@@ -5,6 +10,11 @@ create_water_scarcity_model <- function(study_data) {
            data = study_data)
 }
 
+#' Generate random water scarcity data for a year for all census blocks
+#'
+#' @param water_scarcity_model A model capable of predicting water scarcity probabilities by census block
+#' @param study_data Census block data
+#' @return data frame with pk and cumulative number of days without clean water this week and year by census block
 update_water_scarcity <-
   function(water_scarcity_model, study_data) {
     prob_water <-
@@ -38,13 +48,10 @@ update_water_scarcity <-
              size = 1,
              prob = prob_water[which(water_yes == 0), 1]) * 1
     
-    # update value of days with not water in a week
-    study_data$NOWater_week_pois <- water_yes
-    # update value of days with not water in a month
-    study_data$days_wn_water_month <- study_data$NOWater_week_pois
-    # update value of days with not water in a year
-    study_data$days_wn_water_year <- study_data$NOWater_week_pois
-    study_data
+    tibble::tibble(
+      n_days_no_clean_water_this_week=water_yes,
+      n_days_no_clean_water_this_year=study_data$n_days_no_clean_water_this_year + water_yes
+    )
   }
 
 update_water_scarcity_original <- function(study_area_cvg, water_scarcity_model) {
