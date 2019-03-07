@@ -13,32 +13,20 @@ load_ponding_models <- function(base_path) {
   models
 }
 
-# from regression tree
-## Se hace la prediccion para cada zona (1:9)
+#' Generate ponding data
+#'
+#' @param ponding_models A list of ponding models for each region
+#' @return ponding
 update_ponding <- function(study_data, ponding_models) {
-  for (hh in 1:9) {
-    study_data$encharca[which(study_data$region == hh)] <-
-      predict(
-        ponding_models[[hh]],
-        subset(
-          study_data,
-          subset = region == hh,
-          select = c(
-            "f_prec_v",
-            "f_esc",
-            "n_tramos",
-            "q100",
-            "bombeo_tot",
-            "rejillas"
-          )
-        ),
-        # observaciones de todas las variables de la region
-        n.trees = 9566,
-        # Número de árboles que usa el modelo
-        type = "response"
-      )
-  }
-  print(study_data$encharca[1708:1710])
-  
-  study_data
+  study_data %>%
+    dplyr::group_by(region) %>%
+    dplyr::group_map(~ {
+      .x %>%
+        mutate(encharca = predict(ponding_models[[.y$region]],
+                                  newdata = .x,
+                                  n.trees = 9566,
+                                  type = "response"))
+    }) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(ageb_id, encharca)
 }
