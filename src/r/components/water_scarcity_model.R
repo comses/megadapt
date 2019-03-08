@@ -14,9 +14,10 @@ create_water_scarcity_model <- function(study_data) {
 #'
 #' @param water_scarcity_model A model capable of predicting water scarcity probabilities by census block
 #' @param study_data Census block data
+#' @param week_of_year The number of weeks up until the present week of the current year
 #' @return data frame with pk and cumulative number of days without clean water this week and year by census block
 update_water_scarcity <-
-  function(water_scarcity_model, study_data) {
+  function(water_scarcity_model, study_data, week_of_year) {
     prob_water <-
       predict(water_scarcity_model, newdata = study_data, type = "prob")
     water_yes <-
@@ -47,7 +48,7 @@ update_water_scarcity <-
       rbinom(n = length(prob_water[which(water_yes == 0), 1]),
              size = 1,
              prob = prob_water[which(water_yes == 0), 1]) * 1
-    
+
     tibble::tibble(
       n_days_no_clean_water_this_week=water_yes,
       n_days_no_clean_water_this_year=study_data$n_days_no_clean_water_this_year + water_yes
