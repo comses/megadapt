@@ -1,5 +1,3 @@
-source('r/setup.R')
-
 example <- function() {
   path_to_source <- "." # change path to use it
   path_td <- "../data/"

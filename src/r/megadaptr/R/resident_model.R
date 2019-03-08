@@ -1,3 +1,7 @@
+determine_resident_private_infrastructure_investment <- function() {
+  
+}
+
 update_adaptation_and_sensitivity <- function(study_data, resident_actions, params, week_of_year) {
   if (week_of_year != 1) {
     return(study_data)
@@ -32,7 +36,12 @@ update_adaptation_and_sensitivity <- function(study_data, resident_actions, para
     )
 }
 
+determine_resident_protest_decisions <- function() {
+  
+}
+
 update_protests <- function(study_data, resident_actions, week_of_year) {
+  # decide w
   agebs_que_protestan <- resident_actions$agebs_que_protestan
   if (week_of_year == 1) {
     study_data$social_pressure <- 0
@@ -67,5 +76,9 @@ take_actions_residents <- function(site_suitability, params, week_of_year) {
     update_protests(
       study_data = .,
       resident_actions = resident_actions,
-      week_of_year = week_of_year)
+      week_of_year = week_of_year) %>%
+    select(ageb_id, 
+           housing_modifications_Ab,
+           housing_modifications_D,
+           social_pressure)
 }

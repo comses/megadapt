@@ -2,20 +2,10 @@ library("gbm")
 library("pscl")
 library("dplyr")
 
-source("r/components/climate_model.R")
-source("r/components/mental_models.R")
-source("r/components/ponding_model.R")
-source("r/components/resident_model.R")
-source("r/components/sacmex_model.R")
-source("r/components/water_scarcity_model.R")
-source("r/data_collector.R")
-source("r/site_suitability.R")
-source("r/value_functions.R")
-
 create_study_data <- function(study_data) {
   study_data$antiguedad_D <- study_data$antiguedad
   study_data$antiguedad_Ab <- study_data$antiguedad
-  
+
   # water scarcity (week, month year)
   study_data$days_wn_water_year <-
     rep(0, length(study_data$AGEB_ID))
@@ -24,12 +14,12 @@ create_study_data <- function(study_data) {
   study_data$NOWater_week_pois <- rep(0, length(study_data$AGEB_ID))
   # here we calculate the consecutive accumulation of days without water
   # If this accumulation surpass a threshold, a protest is triggered and social pressure accumulated
-  
+
   # save water scarcity, protests and social pressure
   study_data$NOWater_twoweeks <- numeric(length(study_data$AGEB_ID))
   study_data$protesta <- numeric(length(study_data$AGEB_ID))
   study_data$social_pressure <- numeric(length(study_data$AGEB_ID))
-  
+
   # save variables associated with adaptation
   study_data$house_modifications_Ab <-
     rep(0, length(study_data$AGEB_ID))
@@ -38,15 +28,15 @@ create_study_data <- function(study_data) {
   # sensitivity of neighborhoods to scarcity and flooding
   study_data$sensitivity_Ab <- rep(1, length(study_data$AGEB_ID))
   study_data$sensitivity_D <- rep(1, length(study_data$AGEB_ID))
-  
+
   # Vulnerability of populations
   study_data$vulnerability_Ab <- rep(1, length(study_data$AGEB_ID))
   study_data$vulnerability_D <- rep(1, length(study_data$AGEB_ID))
-  
+
   # Interventions from water authority
   study_data$Interventions_D <- rep(1, length(study_data$AGEB_ID))
   study_data$Interventions_Ab <- rep(1, length(study_data$AGEB_ID))
-  
+
   study_data
 }
 
@@ -105,16 +95,16 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
   study_data <- megadapt$study_area@data
   water_scarcity_model <- megadapt$water_scarcity_model
   value_function_config <- megadapt$value_function_config
-  
+
   study_data <-
     update_water_scarcity(study_data = study_data,
                           water_scarcity_model = water_scarcity_model)
-  
+
   study_data <-
     update_climate(study_data = study_data, climate_scenario = climate_scenario)
   study_data <-
     update_ponding(study_data = study_data, ponding_models = ponding_models)
-  
+
   # run site suitability
   site_suitability <-
     determine_site_suitability(
@@ -125,13 +115,13 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
   # run site selection
   site_selection <-
     determine_site_selection(site_suitability, budget = params$budget)
-  
+
   # take actions sacmex
   study_data <-
     take_actions_sacmex(params = params,
                         study_data = study_data,
                         site_selection = site_selection)
-  
+
   # update the level of adaptation and sensitivity of residents
   resident_actions <- take_actions_residents(site_suitability)
   study_data <-
@@ -152,13 +142,13 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
       study_data = study_data,
       infrastructure_decay_rate = params$infrastructure_decay_rate
     )
-  
+
   for (week_index in seq(n_weeks - 1)) {
     study_data <-
       update_water_scarcity(study_data = study_data,
                             water_scarcity_model = water_scarcity_model)
   }
-  
+
   megadapt$study_area@data <- study_data
   megadapt
 }
@@ -174,7 +164,7 @@ create_time_info <- function(n_steps) {
     ))))
   years <- unique(year_ts)
   month_ts <- format(as.Date(ini_date), '%m')
-  
+
   month_counts <- tibble::tibble(year = as.integer(year_ts),
                                  month = as.integer(month_ts)) %>%
     group_by(year, month) %>%
@@ -187,13 +177,13 @@ simulate_megadapt <- function(megadapt) {
   all_month_step_counts <- create_time_info(megadapt$params$n_steps)
   years <- sort(unique(all_month_step_counts$year))
   results <- initial_state(megadapt$study_area@data)
-  
+
   year_index <- 1
   for (current_year in years) {
     month_step_counts <- all_month_step_counts %>% filter(year == current_year)
     megadapt <-
       update_year_megadapt(megadapt = megadapt, month_step_counts = month_step_counts)
-    
+
     results <-
       save_TS(
         study_data = megadapt$study_area@data,
@@ -204,6 +194,6 @@ simulate_megadapt <- function(megadapt) {
       )
     year_index <- year_index + 1
   }
-  
+
   results
 }

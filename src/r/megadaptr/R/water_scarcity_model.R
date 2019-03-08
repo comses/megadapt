@@ -13,7 +13,12 @@ create_water_scarcity_model <- function(study_data) {
 #' Generate random water scarcity data for a year for all census blocks
 #'
 #' @param water_scarcity_model A model capable of predicting water scarcity probabilities by census block
-#' @param study_data Census block data
+#' @param study_data Census block data. The data contains
+#'   \describe{
+#'   \item{antiguedad_Ab} Fresh water infrastructure age in years
+#'   \item{CRITICO} Indicator variable of whether census block has less than 4 hours of water per day
+#'   \item{V_SAGUA} Number of houses in census block without water
+#'   }
 #' @param week_of_year The number of weeks up until the present week of the current year
 #' @return data frame with pk and cumulative number of days without clean water this week and year by census block
 update_water_scarcity <-
@@ -50,6 +55,7 @@ update_water_scarcity <-
              prob = prob_water[which(water_yes == 0), 1]) * 1
 
     tibble::tibble(
+      ageb_id=study_data$ageb_id,
       n_days_no_clean_water_this_week=water_yes,
       n_days_no_clean_water_this_year=study_data$n_days_no_clean_water_this_year + water_yes
     )

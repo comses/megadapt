@@ -1,4 +1,3 @@
-source('r/setup.R')
 source('r/example.R')
 
 require(magrittr)
