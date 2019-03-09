@@ -1,7 +1,3 @@
-library("gbm")
-library("pscl")
-library("dplyr")
-
 create_study_data <- function(study_data) {
   study_data$antiguedad_D <- study_data$antiguedad
   study_data$antiguedad_Ab <- study_data$antiguedad
@@ -86,6 +82,7 @@ create_megadapt <- function(climate_scenario,
   )
 }
 
+#' Run the megadapt model one year
 update_year_megadapt <- function(megadapt, month_step_counts) {
   n_weeks <- sum(month_step_counts$n_weeks)
   climate_scenario <- megadapt$climate_scenario
@@ -173,6 +170,7 @@ create_time_info <- function(n_steps) {
   month_counts
 }
 
+#' Run the megadapt model
 simulate_megadapt <- function(megadapt) {
   all_month_step_counts <- create_time_info(megadapt$params$n_steps)
   years <- sort(unique(all_month_step_counts$year))

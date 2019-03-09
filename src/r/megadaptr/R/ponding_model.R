@@ -17,6 +17,7 @@ load_ponding_models <- function(base_path) {
 #'
 #' @param ponding_models A list of ponding models for each region
 #' @return ponding
+#' @importFrom gbm predict.gbm
 update_ponding <- function(study_data, ponding_models) {
   study_data %>%
     dplyr::group_by(region) %>%
