@@ -1,7 +1,7 @@
-source('r/example.R')
+source('../scenarios/example.R')
 
-require(magrittr)
-require(dplyr)
+library(megadaptr)
+library(magrittr)
 
 set.seed(1000)
 
