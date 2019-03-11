@@ -6,6 +6,8 @@ RUN apt-get update \
   && apt-get install -y zlib1g-dev libpng-dev libgeos-dev libgdal-dev \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+COPY ./src/.R /home/rstudio
+
 WORKDIR /home/rstudio/code/src
 
 # Install R packages
