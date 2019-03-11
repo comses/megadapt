@@ -11,13 +11,14 @@ Authors@R: c(
     )
 Description: A spatial microsimulation model of residents,
     administrators and climate for evaluating fresh and storm
-    water investment policies
+    water investment policies.
 License: GPL-3
 Depends: R (>= 3.5.0)
 Imports:
     bindrcpp,
     dplyr (>= 0.8.0),
     gbm,
+    magrittr,
     pscl,
     purrr,
     rgdal,
