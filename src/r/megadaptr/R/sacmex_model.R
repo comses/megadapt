@@ -1,3 +1,166 @@
+determine_public_infrastructure_suitability <- function(study_data, value_function_config, mental_models) {
+  ## Common
+  # peticiones de delegaciones
+  vf_pet_del_dr <- sapply(study_data$pet_del_dr, FUN = Peticion_Delegaciones_vf)
+
+  # presion de medios
+  vf_pres_medios <- sapply(study_data$PRES_MED, FUN = pression_medios_vf)
+
+  # Ponding
+  vf_pond <- sapply(study_data$encharca, FUN = ponding_vf)
+
+  ## Fresh Water Specific
+  # age infrastructure Abastecimiento
+  vf_A_Ab <- sapply(study_data$antiguedad_Ab,
+                    FUN = campana_invertida,
+                    center = shortage_age$center,
+                    a = shortage_age$a,
+                    xmax = shortage_age$max,
+                    xmin = shortage_age$min)
+
+  # potable water system capacity
+  vf_Cap_Ab <- rep(1, length(study_data$V_SAGUA))
+
+  # d) falla Ab
+  vf_falla <- 1 - sapply(study_data$falla_in,
+                         FUN = convexa_creciente,
+                         gama = shortage_failures$gama,
+                         xmax = shortage_failures$max,
+                         xmin = shortage_failures$min)
+
+  # falta
+  vf_falta_Ab <- sapply(100 * study_data$V_SAGUA, FUN = lack_of_infrastructure_vf)
+
+  # monto ##!!!#no information about this variable
+  vf_monto <- rep(1, length(study_data$AGEB_ID))
+
+  # hydraulic pressure
+  vf_hid_pressure <- sapply(study_data$pres_hid,
+                            FUN = logistic_vf,
+                            k = hydraulic_pressure_failure$k,
+                            center = hydraulic_pressure_failure$center,
+                            xmax = hydraulic_pressure_failure$max,
+                            xmin = hydraulic_pressure_failure$min)
+
+  # Water quality
+  vf_WQ <- sapply(study_data$cal_agua, FUN = water_quality_residents_vf)
+
+  # e)water scarcity
+  vf_scarcity_sacmex <- sapply(study_data$days_wn_water_year, FUN = scarcity_sacmex_vf) # scarcity_annual is calculated dynamically
+
+  # abastecimiento
+  vf_Abaste <- sapply(study_data$abastecimi, FUN = Value_Function_cut_offs, xmax = max(study_data$abastecimi, na.rm = T))
+
+  # social_pressure
+  vf_SP <- sapply(study_data$social_pressure, FUN = social_pressure_vf)
+
+  all_C_ab <- cbind(
+    vf_A_Ab,
+    vf_Cap_Ab,
+    vf_falla,
+    vf_falta_Ab,
+    vf_monto,
+    vf_hid_pressure,
+    vf_WQ,
+    vf_scarcity_sacmex,
+    vf_pond,
+    vf_Abaste,
+    vf_pet_del_dr,
+    vf_pres_medios,
+    vf_SP
+  )
+
+  ## Storm Water Specific
+  # garbage
+  vf_garbage <- sapply(study_data$BASURA / 10000, FUN = drainages_clogged_vf)
+
+  # run-off/escurrimiento
+  vf_run_off <- sapply(study_data$escurri, FUN = run_off_vf)
+
+  # subsidance
+  vf_subside <- sapply(study_data$subsidenci,
+                       FUN = logistic_invertida,
+                       k = subsidence$k,
+                       xmin = subsidence$min,
+                       xmax = subsidence$max,
+                       center = subsidence$center)
+
+  # rainfall
+  vf_rain <- sapply(study_data$PR_2008, FUN = rainfall_vf)
+
+  # age infrastructure drainage
+  vf_A_D <- sapply(study_data$antiguedad_D,
+                   FUN = logistic_invertida,
+                   center = sewer_age$center,
+                   k = sewer_age$k,
+                   xmax = sewer_age$max,
+                   xmin = sewer_age$min)
+
+  # drainage capacity
+  vf_Cap_D<-sapply(study_data$q100,FUN = capacity_drainage_vf,sat=1,x_max=200,x_min=0)
+
+  # falla D
+  vf_fall_D <- rep(1, length(study_data$falla_in))
+
+  vf_falta_D <- sapply(100 * study_data$falta_dren, FUN = lack_of_infrastructure_vf)
+
+  # peticiones de usuarions delegacionales
+  vf_pet_us_d <- sapply(study_data$pet_usr_d, FUN = Peticiones_usuarios_vf, xmax = max(study_data$pet_usr_d, na.rm = T))
+
+  # flooding #cchange to flooding
+  vf_flood <- sapply(study_data$encharca, FUN = ponding_vf)
+
+  all_C_D <- cbind(
+    vf_garbage,
+    vf_run_off,
+    vf_subside,
+    vf_rain,
+    vf_A_D,
+    vf_Cap_D,
+    vf_fall_D,
+    vf_falta_D,
+    vf_pet_del_dr,
+    vf_pet_us_d,
+    vf_pres_medios,
+    vf_pond,
+    vf_flood
+  )
+
+  # calculate distance for each census block for action mantainance and build new infrastructure
+  sacmcx_criteria_d <- as.vector(mental_models$sacmcx$criteria$d)
+  sacmcx_alternative_weights_d <- mental_models$sacmcx$alternative_weights$d
+  distance_ideal_A1_D <- sweep(as.matrix(all_C_D),
+                               MARGIN = 2,
+                               sacmcx_criteria_d / sum(sacmcx_criteria_d),
+                               FUN = ideal_distance,
+                               z = sacmcx_alternative_weights_d[1] / sum(sacmcx_alternative_weights_d)) # "Mantenimiento"
+  distance_ideal_A2_D <- sweep(as.matrix(all_C_D),
+                               MARGIN = 2,
+                               sacmcx_criteria_d / sum(sacmcx_criteria_d),
+                               FUN = ideal_distance,
+                               z = sacmcx_alternative_weights_d[2] / sum(sacmcx_alternative_weights_d)) # "Nueva_infraestructura"
+
+  sacmcx_criteria_ab <- as.vector(mental_models$sacmcx$criteria$ab)
+  sacmcx_alternative_weights_s <- mental_models$sacmcx$alternative_weights$s
+  distance_ideal_A1_Ab <- sweep(as.matrix(all_C_ab),
+                                MARGIN = 2,
+                                sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
+                                FUN = ideal_distance,
+                                z = sacmcx_alternative_weights_s[4] / sum(sacmcx_alternative_weights_s[c(4, 5)])) # "Mantenimiento"
+  distance_ideal_A2_Ab <- sweep(as.matrix(all_C_ab),
+                                MARGIN = 2,
+                                sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
+                                FUN = ideal_distance,
+                                z = sacmcx_alternative_weights_s[5] / sum(sacmcx_alternative_weights_s[c(4, 5)])) # "Nueva_infraestructura"
+
+  list(
+    distance_ideal_A1_D = distance_ideal_A1_D,
+    distance_ideal_A2_D = distance_ideal_A2_D,
+    distance_ideal_A1_Ab = distance_ideal_A1_Ab,
+    distance_ideal_A2_Ab = distance_ideal_A2_Ab
+  )
+}
+
 determine_site_selection <- function(site_suitability, budget) {
   # first find the ranking of non-dominant solutions in the pareto frontier
   r <-

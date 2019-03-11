@@ -3,35 +3,26 @@ create_study_data <- function(study_data) {
   study_data$antiguedad_Ab <- study_data$antiguedad
 
   # water scarcity (week, month year)
-  study_data$days_wn_water_year <-
-    rep(0, length(study_data$AGEB_ID))
-  study_data$days_wn_water_month <-
-    rep(0, length(study_data$AGEB_ID))
-  study_data$NOWater_week_pois <- rep(0, length(study_data$AGEB_ID))
-  # here we calculate the consecutive accumulation of days without water
-  # If this accumulation surpass a threshold, a protest is triggered and social pressure accumulated
+  study_data$days_wn_water_year <- 0L
+  study_data$days_wn_water_month <- 0L
 
   # save water scarcity, protests and social pressure
-  study_data$NOWater_twoweeks <- numeric(length(study_data$AGEB_ID))
-  study_data$protesta <- numeric(length(study_data$AGEB_ID))
-  study_data$social_pressure <- numeric(length(study_data$AGEB_ID))
+  study_data$social_pressure <- 0L
 
   # save variables associated with adaptation
-  study_data$house_modifications_Ab <-
-    rep(0, length(study_data$AGEB_ID))
-  study_data$house_modifications_D <-
-    rep(0, length(study_data$AGEB_ID))
+  study_data$house_modifications_Ab <- 0L
+  study_data$house_modifications_D <- 0L
   # sensitivity of neighborhoods to scarcity and flooding
-  study_data$sensitivity_Ab <- rep(1, length(study_data$AGEB_ID))
-  study_data$sensitivity_D <- rep(1, length(study_data$AGEB_ID))
+  study_data$sensitivity_Ab <- 1
+  study_data$sensitivity_D <- 1
 
   # Vulnerability of populations
-  study_data$vulnerability_Ab <- rep(1, length(study_data$AGEB_ID))
-  study_data$vulnerability_D <- rep(1, length(study_data$AGEB_ID))
+  study_data$vulnerability_Ab <- 1
+  study_data$vulnerability_D <- 1
 
   # Interventions from water authority
-  study_data$Interventions_D <- rep(1, length(study_data$AGEB_ID))
-  study_data$Interventions_Ab <- rep(1, length(study_data$AGEB_ID))
+  study_data$Interventions_D <- 1
+  study_data$Interventions_Ab <- 1
 
   study_data
 }
@@ -164,8 +155,8 @@ create_time_info <- function(n_steps) {
 
   month_counts <- tibble::tibble(year = as.integer(year_ts),
                                  month = as.integer(month_ts)) %>%
-    group_by(year, month) %>%
-    summarize(n_weeks = n())
+    dplyr::group_by(year, month) %>%
+    dplyr::summarize(n_weeks = n())
 
   month_counts
 }
@@ -178,7 +169,7 @@ simulate_megadapt <- function(megadapt) {
 
   year_index <- 1
   for (current_year in years) {
-    month_step_counts <- all_month_step_counts %>% filter(year == current_year)
+    month_step_counts <- all_month_step_counts %>% dplyr::filter(year == current_year)
     megadapt <-
       update_year_megadapt(megadapt = megadapt, month_step_counts = month_step_counts)
 
