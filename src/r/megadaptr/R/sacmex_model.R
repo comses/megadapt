@@ -1,4 +1,4 @@
-determine_public_infrastructure_suitability <- function(study_data, value_function_config, mental_models) {
+determine_public_infrastructure_investment_suitability <- function(study_data, value_function_config, mental_models) {
   ## Common
   # peticiones de delegaciones
   vf_pet_del_dr <- sapply(study_data$pet_del_dr, FUN = Peticion_Delegaciones_vf)
@@ -154,6 +154,7 @@ determine_public_infrastructure_suitability <- function(study_data, value_functi
                                 z = sacmcx_alternative_weights_s[5] / sum(sacmcx_alternative_weights_s[c(4, 5)])) # "Nueva_infraestructura"
 
   list(
+    ageb_id = study_data$ageb_id,
     distance_ideal_A1_D = distance_ideal_A1_D,
     distance_ideal_A2_D = distance_ideal_A2_D,
     distance_ideal_A1_Ab = distance_ideal_A1_Ab,
@@ -161,20 +162,14 @@ determine_public_infrastructure_suitability <- function(study_data, value_functi
   )
 }
 
-determine_site_selection <- function(site_suitability, budget) {
-  # first find the ranking of non-dominant solutions in the pareto frontier
-  r <-
-    rbind(
-      site_suitability$distance_ideal_A1_D,
-      site_suitability$distance_ideal_A2_D,
-      site_suitability$distance_ideal_A1_Ab,
-      site_suitability$distance_ideal_A2_Ab
-    )
-
+determine_public_infrastructure_work_plan <- function(site_suitability, budget, n_weeks) {
+  r <- site_suitability
+  n_census_blocks <- min(budget, length(choices))
   choices <- max.col(as.matrix(r))
+  work_plan <- cut(seq(n_census_blocks), n_weeks, labels = FALSE)
 
   # save ID of selected agebs
-  selected_agebs <- order(r)[1:min(budget, length(r))]
+  selected_agebs <- order(choices)[1:min(budget, length(choices))]
 
   # Store ID of agebs that will be modified by sacmex
   A1 <- selected_agebs[which(choices == 1)] # "Mantenimiento" D
@@ -182,15 +177,19 @@ determine_site_selection <- function(site_suitability, budget) {
   A3 <- selected_agebs[which(choices == 3)] # "Mantenimiento" Ab
   A4 <- selected_agebs[which(choices == 4)] # "Nueva_infraestructura" Ab
 
-  list(
+  tibble::tibble(
+    ageb_id = r$ageb_id,
+    work_plan,
     A1 = A1,
     A2 = A2,
     A3 = A3,
     A4 = A4
-  )
+  ) %>%
+    dplyr::group_by(work_plan) %>%
+    dplyr::group_nest()
 }
 
-take_actions_sacmex <- function(study_data, site_selection, params) {
+make_public_infrastructure_investments <- function(study_data, site_selection, params) {
   A1 <- site_selection$A1
   A2 <- site_selection$A2
   A3 <- site_selection$A3
@@ -226,22 +225,23 @@ take_actions_sacmex <- function(study_data, site_selection, params) {
     study_data$Interventions_Ab[A4] <- study_data$Interventions_Ab[A4] + 1
   }
 
-  study_data %>%
-    update_infrastructure_age(
-      study_data=.,
-      infrastructure_decay_rate = params$infrastructure_decay_rate) %>%
-    select(ageb_id,
-           antiguedad_Ab,
-           antiguedad_D,
-           bombeo_tot,
-           falta_dren,
-           Interventions_Ab,
-           Interventions_D,
-           q100,
-           V_SAGUA)
+  study_data
 }
 
-update_infrastructure_age <- function(study_data, infrastructure_decay_rate) {
+create_public_infrastructure_investment_plan <- function(study_data, value_function_config, mental_models, budget) {
+  suitability <- determine_public_infrastructure_investment_suitability(
+    study_data = study_data,
+    value_function_config = value_function_config,
+    mental_models = mental_models
+  )
+
+  work_plan <- determine_public_infrastructure_work_plan(
+    site_suitability = suitability,
+    budget = budget
+  )
+}
+
+depreciate_public_infrastructure <- function(study_data, infrastructure_decay_rate) {
   # update infrastructure related atributes
   # update_age_infrastructure
   study_data$antiguedad_D <- study_data$antiguedad_D + 1
@@ -257,4 +257,35 @@ update_infrastructure_age <- function(study_data, infrastructure_decay_rate) {
   study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren) * study_data$pop_growth)
 
   study_data
+}
+
+update_public_infrastructure <- function(study_data, value_function_config, mental_models, params) {
+  suitability <- determine_public_infrastructure_investment_suitability(
+    study_data = study_data,
+    value_function_config = value_function_config,
+    mental_models = mental_models
+  )
+
+  selection <- determine_public_infrastructure_investment_projects(
+    site_suitability = suitability,
+    budget = params$budget
+  )
+
+  study_data %>%
+    make_public_infrastructure_investments(
+      study_data = .,
+      site_selection = selection) %>%
+    depreciate_public_infrastructure(
+      study_data = .,
+      infrastructure_decay_rate = params$infrastructure_decay_rate
+    ) %>%
+    select(ageb_id,
+           antiguedad_Ab,
+           antiguedad_D,
+           bombeo_tot,
+           falta_dren,
+           Interventions_Ab,
+           Interventions_D,
+           q100,
+           V_SAGUA)
 }

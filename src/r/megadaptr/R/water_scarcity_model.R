@@ -20,9 +20,6 @@ create_water_scarcity_model <- function(study_data) {
 #'   }
 #' @param week_of_year The number of weeks up until the present week of the current year
 #' @return data frame with pk and cumulative number of days without clean water this week and year by census block
-#'
-#' @details Census block data contains
-
 update_water_scarcity <-
   function(water_scarcity_model,
            study_data,
