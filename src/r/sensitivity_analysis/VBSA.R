@@ -2,8 +2,8 @@
 
 VBSA<-function(exp.min,exp.max,simyears=5,k=4,forreal) {
   
-  #Set global variable of simulation time
-  time_simulation<<-simyears
+  # #Set global variable of simulation time
+  # time_simulation<<-simyears
   
   maxN<-2^exp.max
   
@@ -25,7 +25,7 @@ VBSA<-function(exp.min,exp.max,simyears=5,k=4,forreal) {
   Y<<-array(dim=c(2,maxN,(dim(ABMats)[3])))
   
   #Run simulations
-  # source("r/VBSAmain.R")
+  source("r/VBSAmain.R")
 
   Y<<-apply(ABMats,c(1,3),function(x) modelMetrics(x,forreal)) 
   
@@ -51,8 +51,8 @@ modelMetrics<-function(x,forreal){
 
   #Run model and get results from last year
   if (forreal) {
-    source("r/VBSAmain.R")
-    Vlast<-run(x)
+    # source("r/VBSAmain.R")
+    Vlast<-run(x,simyears)
   }
   else {
     Vlast<-matrix(c(x,x/2),ncol=2) #toy function to check everything else makes sense
@@ -95,11 +95,12 @@ calc.STi<-function(y,N,k) {
 
 calc.VTi<-function(y,N,Ares) {
   vti<-(sum( (Ares - y) ^2 ))/(2*N)
+  vti
 }
 
 
 calc.Vhat<-function(y,N) {
   fhat<-(sum( y[1:N,1]+y[1:N,2] )) / (2*N)
-  vhat<<-(sum( (y[1:N,1]-fhat)^2 + (y[1:N,2]-fhat)^2 )) / (2*N-1)
+  vhat<-(sum( (y[1:N,1]-fhat)^2 + (y[1:N,2]-fhat)^2 )) / (2*N-1)
   vhat
 }

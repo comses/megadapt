@@ -1,17 +1,18 @@
 source('r/setup.R')
 source('r/example.R')
 
-require(magrittr)
 require(dplyr)
 
-run<-function(x) {
-  #Assign values to variables
-  effectivity_newInfra<<-x[1]
-  effectivity_mantenimiento<<-x[2]
-  decay_infra<<-x[3]
-  Budget<<-x[4]
+run<-function(x,years) {
+  # #Assign values to variables
+  # effectivity_newInfra<<-x[1]
+  # effectivity_mantenimiento<<-x[2]
+  # decay_infra<<-x[3]
+  # Budget<<-x[4]
   
   set.seed(1000)
+  megadapt<-example(x,years)
+  # print(megadapt$params)
   results <- simulate_megadapt(megadapt)
   
   lastT<-max(results$time_sim)

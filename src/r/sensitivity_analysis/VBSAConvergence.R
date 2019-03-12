@@ -12,7 +12,7 @@ source("r/VBSA.R")
 simyears=1
 exp.min=1
 exp.max=1
-forreal=F
+forreal=T
 
 exponents<-c(exp.min:exp.max)
 Ns<-2^exponents
