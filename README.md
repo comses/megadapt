@@ -1,4 +1,5 @@
 # megadapt
+
 CoMSES MEGADAPT repository for containerized megadapt models
 
 ## Setup
@@ -17,6 +18,17 @@ and password (rstudio and test respectively).
 You should now see an rstudio environment.
 
 Now source the megadapt project in RStudio (File > Open Project) and go to
-`code > src` in the explorer and click `ABM_Rversion.Rproj`.
+`code > src > r > megadaptr` in the explorer and click `megadaptr.Rproj`.
 
-You R environment is now setup for you.
+Your R environment is now setup for you.
+
+Press `Ctnl+Shift+b` to build and reload from `megadaptr` package from rstudio.
+
+## Code Organization
+
+- Scenarios folder (`src/r/scenarios`)
+
+  Contains scenario specific setup information
+- `megadaptr` folder (`src/r/megadaptr`)
+
+  Contains generic code which should apply to many scenarios.
