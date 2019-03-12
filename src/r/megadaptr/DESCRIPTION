@@ -1,0 +1,32 @@
+Package: megadaptr
+Type: Package
+Title: Modeling Water Infrastructure Investment in Mexico City
+Version: 0.1.0
+Authors@R: c(
+    person("Andres", "Baeza", role=c("aut")),
+    person("Fidel", "Serrano Candela", role=c("aut")),
+    person("Calvin", "Pritchard", email="calvin.pritchard@asu.edu", role=c("aut", "cre")),
+    person("Manuela", "Vanegas Ferro", role=c("aut")),
+    person("Sean", "Bergin", role=c("aut"))
+    )
+Description: A spatial microsimulation model of residents,
+    administrators and climate for evaluating fresh and storm
+    water investment policies.
+License: GPL-3
+Depends: R (>= 3.5.0)
+Imports:
+    bindrcpp,
+    dplyr (>= 0.8.0),
+    gbm,
+    magrittr,
+    pscl,
+    purrr,
+    rgdal,
+    tidyr
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
+Suggests:
+    testthat
+URL: https://github.com/cpritcha/megadaptr
+BugReports: https://github.com/cpritcha/megadaptr/issues

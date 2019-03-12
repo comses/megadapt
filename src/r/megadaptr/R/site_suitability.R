@@ -1,34 +1,34 @@
-source('r/value_functions.R')
-
+#' Determine site suitability for
+#'
 determine_site_suitability <- function(study_data, value_function_config, mental_models) {
   sewer_age <- value_function_config$sewer_age
   shortage_age <- value_function_config$shortage_age
   shortage_failures <- value_function_config$shortage_failures
   hydraulic_pressure_failure <- value_function_config$hydraulic_pressure_failure
   subsidence <- value_function_config$subsidence
-  
+
   # site_suitability
   # 1)update value functions sacmex
   # a) age infrastructure drainage
-  vf_A_D <- sapply(study_data$antiguedad_D, 
-                   FUN = logistic_invertida, 
-                   center = sewer_age$center, 
-                   k = sewer_age$k, 
-                   xmax = sewer_age$max, 
+  vf_A_D <- sapply(study_data$antiguedad_D,
+                   FUN = logistic_invertida,
+                   center = sewer_age$center,
+                   k = sewer_age$k,
+                   xmax = sewer_age$max,
                    xmin = sewer_age$min)
 
   # b) age infrastructure Abastecimiento
-  vf_A_Ab <- sapply(study_data$antiguedad_Ab, 
-                    FUN = campana_invertida, 
-                    center = shortage_age$center, 
-                    a = shortage_age$a, 
-                    xmax = shortage_age$max, 
+  vf_A_Ab <- sapply(study_data$antiguedad_Ab,
+                    FUN = campana_invertida,
+                    center = shortage_age$center,
+                    a = shortage_age$a,
+                    xmax = shortage_age$max,
                     xmin = shortage_age$min)
 
 
   # c)Drainage capacity
   vf_Cap_D<-sapply(study_data$q100,FUN = capacity_drainage_vf,sat=1,x_max=200,x_min=0)
-  
+
   # d)falta
   vf_falta_Ab <- sapply(100 * study_data$V_SAGUA, FUN = lack_of_infrastructure_vf)
   vf_falta_D <- sapply(100 * study_data$falta_dren, FUN = lack_of_infrastructure_vf)
@@ -37,10 +37,10 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   vf_Cap_Ab <- rep(1, length(study_data$V_SAGUA))
 
   # d) falla Ab
-  vf_falla <- 1 - sapply(study_data$falla_in, 
-                         FUN = convexa_creciente, 
-                         gama = shortage_failures$gama, 
-                         xmax = shortage_failures$max, 
+  vf_falla <- 1 - sapply(study_data$falla_in,
+                         FUN = convexa_creciente,
+                         gama = shortage_failures$gama,
+                         xmax = shortage_failures$max,
                          xmin = shortage_failures$min)
 
   # falla D
@@ -65,19 +65,19 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   vf_garbage <- sapply(study_data$BASURA / 10000, FUN = drainages_clogged_vf)
 
   # subsidance
-  vf_subside <- sapply(study_data$subsidenci, 
-                       FUN = logistic_invertida, 
-                       k = subsidence$k, 
-                       xmin = subsidence$min, 
-                       xmax = subsidence$max, 
+  vf_subside <- sapply(study_data$subsidenci,
+                       FUN = logistic_invertida,
+                       k = subsidence$k,
+                       xmin = subsidence$min,
+                       xmax = subsidence$max,
                        center = subsidence$center)
 
   # hydraulic pressure
-  vf_hid_pressure <- sapply(study_data$pres_hid, 
-                            FUN = logistic_vf, 
-                            k = hydraulic_pressure_failure$k, 
-                            center = hydraulic_pressure_failure$center, 
-                            xmax = hydraulic_pressure_failure$max, 
+  vf_hid_pressure <- sapply(study_data$pres_hid,
+                            FUN = logistic_vf,
+                            k = hydraulic_pressure_failure$k,
+                            center = hydraulic_pressure_failure$center,
+                            xmax = hydraulic_pressure_failure$max,
                             xmin = hydraulic_pressure_failure$min)
 
   # monto ##!!!#no information about this variable
@@ -208,20 +208,20 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   # 2)calculate distance for each census block for action mantainance and build new infrastructure
   sacmcx_criteria_d <- as.vector(mental_models$sacmcx$criteria$d)
   sacmcx_alternative_weights_d <- mental_models$sacmcx$alternative_weights$d
-  distance_ideal_A1_D <- sweep(as.matrix(all_C_D), 
-                               MARGIN = 2, 
-                               sacmcx_criteria_d / sum(sacmcx_criteria_d), 
-                               FUN = ideal_distance, 
+  distance_ideal_A1_D <- sweep(as.matrix(all_C_D),
+                               MARGIN = 2,
+                               sacmcx_criteria_d / sum(sacmcx_criteria_d),
+                               FUN = ideal_distance,
                                z = sacmcx_alternative_weights_d[1] / sum(sacmcx_alternative_weights_d)) # "Mantenimiento"
-  distance_ideal_A2_D <- sweep(as.matrix(all_C_D), 
-                               MARGIN = 2, 
-                               sacmcx_criteria_d / sum(sacmcx_criteria_d), 
-                               FUN = ideal_distance, 
+  distance_ideal_A2_D <- sweep(as.matrix(all_C_D),
+                               MARGIN = 2,
+                               sacmcx_criteria_d / sum(sacmcx_criteria_d),
+                               FUN = ideal_distance,
                                z = sacmcx_alternative_weights_d[2] / sum(sacmcx_alternative_weights_d)) # "Nueva_infraestructura"
 
   sacmcx_criteria_ab <- as.vector(mental_models$sacmcx$criteria$ab)
   sacmcx_alternative_weights_s <- mental_models$sacmcx$alternative_weights$s
-  distance_ideal_A1_Ab <- sweep(as.matrix(all_C_ab), 
+  distance_ideal_A1_Ab <- sweep(as.matrix(all_C_ab),
                                 MARGIN = 2,
                                 sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
                                 FUN = ideal_distance,
@@ -236,7 +236,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   # distance_ideal_protest<-sweep(as.matrix(C_R_protest[,-c(6,8)]),MARGIN=2,as.vector(Criteria_residents_Iz[-c(6,8)])/sum(as.vector(Criteria_residents_Iz[-c(6,8)])),FUN=ideal_distance,z=alternative_weights_Iz[5]/sum(alternative_weights_Iz[c(4,5)]))# "Protests"
   alternative_weights_iz <- mental_models$residents$alternative_weights$iz
   criteria_iz <- as.vector(mental_models$residents$criteria$iz)
-  
+
   distance_ideal_protest <- 1 - vf_scarcity_residents
   distance_ideal_House_mod_lluvia <- sweep(as.matrix(C_R_D[, -c(3, 4, 7)]),
                                            MARGIN = 2,
@@ -248,7 +248,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
                                          criteria_iz[-c(6, 8)] / sum(criteria_iz[-c(6, 8)]),
                                          FUN = ideal_distance,
                                          z = alternative_weights_iz[4] / sum(alternative_weights_iz[c(4, 5)])) # "House modification"
-  
+
   ################################################################################################################
   # 3) save value function and distance matrix as a shape file
   # Output_value_function <- study_area_cvg
