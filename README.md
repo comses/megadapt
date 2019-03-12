@@ -32,3 +32,7 @@ Press `Ctnl+Shift+b` to build and reload from `megadaptr` package from rstudio.
 - `megadaptr` folder (`src/r/megadaptr`)
 
   Contains generic code which should apply to many scenarios.
+
+## Resources
+
+- see https://github.com/comses/megadapt/wiki/Developer-Resources for tips on developing R packages and manipulating data
