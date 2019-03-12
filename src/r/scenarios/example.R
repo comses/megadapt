@@ -1,24 +1,27 @@
 source('../scenarios/util.R')
 
-example <- function(x,n_years) {
+example <- function(x=numeric(),n_years=5) {
   path_to_source <- "." # change path to use it
   path_td <- "../data/"
   path_to_output <- "../outputs/" # change path to use it
-  
+
   #Assign values to variables
-  new_infrastructure_effectiveness_rate<-x[1]
-  maintenance_effectiveness_rate<-x[2]
-  infrastructure_decay_rate<-x[3]
-  budget<-x[4]
+  custom_params <- list()
+  param_ind <- 1
+  for (param_name in c('new_infrastructure_effectiveness_rate',
+                  'maintenance_effectiveness_rate',
+                  'infrastructure_decay_rate',
+                  'budget')) {
+    if (!is.na(x[param_ind])) {
+      custom_params[[param_name]] <- x[param_ind]
+    }
+    param_ind <- param_ind + 1
+  }
 
   #
   # Param Setup
   #
-  params <- create_params(new_infrastructure_effectiveness_rate,
-                          maintenance_effectiveness_rate,
-                          n_years,
-                          infrastructure_decay_rate,
-                          budget)
+  params <- do.call(create_params, custom_params)
 
   #
   # Study Area Setup
