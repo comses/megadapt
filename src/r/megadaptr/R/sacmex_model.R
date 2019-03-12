@@ -1,4 +1,8 @@
 determine_public_infrastructure_investment_suitability <- function(study_data, value_function_config, mental_models) {
+  shortage_age <- value_function_config$shortage_age
+  shortage_failures <- value_function_config$shortage_failures
+  hydraulic_pressure_failure <- value_function_config$hydraulic_pressure_failure
+
   ## Common
   # peticiones de delegaciones
   vf_pet_del_dr <- sapply(study_data$pet_del_dr, FUN = Peticion_Delegaciones_vf)
@@ -69,6 +73,9 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
     vf_pres_medios,
     vf_SP
   )
+
+  subsidence <- value_function_config$subsidence
+  sewer_age <- value_function_config$sewer_age
 
   ## Storm Water Specific
   # garbage
@@ -153,7 +160,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
                                 FUN = ideal_distance,
                                 z = sacmcx_alternative_weights_s[5] / sum(sacmcx_alternative_weights_s[c(4, 5)])) # "Nueva_infraestructura"
 
-  list(
+  tibble::tibble(
     ageb_id = study_data$ageb_id,
     distance_ideal_A1_D = distance_ideal_A1_D,
     distance_ideal_A2_D = distance_ideal_A2_D,
@@ -164,27 +171,31 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
 
 determine_public_infrastructure_work_plan <- function(site_suitability, budget, n_weeks) {
   r <- site_suitability
-  n_census_blocks <- min(budget, length(choices))
+  n_census_blocks <- min(budget, nrow(r))
   choices <- max.col(as.matrix(r))
+  choice_values <- apply(as.matrix(r), 1, max)
   work_plan <- cut(seq(n_census_blocks), n_weeks, labels = FALSE)
 
   # save ID of selected agebs
-  selected_agebs <- order(choices)[1:min(budget, length(choices))]
+  selected_agebs <- order(choice_values)[1:min(budget, length(choice_values))]
 
   # Store ID of agebs that will be modified by sacmex
-  A1 <- selected_agebs[which(choices == 1)] # "Mantenimiento" D
-  A2 <- selected_agebs[which(choices == 2)] # "Nueva_infraestructura" D
-  A3 <- selected_agebs[which(choices == 3)] # "Mantenimiento" Ab
-  A4 <- selected_agebs[which(choices == 4)] # "Nueva_infraestructura" Ab
+  A1 <- which(choices == 1) # "Mantenimiento" D
+  A2 <- which(choices == 2) # "Nueva_infraestructura" D
+  A3 <- which(choices == 3) # "Mantenimiento" Ab
+  A4 <- which(choices == 4) # "Nueva_infraestructura" Ab
 
   tibble::tibble(
-    ageb_id = r$ageb_id,
-    work_plan,
-    A1 = A1,
-    A2 = A2,
-    A3 = A3,
-    A4 = A4
+    ageb_id = r$ageb_id[selected_agebs],
+    choices = choices[selected_agebs],
+    work_plan
   ) %>%
+    dplyr::mutate(
+      A1 = (choices == 1),
+      A2 = (choices == 2),
+      A3 = (choices == 3),
+      A4 = (choices == 4)
+    ) %>%
     dplyr::group_by(work_plan) %>%
     dplyr::group_nest()
 }
@@ -228,7 +239,7 @@ make_public_infrastructure_investments <- function(study_data, site_selection, p
   study_data
 }
 
-create_public_infrastructure_investment_plan <- function(study_data, value_function_config, mental_models, budget) {
+create_public_infrastructure_work_plan <- function(study_data, value_function_config, mental_models, budget, n_weeks) {
   suitability <- determine_public_infrastructure_investment_suitability(
     study_data = study_data,
     value_function_config = value_function_config,
@@ -237,55 +248,52 @@ create_public_infrastructure_investment_plan <- function(study_data, value_funct
 
   work_plan <- determine_public_infrastructure_work_plan(
     site_suitability = suitability,
-    budget = budget
+    budget = budget,
+    n_weeks = n_weeks
   )
+
+  work_plan
 }
 
-depreciate_public_infrastructure <- function(study_data, infrastructure_decay_rate) {
+depreciate_public_infrastructure <- function(study_data, infrastructure_decay_rate, n_weeks) {
   # update infrastructure related atributes
   # update_age_infrastructure
-  study_data$antiguedad_D <- study_data$antiguedad_D + 1
-  study_data$antiguedad_Ab <- study_data$antiguedad_Ab + 1
+  study_data$antiguedad_D <- study_data$antiguedad_D + 1/n_weeks
+  study_data$antiguedad_Ab <- study_data$antiguedad_Ab + 1/n_weeks
+
+  weekly_infrastructure_decay_rate <- (1 - infrastructure_decay_rate)^(1/n_weeks)
+  weekly_pop_growth <- study_data$pop_growth^(1/n_weeks)
 
   # update_capacity of the system
-  study_data$capac_w <- study_data$capac_w * (1 - infrastructure_decay_rate)
+  study_data$capac_w <- study_data$capac_w * weekly_infrastructure_decay_rate
   # update capacity index
   # FIDEL
   # The proportion of people without infrastructure increases proportionally to
   # the growthof the population in each delegation
-  study_data$FALTA_IN <- study_data$FALTA_IN * (1 + (1 - study_data$FALTA_IN) * study_data$pop_growth)
-  study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren) * study_data$pop_growth)
+  study_data$FALTA_IN <- study_data$FALTA_IN * (1 + (1 - study_data$FALTA_IN)*weekly_pop_growth)
+  study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren)*weekly_pop_growth)
 
   study_data
 }
 
-update_public_infrastructure <- function(study_data, value_function_config, mental_models, params) {
-  suitability <- determine_public_infrastructure_investment_suitability(
-    study_data = study_data,
-    value_function_config = value_function_config,
-    mental_models = mental_models
-  )
-
-  selection <- determine_public_infrastructure_investment_projects(
-    site_suitability = suitability,
-    budget = params$budget
-  )
-
+update_public_infrastructure <- function(study_data, site_selection, params, n_weeks) {
   study_data %>%
     make_public_infrastructure_investments(
       study_data = .,
-      site_selection = selection) %>%
+      site_selection = site_selection,
+      params = params) %>%
     depreciate_public_infrastructure(
       study_data = .,
-      infrastructure_decay_rate = params$infrastructure_decay_rate
-    ) %>%
-    select(ageb_id,
-           antiguedad_Ab,
-           antiguedad_D,
-           bombeo_tot,
-           falta_dren,
-           Interventions_Ab,
-           Interventions_D,
-           q100,
-           V_SAGUA)
+      infrastructure_decay_rate = params$infrastructure_decay_rate,
+      n_weeks = n_weeks) %>%
+    dplyr::select(
+      ageb_id,
+      antiguedad_Ab,
+      antiguedad_D,
+      bombeo_tot,
+      falta_dren,
+      Interventions_Ab,
+      Interventions_D,
+      q100,
+      V_SAGUA)
 }

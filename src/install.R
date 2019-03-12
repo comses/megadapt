@@ -6,9 +6,15 @@ versions <- list(
   list(package="knitr"),
   list(package="roxygen2"),
   list(package="rgdal"),
-  list(package="testthat")
+  list(package="testthat"),
+  list(package="bindrcpp"),
+  list(package="tidyr"),
+  list(package="assertr"),
+  list(package="logging")
 )
 
 for (version in versions) {
     do.call(devtools::install_version, version)
 }
+
+

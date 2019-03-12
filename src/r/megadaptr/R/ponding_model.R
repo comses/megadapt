@@ -23,10 +23,10 @@ update_ponding <- function(study_data, ponding_models) {
     dplyr::group_by(region) %>%
     dplyr::group_map(~ {
       .x %>%
-        mutate(encharca = predict(ponding_models[[.y$region]],
-                                  newdata = .x,
-                                  n.trees = 9566,
-                                  type = "response"))
+        dplyr::mutate(encharca = predict(ponding_models[[.y$region]],
+                                         newdata = .x,
+                                         n.trees = 9566,
+                                         type = "response"))
     }) %>%
     dplyr::ungroup() %>%
     dplyr::select(ageb_id, encharca)

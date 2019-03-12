@@ -85,7 +85,7 @@ update_residential_infrastructure_investments <- function(study_data, value_func
   HM_Agua <- which(suitability$distance_ideal_House_mod_lluvia < suitability$distance_ideal_House_mod_agua)
 
   study_data %>%
-    mutate(
+    dplyr::mutate(
       house_modifications_D := {
         house_modifications_D[HM_LL] <- house_modifications_D[HM_LL] + 1
         house_modifications_D
@@ -104,11 +104,20 @@ update_residential_infrastructure_investments <- function(study_data, value_func
       },
       vulnerability_Ab = (sensitivity_Ab * days_wn_water_year) / (1 + ingreso),
       vulnerability_D = (sensitivity_D * encharca) / (1 + ingreso)
+    ) %>%
+    dplyr::select(
+      ageb_id,
+      house_modifications_D,
+      sensitivity_D,
+      house_modifications_Ab,
+      sensitivity_Ab,
+      vulnerability_Ab,
+      vulnerability_D
     )
 }
 
 determine_protest_suitability <- function(study_data, value_function_config, mental_models) {
-  vf_scarcity_residents <- sapply(study_data$NOWater_twoweeks, FUN = scarcity_residents_empirical_vf, tau = 12) # days_wn_water need to be define
+  vf_scarcity_residents <- sapply(study_data$days_wn_water_two_weeks, FUN = scarcity_residents_empirical_vf, tau = 12) # days_wn_water need to be define
   distance_ideal_protest <- 1 - vf_scarcity_residents
   distance_ideal_protest
 }
@@ -134,6 +143,6 @@ update_protests <- function(study_data, value_function_config, mental_models, we
   if (week_of_year == 1) {
     study_data$social_pressure <- 0
   }
-  study_data$social_pressure[agebs_que_protestan] <- study_data$social_pressure + 1
-  study_data
+  study_data$social_pressure[agebs_que_protestan] <- study_data$social_pressure[agebs_que_protestan] + 1
+  study_data$social_pressure
 }

@@ -19,8 +19,8 @@ COLUMNS_TO_SAVE <- c(
   "capac_w",
   "falta_dren",
   "lambdas",
-  "NOWater_week_pois",
-  "NOWater_twoweeks",
+  "days_wn_water_week",
+  "days_wn_water_two_weeks",
   "days_wn_water_month",
   "days_wn_water_year",
   "social_pressure",
@@ -51,7 +51,7 @@ compare_results <- function(new_results, old_results, base_cols) {
   colnames_new_results <- setdiff(colnames(new_results), base_cols)
   colnames_old_results <- setdiff(colnames(old_results), base_cols)
   common_colnames <- intersect(colnames_new_results, colnames_old_results)
-  
+
   comparison <- tibble::as_tibble(new_results[base_cols])
   for (colname in common_colnames) {
     col_same <- new_results[[colname]] == old_results[[colname]] | (is.na(new_results[[colname]]) & is.na(old_results[[colname]]))
@@ -61,8 +61,8 @@ compare_results <- function(new_results, old_results, base_cols) {
       comparison[[paste0("same_", colname)]] <- col_same
     }
   }
-  
-  list(comparison = comparison, 
+
+  list(comparison = comparison,
        missing_new_columns = setdiff(colnames_new_results, colnames_old_results),
        missing_old_columns = setdiff(colnames_old_results, colnames_new_results))
 }

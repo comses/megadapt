@@ -22,8 +22,7 @@ create_water_scarcity_model <- function(study_data) {
 #' @return data frame with pk and cumulative number of days without clean water this week and year by census block
 update_water_scarcity <-
   function(water_scarcity_model,
-           study_data,
-           week_of_year) {
+           study_data) {
     prob_water <-
       predict(water_scarcity_model, newdata = study_data, type = "prob")
     water_yes <-
@@ -55,11 +54,18 @@ update_water_scarcity <-
              size = 1,
              prob = prob_water[which(water_yes == 0), 1]) * 1
 
-    tibble::tibble(
-      ageb_id = study_data$ageb_id,
-      n_days_no_clean_water_this_week = water_yes,
-      n_days_no_clean_water_this_year = study_data$n_days_no_clean_water_this_year + water_yes
-    )
+    study_data %>%
+      dplyr::mutate(
+        days_wn_water_two_weeks = days_wn_water_week + (!! water_yes),
+        days_wn_water_week = (!! water_yes),
+        days_wn_water_year = days_wn_water_year + (!! water_yes)
+      ) %>%
+      dplyr::select(
+        ageb_id,
+        days_wn_water_week,
+        days_wn_water_two_weeks,
+        days_wn_water_year
+      )
   }
 
 update_water_scarcity_original <- function(study_area_cvg, water_scarcity_model) {
