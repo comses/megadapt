@@ -42,3 +42,4 @@ rsconnect/
 
 *.swp
 
+.DS_Store
