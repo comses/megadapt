@@ -24,41 +24,19 @@ update_water_scarcity <-
   function(water_scarcity_model,
            study_data) {
     prob_water <-
-      predict(water_scarcity_model, newdata = study_data, type = "prob")
-    water_yes <-
-      rbinom(n = length(prob_water[, 7]),
-             size = 1,
-             prob = prob_water[, 7]) * 7
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 6]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 6]) * 6
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 5]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 5]) * 5
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 4]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 4]) * 4
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 3]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 3]) * 3
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 2]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 2]) * 2
-    water_yes[which(water_yes == 0)] <-
-      rbinom(n = length(prob_water[which(water_yes == 0), 1]),
-             size = 1,
-             prob = prob_water[which(water_yes == 0), 1]) * 1
+      predict(water_scarcity_model, newdata = study_data, type = "prob", at=0:7)
+
+    days_wn_water_week <- max.col(t(apply(
+      prob_water,
+      1,
+      FUN = function(prob) rmultinom(n = 1, prob = prob, size = 1)
+    ))) - 1
 
     study_data %>%
       dplyr::mutate(
-        days_wn_water_two_weeks = days_wn_water_week + (!! water_yes),
-        days_wn_water_week = (!! water_yes),
-        days_wn_water_year = days_wn_water_year + (!! water_yes)
+        days_wn_water_two_weeks = days_wn_water_week + (!! days_wn_water_week),
+        days_wn_water_week = (!! days_wn_water_week),
+        days_wn_water_year = days_wn_water_year + (!! days_wn_water_week)
       ) %>%
       dplyr::select(
         ageb_id,

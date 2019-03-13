@@ -23,6 +23,7 @@ COLUMNS_TO_SAVE <- c(
   "days_wn_water_two_weeks",
   "days_wn_water_month",
   "days_wn_water_year",
+  "water_scarcity_weekly",
   "social_pressure",
   "sensitivity_Ab",
   "sensitivity_D",
@@ -38,13 +39,14 @@ save_TS <- function(study_data,
                     result_prev_time,
                     month,
                     year) {
-  rbind(result_prev_time,
-        cbind(
-          subset(study_data, select = COLUMNS_TO_SAVE),
-          time_sim = rep(TR, length(study_data$AGEB_ID)),
-          month_sim = rep(month, length(study_data$AGEB_ID)),
-          year_sim = rep(year, length(study_data$AGEB_ID))
-        ))
+  study_data %>%
+    dplyr::select(!!! COLUMNS_TO_SAVE) %>%
+    dplyr::mutate(
+      time_sim = TR,
+      month_sim = (!! month),
+      year_sim = (!! year)
+    ) %>%
+    dplyr::union_all(result_prev_time)
 }
 
 compare_results <- function(new_results, old_results, base_cols) {

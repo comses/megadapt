@@ -74,8 +74,7 @@ scarcity_residents_vf <- function(x, p1 = 0.115526234) { #
 }
 #######################################################################################################
 scarcity_residents_empirical_vf <- function(x, tau = 12) { #
-
-  return(ifelse(test = x >= tau, yes = 0, 1))
+  x >= tau
 }
 
 #######################################################################################################
@@ -223,18 +222,18 @@ load_value_function_config <- function(path) {
   df <- read.csv(path, stringsAsFactors = FALSE, header = FALSE)
   params <- as.list(df %>% tidyr::spread(V1, V2))
   param_names <- names(params)
-  
+
   numeric_keys <- c('a', 'center', 'gama', 'k', 'min', 'max')
   for (numeric_key in numeric_keys) {
     if (numeric_key %in% param_names) {
       params[[numeric_key]] <- as.numeric(params[[numeric_key]])
     }
   }
-  
+
   if ('show_map' %in% param_names) {
     params[['show_map']] <- as.logical(params[['show_map']])
   }
-  
+
   params
 }
 

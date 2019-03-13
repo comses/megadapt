@@ -116,8 +116,8 @@ update_residential_infrastructure_investments <- function(study_data, value_func
     )
 }
 
-determine_protest_suitability <- function(study_data, value_function_config, mental_models) {
-  vf_scarcity_residents <- sapply(study_data$days_wn_water_two_weeks, FUN = scarcity_residents_empirical_vf, tau = 12) # days_wn_water need to be define
+determine_protest_suitability <- function(study_data) {
+  vf_scarcity_residents <- scarcity_residents_empirical_vf(study_data$days_wn_water_two_weeks, tau = 12) # days_wn_water need to be define
   distance_ideal_protest <- 1 - vf_scarcity_residents
   distance_ideal_protest
 }
@@ -128,10 +128,7 @@ update_protests <- function(study_data, value_function_config, mental_models, we
     value_function_config = value_function_config,
     mental_models = mental_models
   )
-  distance_ideal_protest <- determine_protest_suitability(
-    study_data = study_data,
-    value_function_config = value_function_config,
-    mental_models = mental_models)
+  distance_ideal_protest <- determine_protest_suitability(study_data)
 
   # find agebs that will adapt to reduce effects of water scarcity
   HM_Agua <- which(suitability$distance_ideal_House_mod_lluvia < suitability$distance_ideal_House_mod_agua)

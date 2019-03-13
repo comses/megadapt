@@ -9,6 +9,12 @@ create_study_data <- function(study_data) {
   study_data$days_wn_water_month <- 0L
   study_data$days_wn_water_two_weeks <- 0L
   study_data$days_wn_water_week <- 0L
+  study_data$water_scarcity_weekly <- rep(list(
+    data.frame(
+      days_wn_water_week=integer(),
+      days_wn_water_two_weeks=integer(),
+      days_wn_water_year=integer())),
+    nrow(study_data))
 
   # save water scarcity, protests and social pressure
   study_data$social_pressure <- 0L
@@ -107,6 +113,7 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     n_weeks = n_weeks
   )
 
+  water_scarcity_weeks <- list()
   this_week_study_data <- study_data
   for (n_week in seq(n_weeks)) {
     site_selection <- work_plan[['data']][[n_week]]
@@ -135,7 +142,15 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
       this_week_study_data,
       next_week_changes,
       join_columns = PK_JOIN)
+
+    water_scarcity_weeks[[n_week]] <- water_scarcity_changes
   }
+  water_scarcity_weeks <- do.call(rbind, water_scarcity_weeks) %>%
+    dplyr::group_by(ageb_id) %>%
+    dplyr::group_nest(.key='water_scarcity_weekly')
+  this_week_study_data <- this_week_study_data %>%
+    dplyr::select(-water_scarcity_weekly) %>%
+    dplyr::left_join(water_scarcity_weeks, by=PK_JOIN)
 
   residential_investment_changes <- update_residential_infrastructure_investments(
     study_data = study_data,
@@ -168,6 +183,7 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     join_columns = PK_JOIN
   )
   megadapt$study_area@data <- next_year_study_data
+
   megadapt
 }
 
