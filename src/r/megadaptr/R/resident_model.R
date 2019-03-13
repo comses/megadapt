@@ -1,4 +1,4 @@
-determine_residential_infrastructure_suitability <- function(study_data, value_function_config, mental_models) {
+determine_residential_infrastructure_suitability <- function(study_data, value_function_config, mental_models, week_of_year) {
   alternative_weights_iz <- mental_models$residents$alternative_weights$iz
   criteria_iz <- as.vector(mental_models$residents$criteria$iz)
 
@@ -9,7 +9,7 @@ determine_residential_infrastructure_suitability <- function(study_data, value_f
   vf_UG <- sapply(study_data$crec_urb, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$crec_urb, na.rm = T))
 
   # agua insuficiente
-  vf_Agua_insu <- sapply(study_data$days_wn_water_month, FUN = scarcity_residents_vf) # days_wn_water need to be define
+  vf_Agua_insu <- sapply(study_data$days_wn_water_year / week_of_year * 4.25, FUN = scarcity_residents_vf) # days_wn_water need to be define
 
   # "Desperdicio de agua"
   vf_Desp_A <- sapply(study_data$desp_agua, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$desp_agua, na.rm = T))
@@ -72,11 +72,12 @@ determine_residential_infrastructure_suitability <- function(study_data, value_f
   )
 }
 
-update_residential_infrastructure_investments <- function(study_data, value_function_config, mental_models, params) {
+update_residential_infrastructure_investments <- function(study_data, value_function_config, mental_models, params, week_of_year) {
   suitability <- determine_residential_infrastructure_suitability(
     study_data = study_data,
     value_function_config = value_function_config,
-    mental_models = mental_models
+    mental_models = mental_models,
+    week_of_year = week_of_year
   )
 
   # find agebs that will adapt to reduce effects of flooding
@@ -126,7 +127,8 @@ update_protests <- function(study_data, value_function_config, mental_models, we
   suitability <- determine_residential_infrastructure_suitability(
     study_data = study_data,
     value_function_config = value_function_config,
-    mental_models = mental_models
+    mental_models = mental_models,
+    week_of_year = week_of_year
   )
   distance_ideal_protest <- determine_protest_suitability(study_data)
 

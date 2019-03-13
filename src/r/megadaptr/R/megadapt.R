@@ -6,7 +6,6 @@ create_study_data <- function(study_data) {
 
   # water scarcity (week, month year)
   study_data$days_wn_water_year <- 0L
-  study_data$days_wn_water_month <- 0L
   study_data$days_wn_water_two_weeks <- 0L
   study_data$days_wn_water_week <- 0L
   study_data$water_scarcity_weekly <- rep(list(
@@ -157,7 +156,8 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     study_data = study_data,
     value_function_config = value_function_config,
     mental_models = mental_models,
-    params = params
+    params = params,
+    week_of_year = n_weeks
   )
 
   climate_changes <- update_climate(
