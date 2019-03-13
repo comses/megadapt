@@ -125,7 +125,8 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     )
     water_scarcity_changes <- update_water_scarcity(
       water_scarcity_model = water_scarcity_model,
-      study_data = this_week_study_data
+      study_data = this_week_study_data,
+      week_of_year = n_week
     )
     social_pressure <- update_protests(
       study_data = this_week_study_data,
