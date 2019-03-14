@@ -261,11 +261,11 @@ depreciate_public_infrastructure <- function(study_data, infrastructure_decay_ra
   study_data$antiguedad_D <- study_data$antiguedad_D + 1/n_weeks
   study_data$antiguedad_Ab <- study_data$antiguedad_Ab + 1/n_weeks
 
-  weekly_infrastructure_decay_rate <- (1 - infrastructure_decay_rate)^(1/n_weeks)
-  weekly_pop_growth <- study_data$pop_growth^(1/n_weeks)
+  weekly_infrastructure_decay_rate <- (1 + infrastructure_decay_rate)^(1/n_weeks) - 1
+  weekly_pop_growth <- (1 + study_data$pop_growth)^(1/n_weeks) - 1
 
   # update_capacity of the system
-  study_data$capac_w <- study_data$capac_w * weekly_infrastructure_decay_rate
+  study_data$capac_w <- study_data$capac_w * (1 - weekly_infrastructure_decay_rate)
   # update capacity index
   # FIDEL
   # The proportion of people without infrastructure increases proportionally to

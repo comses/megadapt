@@ -21,7 +21,6 @@ COLUMNS_TO_SAVE <- c(
   "lambdas",
   "days_wn_water_week",
   "days_wn_water_two_weeks",
-  "days_wn_water_month",
   "days_wn_water_year",
   "water_scarcity_weekly",
   "social_pressure",
