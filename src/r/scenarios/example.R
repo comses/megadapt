@@ -6,6 +6,7 @@ example <- function(x=numeric(),n_years=5) {
   path_to_output <- "../outputs/" # change path to use it
 
   #Assign values to variables
+  
   custom_params <- list()
   param_ind <- 1
   for (param_name in c('new_infrastructure_effectiveness_rate',

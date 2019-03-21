@@ -11,3 +11,8 @@ Encoding: ISO-8859-2
 
 RnwWeave: Sweave
 LaTeX: pdfLaTeX
+
+BuildType: Package
+PackageUseDevtools: Yes
+PackagePath: r/megadaptr
+PackageInstallArgs: --no-multiarch --with-keep.source
