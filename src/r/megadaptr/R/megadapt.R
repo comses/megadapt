@@ -50,7 +50,7 @@ create_params <-
            maintenance_effectiveness_rate = 0.07,
            n_steps = 5,
            infrastructure_decay_rate = 0.01,
-           budget = 1800,
+           budget = 1200,
            half_sensitivity_ab = 10,
            half_sensitivity_d = 10) {
     list(
@@ -67,6 +67,7 @@ create_params <-
 create_megadapt <- function(climate_scenario,
                             mental_models,
                             ponding_models,
+                            flooding_models,
                             params,
                             study_area,
                             water_scarcity_model,
@@ -76,6 +77,7 @@ create_megadapt <- function(climate_scenario,
     mental_models = mental_models,
     params = params,
     ponding_models = ponding_models,
+    flooding_models = flooding_models,
     study_area = study_area,
     water_scarcity_model = water_scarcity_model,
     value_function_config = value_function_config
@@ -100,6 +102,7 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
   mental_models <- megadapt$mental_models
   params <- megadapt$params
   ponding_models <- megadapt$ponding_models
+  flooding_models <- megadapt$flooding_models
   study_data <- megadapt$study_area@data %>% dplyr::arrange(ageb_id)
   water_scarcity_model <- megadapt$water_scarcity_model
   value_function_config <- megadapt$value_function_config
@@ -173,10 +176,19 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     ponding_models = ponding_models
   )
 
+  flooding_changes <- update_flooding(
+    study_data = apply_data_changes(
+      study_data,
+      climate_changes,
+      join_columns = PK_JOIN),
+    flooding_models = flooding_models
+  )
+
   next_year_changes <- cbind(
     residential_investment_changes,
     climate_changes %>% dplyr::select(-ageb_id),
-    ponding_changes %>% dplyr::select(-ageb_id)
+    ponding_changes %>% dplyr::select(-ageb_id),
+    flooding_changes %>% dplyr::select(-ageb_id)
   )
   next_year_study_data <- apply_data_changes(
     this_week_study_data,

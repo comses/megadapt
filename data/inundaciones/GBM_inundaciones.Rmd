@@ -1,0 +1,593 @@
+---
+title: "Árbol de Regresión (Gradient Boosted Machine) para modelar inundaciones"
+author:
+- Alfonso Medina
+- Josu Mendoza
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+Se cargan e instalan los paquetes utilizados.
+
+```{r}
+pacman::p_load(tidyverse, 
+               caret,
+               rpart, 
+               rpart.plot,
+               ipred,
+               randomForest,
+               gbm,
+               dismo,
+               Metrics,
+               rsample,
+               magrittr,
+               GGally, 
+               vip, 
+               pdp, 
+               foreign)
+# devtools::install_github("koalaverse/vip")
+
+theme_set(theme_bw())
+```
+
+# Modelo para toda la Ciudad
+## Importación de datos
+
+```{r}
+datos <- read_csv("bd_ench_inunda_aj.csv") %>% 
+  dplyr::select(-X1, -contains("cvgeo"), -Join_Count, -TARGET_FID, -FID_1) %>% 
+  mutate_if(is.character, as.factor)
+  # mutate_at(vars(contains("f_")), round, 0)
+```
+
+```{r}
+glimpse(datos)
+```
+
+## Gráficas exploratorias
+
+```{r, eval=TRUE, cache=TRUE, fig.height=10, fig.width=12}
+datos %>% 
+  dplyr::select(-ageb_id) %>% 
+  ggpairs()
+```
+
+```{r}
+set.seed(1)
+
+datos %<>%
+  # group_by(ageb_id) %>% 
+  # summarise_if(is.numeric, median, na.rm = TRUE) %>% 
+  mutate_at(vars(contains("f_")), round, 0) %>% 
+  # sample_n(500) %>% 
+  dplyr::select(-f_prec_t, -ELEVACION, -salen, -f_en, -anio) %>% 
+  na.omit()
+
+glimpse(datos)
+```
+
+## Preparación de datos
+
+Se dividen los datos en dos partes *independientes*: una para ajustar el modelo (`datos_train`, el 80% de los datos) y otra para medir su desempeño en nuevas muestras (`datos_test`, el 20% de los datos).
+
+```{r}
+set.seed(1)
+assignment <- sample(1:2, size = nrow(datos), 
+                     prob = c(0.8, 0.20), replace = TRUE)
+
+datos_train <- datos[assignment == 1, ] %>% dplyr::select(-ageb_id) 
+agebs_train <- datos[assignment == 1, ]$ageb_id
+
+datos_test <- datos[assignment == 2, ]  %>% dplyr::select(-ageb_id) 
+agebs_test <- datos[assignment == 2, ]$ageb_id
+```
+
+```{r}
+nrow(datos_train)
+
+nrow(agebs_test)
+```
+
+## Corrida del modelo
+### Boosted Trees
+
+Para una explicación detallada con código de cómo funciona este algoritmo, ver el capítulo 8 de [*An Introduction to Statistical Learning  with Applications in R*] (https://www-bcf.usc.edu/~gareth/ISL/ISLR%20Seventh%20Printing.pdf) o la explicación el siguiente blog: http://uc-r.github.io/gbm_regression.
+
+### Selección de hiper-parámetros
+
+Se hace una búsqueda para elegir los mejores hiperparámetros con el siguiente código:
+
+```{r eval=FALSE}
+# Combinación de hiperparámetros a probar
+
+hyper_grid <- expand.grid(
+  shrinkage = c(.01, .1, .3),
+  interaction.depth = c(1, 3, 5),
+  n.minobsinnode = c(5, 10, 15),
+  bag.fraction = c(.65, .8, 1), 
+  optimal_trees = 0,               
+  min_RMSE = 0                     
+)
+```
+
+```{r eval=FALSE}
+# Se corren todos los modelos y se ordenan con base en el error mínimo
+
+random_index <- sample(1:nrow(datos_train), nrow(datos_train))
+random_ames_train <- datos_train[random_index, ]
+  set.seed(123)
+
+# grid search 
+for(i in 1:nrow(hyper_grid)) {
+  
+  gbm_ench_tune <- gbm(formula = round(f_in, 0) ~ ., 
+                    distribution = "poisson", 
+                    data = datos_train,
+                    n.trees = 10000,
+                    interaction.depth = hyper_grid$interaction.depth[i],
+                    shrinkage = hyper_grid$shrinkage[i],
+                    n.minobsinnode = hyper_grid$n.minobsinnode[i],
+                    bag.fraction = hyper_grid$bag.fraction[i],
+                    train.fraction = .75,
+                    # n.cores = NULL, # will use all cores by default
+                    verbose = FALSE)
+
+  
+  # add min training error and trees to grid
+  hyper_grid$optimal_trees[i] <- which.min(gbm_ench_tune$valid.error)
+  hyper_grid$min_RMSE[i] <- sqrt(min(gbm_ench_tune$valid.error))
+}
+
+hyper_grid %>% 
+  dplyr::arrange(min_RMSE) %>%
+  head(10)
+```
+
+Con base en los resultados, se eligen los hiper-parámetros y se ajusta el modelo.
+
+```{r}
+set.seed(1)
+gbm_inun_model <- gbm(formula = round(f_in, 0) ~ ., 
+                    distribution = "poisson", 
+                    data = datos_train,
+                    n.trees = 9566,
+                    interaction.depth = 5,
+                    n.minobsinnode = 5, 
+                    bag.fraction = 0.65, 
+                    shrinkage = 0.01,
+                    cv.folds = 5,
+                    verbose = FALSE)
+```
+
+### Principales resultados
+
+```{r fig.keep='none'}
+print(gbm_inun_model)
+```
+
+Se imprime la influencia de cada variable en las predicciones.
+
+```{r}
+summary(
+  gbm_inun_model, 
+  cBars = 10,
+  method = relative.influence,
+  las = 2
+  )
+```
+
+Como se ve en la gráfica y la tabla, la variable `f_prec_v` es la variable que aporta más al modelo y la variable `bombeo_tot` es la que menos aporta.
+
+## Ajuste del modelo
+
+Se calcula el error esperado de predicción.
+
+```{r}
+sqrt(min(gbm_inun_model$cv.error))
+```
+
+```{r echo=FALSE}
+error_min <- sqrt(min(gbm_inun_model$cv.error))
+```
+
+El error de predicción mínimo es de `r error_min`. Es decir, podemos esperar que las predicciones estén erradas ~ `r round(error_min, 0)` en la frecuencia de charcos en cada predicción.
+
+```{r, echo=FALSE, eval=FALSE}
+range(datos$f_in)
+```
+
+### Gráficas de errores de predicción por AGEB (`training_set`).
+
+```{r}
+pred_train <- predict(object = gbm_inun_model, 
+                  newdata = datos_train,
+                  n.trees = 9566, type = "response") 
+
+train_todo <- datos_train %>% 
+              mutate(AGEB = agebs_train, 
+                     prediccion = pred_train) 
+```
+
+```{r}
+train_todo %>% 
+  dplyr::select(AGEB, prediccion, f_in) %>% 
+  gather(key = tipo, value = frec, -AGEB) %>%
+  mutate(tipo = forcats::fct_relevel(tipo, "prediccion")) %>% 
+  ggplot(aes(x = AGEB, y = frec, col = tipo, shape = tipo)) +
+  geom_point(alpha = 0.25) +
+  scale_colour_brewer(palette = "Set1") +
+  labs(title = "Frecuencia de inundaciones observada vs predicha", 
+       subtitle = "datos de entrenamiento", 
+       y = "Frecuencia de charcos",
+       caption = "Predicciones de GBM")
+```
+
+
+```{r}
+train_todo %>% 
+   dplyr::select(AGEB, prediccion, f_in) %>% 
+   group_by(AGEB) %>% 
+   summarize(error_medio = mean(prediccion - f_in)) %>% 
+   ggplot(aes(x = AGEB, y = error_medio)) +
+   geom_point(alpha = 0.25) +
+  labs(title = "Error promedio de predicción", 
+       subtitle = "datos de entrenamiento", 
+       y = "Error promedio",
+       caption = "Predicciones de GBM")
+```
+
+## Validación
+
+Ahora, evalúamos la capacidad predictiva del modelo en una porción de datos *independiente* (`datos_test`) de la que se usó para ajustar el modelo (`datos_train`).
+
+```{r}
+## Predicción de datos de datos_test con el modelo
+gbm_preds <- predict(object = gbm_inun_model, 
+                  newdata = datos_test,
+                  n.trees = 9566, type = "response")
+
+## Cáculo del error cuadrado promedio de predicción
+rmse <- rmse(actual = datos$f_in, 
+     predicted = gbm_preds)
+```
+
+El rmse con datos independientes es de `r round(rmse, 2)`. Esto se intepreta como que se esperaría que en unos nuevos datos, las predicciones estarían erradas, en promedio, en una magnitud de ~ `r round(rmse, 1)`.
+
+### Gráficas de errores de predicción por AGEB (`testing_set`).
+
+```{r}
+pred_test <- predict(object = gbm_inun_model, 
+                  newdata = datos_test,
+                  n.trees = 9566,
+                  type = "response")
+
+test_todo <- datos_test %>% 
+              mutate(AGEB = agebs_test, 
+                     prediccion =  pred_test) 
+```
+
+```{r}
+test_todo %>% 
+  dplyr::select(AGEB, prediccion, f_in) %>% 
+  gather(key = tipo, value = frec, -AGEB) %>%
+  mutate(tipo = forcats::fct_relevel(tipo, "prediccion")) %>% 
+  ggplot(aes(x = AGEB, y = frec, col = tipo, shape = tipo)) +
+  geom_point(alpha = 0.25) +
+  scale_colour_brewer(palette = "Set1") +
+  labs(title = "Frecuencia de encharcamientos observada vs predicha", 
+       subtitle = "datos de prueba", 
+       y = "Frecuencia de charcos",
+       caption = "Predicciones de GBM")
+```
+
+
+```{r}
+train_todo %>% 
+   dplyr::select(AGEB, prediccion, f_in) %>% 
+   group_by(AGEB) %>% 
+   summarize(error_medio = mean(prediccion - f_in)) %>% 
+   ggplot(aes(x = AGEB, y = error_medio)) +
+   geom_point(alpha = 0.25) +
+  labs(title = "Error promedio de predicción", 
+       subtitle = "datos de prueba", 
+       y = "Error promedio",
+       caption = "Predicciones de GBM")
+```
+
+## Interpretación (Funcionamiento marginal del modelo)
+
+Si bien el principal objetivo de este tipo de algoritmo es la **predicción** y no necesariamente explicar la relación entre los fenómenos (lo cual hace poco interpretable sus parámetros) se puede ilustrar el funcionamiento del modelo graficando el *cambio* en las predicciones de frecuencia de encharcamientos que hace conforme cambia cada una de las variables (manteniendo las demás constantes).
+
+
+```{r}
+gbm_inun_model %>%
+  partial(pred.var = "rejillas", 
+          n.trees = gbm_inun_model$n.trees, 
+          grid.resolution = 100) %>%
+  autoplot(rug = TRUE, train = datos_train) +
+  labs(x = "# Rejillas", 
+       y = "Cambio en Frecuencia promedio predicha", 
+       title = "Relación entre rejillas y frecuencia de encharcamientos")
+```
+
+```{r}
+gbm_inun_model %>%
+  partial(pred.var = "f_prec_v", 
+          n.trees = gbm_inun_model$n.trees, 
+          grid.resolution = 100) %>%
+  autoplot(rug = TRUE, train = datos_train) +
+  labs(x = "Precipitación (volumen)", 
+       y = "Cambio en Frecuencia promedio predicha", 
+       title = "Relación entre precipitación y frecuencia de encharcamientos")
+```
+
+```{r}
+gbm_inun_model %>%
+  partial(pred.var = "n_tramos", 
+          n.trees = gbm_inun_model$n.trees, 
+          grid.resolution = 100) %>%
+  autoplot(rug = TRUE, train = datos_train) +
+  labs(x = "# tramos", 
+       y = "Cambio en Frecuencia promedio predicha", 
+       title = "Relación entre tramos y frecuencia de encharcamientos")
+```
+
+```{r}
+gbm_inun_model %>%
+  partial(pred.var = "q100", 
+          n.trees = gbm_inun_model$n.trees, 
+          grid.resolution = 100) %>%
+  autoplot(rug = TRUE, train = datos_train) +
+  labs(x = "Q100", 
+       y = "Cambio en Frecuencia promedio predicha", 
+       title = "Relación entre Q100 y frecuencia de encharcamientos")
+```
+
+```{r}
+gbm_inun_model %>%
+  partial(pred.var = "f_esc", 
+          n.trees = gbm_inun_model$n.trees, 
+          grid.resolution = 100) %>%
+  autoplot(rug = TRUE, train = datos_train) +
+  labs(x = "Escorrentía", 
+       y = "Cambio en Frecuencia promedio predicha", 
+       title = "Relación entre Escorrentía y frecuencia de encharcamientos")
+```
+
+```{r}
+gbm_inun_model %>%
+  partial(pred.var = "bombeo_tot", 
+          n.trees = gbm_inun_model$n.trees, 
+          grid.resolution = 100) %>%
+  autoplot(rug = TRUE, train = datos_train) +
+  labs(x = "Bombeo (Total)", 
+       y = "Cambio en Frecuencia promedio predicha", 
+       title = "Relación entre Bombeo y frecuencia de encharcamientos")
+```
+
+
+# Modelo por clusters (9 regiones)
+## Importación de datos
+
+```{r}
+datos <- read_csv("bd_ench_inunda_aj.csv") %>% 
+  dplyr::select(-X1, -contains("cvgeo"), -Join_Count, -TARGET_FID, -FID_1) %>% 
+  mutate_if(is.character, as.factor) %>% 
+  mutate_at(vars(contains("f_")), round, 0) %>% 
+  dplyr::select(-f_prec_t, -ELEVACION, -salen, -f_en, -anio) %>% 
+  na.omit()
+```
+
+```{r}
+regiones <- read.dbf("agebs_cuencas_cdmx_v2.dbf") %>% 
+            dplyr::select(AGEB_ID, region)
+
+```
+
+```{r}
+datos_region <- datos %>% 
+  inner_join(regiones, by = c("ageb_id" = "AGEB_ID")) %>% 
+  mutate(region = as.factor(region))
+```
+
+## Preparación de datos
+
+Se dividen los datos en dos partes *independientes*: una para ajustar el modelo (`datos_train`, el 80% de los datos) y otra para medir su desempeño en nuevas muestras (`datos_test`, el 20% de los datos).
+
+```{r}
+assignment <- sample(1:2, size = nrow(datos_region), 
+                     prob = c(0.8, 0.20), replace = TRUE)
+
+datos_train_region <- datos_region[assignment == 1, ] %>% dplyr::select(-ageb_id) 
+agebs_train_region <- datos_region[assignment == 1, ]$ageb_id
+
+datos_test_region <- datos_region[assignment == 2, ]  %>% dplyr::select(-ageb_id) 
+agebs_test_region <- datos_region[assignment == 2, ]$ageb_id
+```
+
+```{r}
+datos_train_nest <- datos_train_region %>% 
+  group_by(region) %>% 
+  nest()
+```
+
+## Correr modelo
+
+```{r}
+datos_modelos_train <- 
+  datos_train_nest %>% 
+  mutate(modelo = map(data, ~gbm(formula = round(f_in, 0) ~ ., 
+                    distribution = "poisson", 
+                    data = .x,
+                    n.trees = 9566,
+                    interaction.depth = 5,
+                    n.minobsinnode = 5, 
+                    bag.fraction = 0.65, 
+                    shrinkage = 0.01,
+                    cv.folds = 5,
+                    verbose = FALSE)))
+```
+
+Principales resultados
+
+```{r}
+map(datos_modelos_train$modelo, summary)
+```
+
+## Cálculo del ajuste del modelo (RMSE)
+
+```{r}
+modelos_error_train <- datos_modelos_train %>% 
+                 mutate(f_in_obs = map(data, ~.x$f_in),
+         f_in_pred = map2(modelo, data, ~predict(.x, .y, n.trees = 9566, 
+                  type = "response")), 
+         rmse = map2_dbl(f_in_obs, f_in_pred, ~rmse(actual = .x, predicted = .y)))
+```
+
+```{r}
+modelos_error_train %>% 
+  dplyr::select(region, rmse)
+```
+
+```{r echo=FALSE}
+mean_rmse <- modelos_error_train %>% 
+             summarize(mean(rmse))
+```
+
+El rmse promedio tomando en cuenta las regiones es de `r round(mean_rmse, 2)` para los **datos de entrenamiento**.
+
+### Gráficas
+
+```{r}
+train_todo_AGEB <- modelos_error_train %>% 
+              unnest(data, f_in_obs, f_in_pred) %>% 
+              mutate(AGEB = agebs_train_region) 
+```
+
+```{r}
+train_todo_AGEB %>% 
+  dplyr::select(AGEB, f_in_pred, f_in, region) %>% 
+  gather(key = tipo, value = frec, -AGEB, -region) %>% 
+  mutate(tipo = forcats::fct_recode(tipo, prediccion = "f_in_pred",
+                                    observacion = "f_in")) %>% 
+  mutate(tipo = forcats::fct_relevel(tipo, "prediccion")) %>% 
+  ggplot(aes(x = AGEB, y = frec, col = tipo, shape = tipo)) +
+  geom_point(alpha = 0.25) +
+  scale_colour_brewer(palette = "Set1") +
+  labs(title = "Frecuencia de encharcamientos observada vs predicha", 
+       subtitle = "datos de entrenamiento", 
+       y = "Frecuencia de charcos",
+       caption = "Predicciones de GBM") +
+  facet_wrap(~region)
+```
+
+
+```{r}
+train_todo_AGEB %>% 
+  dplyr::select(AGEB, f_in_pred, f_in, region) %>% 
+   group_by(AGEB, region) %>% 
+   summarize(error_medio = mean(f_in_pred - f_in)) %>% 
+   ggplot(aes(x = AGEB, y = error_medio)) +
+   geom_point(alpha = 0.25) +
+  labs(title = "Error promedio de predicción", 
+       subtitle = "datos de entrenamiento", 
+       y = "Error promedio",
+       caption = "Predicciones de GBM") +
+  facet_wrap(~region)
+```
+
+```{r}
+train_todo_AGEB %>% 
+  dplyr::select(AGEB, rmse, region) %>% 
+   group_by(AGEB, region) %>% 
+   ggplot(aes(x = AGEB, y = rmse)) +
+   geom_point(alpha = 0.25) +
+  labs(title = "Error esperado de predicción (RMSE)", 
+       subtitle = "datos de entrenamiento", 
+       y = "Error esperado",
+       caption = "Predicciones de GBM") +
+  facet_wrap(~region)
+```
+
+## Evaluación del modelo con datos "independientes" (`test_set`)
+
+```{r}
+modelos_error_test <- 
+  datos_test_region %>% 
+  group_by(region) %>% 
+  nest() %>% 
+  mutate(f_in_obs = map(data, ~.x$f_in),
+         f_in_pred = map2(datos_modelos_train$modelo, data, ~predict(.x, .y, n.trees = 9566, 
+                  type = "response")), 
+         rmse = map2_dbl(f_in_obs, f_in_pred, ~rmse(actual = .x, predicted = .y))) %>% 
+  unnest(data, f_in_obs, f_in_pred)
+```
+
+```{r}
+modelos_error_test %>% 
+  group_by(region) %>% 
+  dplyr::select(region, rmse)
+```
+
+```{r echo=FALSE}
+mean_rmse <- modelos_error_test %>% 
+             summarize(mean(rmse))
+```
+
+El rmse promedio tpmando en cuenta las regiones es de `r round(mean_rmse, 2)` para los **datos de prueba**, por lo que se podría esperar que para nuevos datos las predicciones de la frecuencia de charcos errarían en promedio en una magnitud de ~`r round(mean_rmse, 1)`.
+
+### Gráficas
+
+```{r}
+test_todo_AGEB <- modelos_error_test %>% 
+              # unnest(data, f_in_obs, f_in_pred) %>% 
+              mutate(AGEB = agebs_test_region) 
+```
+
+```{r}
+test_todo_AGEB %>% 
+  dplyr::select(AGEB, f_in_pred, f_in, region) %>% 
+  gather(key = tipo, value = frec, -AGEB, -region) %>% 
+  mutate(tipo = forcats::fct_recode(tipo, prediccion = "f_in_pred",
+                                    observacion = "f_in")) %>% 
+  mutate(tipo = forcats::fct_relevel(tipo, "prediccion")) %>% 
+  ggplot(aes(x = AGEB, y = frec, col = tipo, shape = tipo)) +
+  geom_point(alpha = 0.25) +
+  scale_colour_brewer(palette = "Set1") +
+  labs(title = "Frecuencia de encharcamientos observada vs predicha", 
+       subtitle = "datos de validación", 
+       y = "Frecuencia de charcos",
+       caption = "Predicciones de GBM") +
+  facet_wrap(~region)
+```
+
+
+```{r}
+test_todo_AGEB %>% 
+  dplyr::select(AGEB, f_in_pred, f_in, region) %>% 
+   group_by(AGEB, region) %>% 
+   summarize(error_medio = mean(f_in_pred - f_in)) %>% 
+   ggplot(aes(x = AGEB, y = error_medio)) +
+   geom_point(alpha = 0.25) +
+  labs(title = "Error promedio de predicción", 
+       subtitle = "datos de validación", 
+       y = "Error promedio",
+       caption = "Predicciones de GBM") +
+  facet_wrap(~region)
+```
+
+```{r}
+train_todo_AGEB %>% 
+  dplyr::select(AGEB, rmse, region) %>% 
+   group_by(AGEB, region) %>% 
+   ggplot(aes(x = AGEB, y = rmse)) +
+   geom_point(alpha = 0.25) +
+  labs(title = "Error esperado de predicción (RMSE)", 
+       subtitle = "datos de validación", 
+       y = "Error esperado",
+       caption = "Predicciones de GBM") +
+  facet_wrap(~region)
+```

@@ -30,11 +30,11 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   vf_Cap_D<-sapply(study_data$q100,FUN = capacity_drainage_vf,sat=1,x_max=200,x_min=0)
 
   # d)falta
-  vf_falta_Ab <- sapply(100 * study_data$V_SAGUA, FUN = lack_of_infrastructure_vf)
+  vf_falta_Ab <- sapply(100 * study_data$v_sagua, FUN = lack_of_infrastructure_vf)
   vf_falta_D <- sapply(100 * study_data$falta_dren, FUN = lack_of_infrastructure_vf)
 
   # c)potable water system capacity
-  vf_Cap_Ab <- rep(1, length(study_data$V_SAGUA))
+  vf_Cap_Ab <- rep(1, length(study_data$v_sagua))
 
   # d) falla Ab
   vf_falla <- 1 - sapply(study_data$falla_in,
@@ -50,19 +50,19 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   # e)water scarcity
   vf_scarcity_sacmex <- sapply(study_data$days_wn_water_year, FUN = scarcity_sacmex_vf) # scarcity_annual is calculated dynamically
   # flooding #cchange to flooding
-  vf_flood <- sapply(study_data$encharca, FUN = ponding_vf)
+  vf_flood <- sapply(study_data$inunda, FUN = ponding_vf)
   # Ponding
   vf_pond <- sapply(study_data$encharca, FUN = ponding_vf)
   # social_pressure
   vf_SP <- sapply(study_data$social_pressure, FUN = social_pressure_vf)
 
   # rainfall
-  vf_rain <- sapply(study_data$PR_2008, FUN = rainfall_vf)
+  vf_rain <- sapply(study_data$f_prec_v, FUN = rainfall_vf)
   # run-off/escurrimiento
   vf_run_off <- sapply(study_data$escurri, FUN = run_off_vf)
 
   # garbage
-  vf_garbage <- sapply(study_data$BASURA / 10000, FUN = drainages_clogged_vf)
+  vf_garbage <- sapply(study_data$basura / 10000, FUN = drainages_clogged_vf)
 
   # subsidance
   vf_subside <- sapply(study_data$subsidenci,
@@ -82,29 +82,28 @@ determine_site_suitability <- function(study_data, value_function_config, mental
 
   # monto ##!!!#no information about this variable
   vf_monto <- rep(1, length(study_data$AGEB_ID))
-  # gasto hidraulico
+  # hidraulic cost
   vf_GH <- sapply(study_data$gasto, FUN = Value_Function_cut_offs, xmax = max(study_data$gasto), xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2))
-  # abastecimiento
+  # water supply
   vf_Abaste <- sapply(study_data$abastecimi, FUN = Value_Function_cut_offs, xmax = max(study_data$abastecimi, na.rm = T))
-  # peticiones de delegaciones
+  # Petitions from delegations
   vf_pet_del_dr <- sapply(study_data$pet_del_dr, FUN = Peticion_Delegaciones_vf)
-  # peticiones de usuarions delegacionales
+  # petitions from users
   vf_pet_us_d <- sapply(study_data$pet_usr_d, FUN = Peticiones_usuarios_vf, xmax = max(study_data$pet_usr_d, na.rm = T))
-
-  # presion de medios
+  # Media pressure
   vf_pres_medios <- sapply(study_data$PRES_MED, FUN = pression_medios_vf)
 
 
   # 2)update value functions residents
 
-  # Crecimiento urbano
+  # Urban growth
   vf_UG <- sapply(study_data$crec_urb, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$crec_urb, na.rm = T))
 
   # Water quality
   vf_WQ <- sapply(study_data$cal_agua, FUN = water_quality_residents_vf)
 
-  # salud
-  vf_H <- sapply(study_data$ENF_14, FUN = health_vf)
+  # Health
+  vf_H <- sapply(study_data$enf_14, FUN = health_vf)
 
   # water scarcity residents
   vf_scarcity_residents <- sapply(study_data$NOWater_twoweeks, FUN = scarcity_residents_empirical_vf, tau = 12) # days_wn_water need to be define
@@ -112,23 +111,23 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   # ponding residents
   vf_pond <- sapply(study_data$encharca, FUN = ponding_vf)
 
-  # "Desviacion de agua"
+  # Deviation of potable water
   vf_DA <- sapply(study_data$desv_agua, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$desv_agua, na.rm = T))
 
-  # "Desperdicio de agua"
+  # Waste of water
   vf_Desp_A <- sapply(study_data$desp_agua, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$desp_agua, na.rm = T))
 
-  # agua insuficiente
+  # Insufiency in water
   vf_Agua_insu <- sapply(study_data$days_wn_water_month, FUN = scarcity_residents_vf) # days_wn_water need to be define
 
-  # falta infrastructura drenaje
+  # Lack of drainage system
   fv_falta <- sapply(100 * (1 - study_data$falta_dren), FUN = lack_of_infrastructure_vf)
 
-  # crecimiento poblacional
+  # Population growth
   fv_crecimiento_pop <- sapply(study_data$pop_growth, FUN = urban_growth_f, xmax = max(study_data$pop_growth, na.rm = T))
 
-  # fugas
-  fv_fugas <- sapply(study_data$FUGAS, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$FUGAS, na.rm = T))
+  # Lickages
+  fv_fugas <- sapply(study_data$fugas, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$FUGAS, na.rm = T))
 
   ################################################################################################################
   # join all converted attributes into a single matrix

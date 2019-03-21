@@ -4,7 +4,7 @@
 #' @param study_data A data frame with the needed predictor variables
 #' @return A model to predict future clean water availability given census block attributes
 create_water_scarcity_model <- function(study_data) {
-  pscl::zeroinfl(lambdas ~ CRITICO + antiguedad_Ab | V_SAGUA,
+  pscl::zeroinfl(lambdas ~ critico + antiguedad_Ab | v_sagua,
                  dist = "negbin",
                  data = study_data)
 }
@@ -14,9 +14,9 @@ create_water_scarcity_model <- function(study_data) {
 #' @param water_scarcity_model A model capable of predicting water scarcity probabilities by census block
 #' @param study_data Census block data
 #'   \describe{
-#'   \item{antiguedad_Ab}{Fresh water infrastructure age in years}
-#'   \item{CRITICO}{Indicator variable of whether census block has less than 4 hours of water per day}
-#'   \item{V_SAGUA}{Number of houses in census block without water}
+#'   \item{antiguedad_Ab}{FPotable water infrastructure age in years}
+#'   \item{critico}{Indicator variable of whether census block has less than 4 hours of water per day}
+#'   \item{v_sagua}{Proportion of houses in census block without water}
 #'   }
 #' @param week_of_year The number of weeks up until the present week of the current year
 #' @return data frame with pk and cumulative number of days without clean water this week and year by census block
@@ -58,18 +58,23 @@ update_water_scarcity_original <- function(study_area_cvg, water_scarcity_model)
   # generate a new prediction
   prob_water <- predict(water_scarcity_model, newdata = study_area_cvg@data, type = "prob")
   # generate the lottery
-  water_yes <- rbinom(n = length(prob_water[, 7]), size = 1, prob = prob_water[, 7]) * 7
-  water_yes[which(water_yes == 0)] <- rbinom(n = length(prob_water[which(water_yes == 0), 6]), size = 1, prob = prob_water[which(water_yes == 0), 6]) * 6
-  water_yes[which(water_yes == 0)] <- rbinom(n = length(prob_water[which(water_yes == 0), 5]), size = 1, prob = prob_water[which(water_yes == 0), 5]) * 5
-  water_yes[which(water_yes == 0)] <- rbinom(n = length(prob_water[which(water_yes == 0), 4]), size = 1, prob = prob_water[which(water_yes == 0), 4]) * 4
-  water_yes[which(water_yes == 0)] <- rbinom(n = length(prob_water[which(water_yes == 0), 3]), size = 1, prob = prob_water[which(water_yes == 0), 3]) * 3
-  water_yes[which(water_yes == 0)] <- rbinom(n = length(prob_water[which(water_yes == 0), 2]), size = 1, prob = prob_water[which(water_yes == 0), 2]) * 2
-  water_yes[which(water_yes == 0)] <- rbinom(n = length(prob_water[which(water_yes == 0), 1]), size = 1, prob = prob_water[which(water_yes == 0), 1]) * 1
+  prob_NOPRoblemwater<-predict(water_scarcity_model,newdata=study_area_cvg@data,type="zero")
+
+  water_no <- rbinom(n = length(prob_water[, 7]), size = 1, prob = prob_water[, 7]) * 7
+  water_no[which(water_no == 0)] <- rbinom(n = length(prob_water[which(water_no == 0), 6]), size = 1, prob = prob_water[which(water_no == 0), 6]) * 6
+  water_no[which(water_no == 0)] <- rbinom(n = length(prob_water[which(water_no == 0), 5]), size = 1, prob = prob_water[which(water_no == 0), 5]) * 5
+  water_no[which(water_no == 0)] <- rbinom(n = length(prob_water[which(water_no == 0), 4]), size = 1, prob = prob_water[which(water_no == 0), 4]) * 4
+  water_no[which(water_no == 0)] <- rbinom(n = length(prob_water[which(water_no == 0), 3]), size = 1, prob = prob_water[which(water_no == 0), 3]) * 3
+  water_no[which(water_no == 0)] <- rbinom(n = length(prob_water[which(water_no == 0), 2]), size = 1, prob = prob_water[which(water_no == 0), 2]) * 2
+  water_no[which(water_no == 0)] <- rbinom(n = length(prob_water[which(water_no == 0), 1]), size = 1, prob = prob_water[which(water_no == 0), 1]) * 1
+
+
+  water_no<-water_no*(prob_NOPRoblemwater>runif(n = length(water_no)))
 
   # Here the accumulation of two weeks without water (are accumualted)
-  study_area_cvg@data$NOWater_twoweeks <- study_area_cvg@data$NOWater_week_pois + water_yes
+  study_area_cvg@data$NOWater_twoweeks <- study_area_cvg@data$NOWater_week_pois + water_no
   # update value of days with not water in a week
-  study_area_cvg@data$NOWater_week_pois <- water_yes
+  study_area_cvg@data$NOWater_week_pois <- water_no
   # update value of days with not water in a month
   if (month_change[i] == 1) {
     study_area_cvg@data$days_wn_water_month <- study_area_cvg@data$NOWater_week_pois
