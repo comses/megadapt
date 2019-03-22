@@ -41,7 +41,7 @@ update_water_scarcity <-
       days_wn_water_year <- study_data$days_wn_water_year + days_wn_water_week
     }
     #update scarcity index here
-    scarcity_index<-update_scarcity_index(study_data,value_function_config)
+    scarcity_index<-calculate_scarcity_index(study_data,value_function_config)
     study_data %>%
       dplyr::mutate(
         days_wn_water_two_weeks = days_wn_water_week + (!! days_wn_water_week),

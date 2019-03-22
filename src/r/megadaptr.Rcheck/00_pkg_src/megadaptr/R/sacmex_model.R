@@ -8,9 +8,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
   vf_pet_del_dr <- sapply(study_data$pet_del_dr, FUN = Peticion_Delegaciones_vf)
 
   # presion de medios
-  vf_pres_medios <- sapply(study_data$pres_med, FUN = pression_medios_vf)
-  # flooding #cchange to flooding
-  vf_flood <- sapply(study_data$inunda, FUN = ponding_vf)
+  vf_pres_medios <- sapply(study_data$PRES_MED, FUN = pression_medios_vf)
 
   # Ponding
   vf_pond <- sapply(study_data$encharca, FUN = ponding_vf)
@@ -35,10 +33,10 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
                          xmin = shortage_failures$min)
 
   # falta
-  vf_falta_Ab <- sapply(100 * study_data$falta_dist, FUN = lack_of_infrastructure_vf)
+  vf_falta_dist <- sapply(100 * study_data$falta_dist, FUN = lack_of_infrastructure_vf)
 
   # monto ##!!!#no information about this variable
-  vf_monto <- rep(1, length(study_data$AGEB_ID))
+  vf_monto <- rep(1, length(study_data$ageb_id))
 
   # hydraulic pressure
   vf_hid_pressure <- sapply(study_data$pres_hid,
@@ -68,7 +66,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
     vf_monto,
     vf_hid_pressure,
     vf_WQ,
-    scarcity_index,#vf_scarcity_sacmex,
+    vf_scarcity_sacmex,
     vf_pond,
     vf_Abaste,
     vf_pet_del_dr,
@@ -81,7 +79,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
 
   ## Storm Water Specific
   # garbage
-  vf_garbage <- sapply(study_data$basura / 10000, FUN = drainages_clogged_vf)
+  vf_garbage <- sapply(study_data$BASURA / 10000, FUN = drainages_clogged_vf)
 
   # run-off/escurrimiento
   vf_run_off <- sapply(study_data$escurri, FUN = run_off_vf)
@@ -95,7 +93,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
                        center = subsidence$center)
 
   # rainfall
-  vf_rain <- sapply(study_data$f_prec_v, FUN = rainfall_vf)
+  vf_rain <- sapply(study_data$PR_2008, FUN = rainfall_vf)
 
   # age infrastructure drainage
   vf_A_D <- sapply(study_data$antiguedad_dren,
@@ -126,8 +124,8 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
     vf_rain,
     vf_A_D,
     vf_Cap_D,
-    vf_fall_dren,
-    vf_falta_dren,
+    vf_fall_D,
+    vf_falta_D,
     vf_pet_del_dr,
     vf_pet_us_d,
     vf_pres_medios,
@@ -234,7 +232,7 @@ make_public_infrastructure_investments <- function(study_data, site_selection, p
 
   # action 4 New infra Ab.
   if (length(A4) > 0) {
-    study_data$V_SAGUA[A4] <- study_data$falta_dist[A4] * (1 - params$new_infrastructure_effectiveness_rate)
+    study_data$falta_dist[A4] <- study_data$falta_dist[A4] * (1 - params$new_infrastructure_effectiveness_rate)
     study_data$Interventions_Ab[A4] <- study_data$Interventions_Ab[A4] + 1
   }
 
@@ -272,7 +270,7 @@ depreciate_public_infrastructure <- function(study_data, infrastructure_decay_ra
   # FIDEL
   # The proportion of people without infrastructure increases proportionally to
   # the growthof the population in each delegation
-  study_data$FALTA_IN <- study_data$FALTA_IN * (1 + (1 - study_data$FALTA_IN)*weekly_pop_growth)
+  study_data$FALTA_IN <- study_data$falta_dist * (1 + (1 - study_data$falta_dist)*weekly_pop_growth)
   study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren)*weekly_pop_growth)
 
   study_data

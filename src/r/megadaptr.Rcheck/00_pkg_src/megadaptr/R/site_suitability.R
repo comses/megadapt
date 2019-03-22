@@ -10,7 +10,6 @@
 #' @return data frame with pk and cumulative number of days without clean water this week and year by census block
 
 determine_site_suitability <- function(study_data, value_function_config, mental_models) {
-
   sewer_age <- value_function_config$sewer_age
   shortage_age <- value_function_config$shortage_age
   shortage_failures <- value_function_config$shortage_failures
@@ -37,7 +36,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
 
 
   # c)Drainage capacity
-  vf_Cap_D<-sapply(study_data$q100,FUN = capacity_drainage_vf,sat=1,x_max=1500,x_min=0)
+  vf_Cap_D<-sapply(study_data$q100,FUN = capacity_drainage_vf,sat=1,x_max=200,x_min=0)
 
   # d)falta
   vf_falta_dist <- sapply(100 * study_data$falta_dist, FUN = lack_of_infrastructure_vf)
@@ -54,7 +53,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
                          xmin = shortage_failures$min)
 
   # falla D
-  vf_fall_dren <- rep(1, length(study_data$falla_dren))
+  vf_falla_dren <- rep(1, length(study_data$falla_dren))
 
 
   # e)water scarcity
@@ -133,11 +132,11 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   vf_Agua_insu <- sapply(study_data$days_wn_water_two_weeks, FUN = scarcity_residents_vf) # days_wn_water need to be define
 
   # Lack of drainage system
-  fv_falta_dren <- sapply(100 * (1 - study_data$falta_dren), FUN = lack_of_infrastructure_vf)
+  fv_falta <- sapply(100 * (1 - study_data$falta_dren), FUN = lack_of_infrastructure_vf)
 
   # Population growth
   fv_crecimiento_pop <- sapply(study_data$pop_growth, FUN = urban_growth_f, xmax = max(study_data$pop_growth, na.rm = T))
-  fv_crecimiento_pop[which(fv_crecimiento_pop<0)]<-1
+
   # Lickages
   #fv_fugas <- sapply(study_data$fugas, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$FUGAS, na.rm = T))
   fv_fugas <- sapply(study_data$fugas,
@@ -151,8 +150,8 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   all_C_ab <- cbind(
     vf_A_Ab,
     vf_Cap_Ab,
-    vf_fall_dist,
-    vf_falta_Ab,
+    vf_falla_dist,
+    vf_falta_dist,
     vf_monto,
     vf_hid_pressure,
     vf_WQ,
@@ -172,8 +171,8 @@ determine_site_suitability <- function(study_data, value_function_config, mental
     vf_rain,
     vf_A_D,
     vf_Cap_D,
-    vf_fall_dren,
-    vf_falta_D,
+    vf_falla_dren,
+    vf_falta_dren,
     vf_pet_del_dr,
     vf_pet_us_d,
     vf_pres_medios,
@@ -186,11 +185,11 @@ determine_site_suitability <- function(study_data, value_function_config, mental
     vf_WQ,
     vf_UG,
     vf_Desp_A,
-    vf_fall_dist,    #Eficacia.del.servicio
-    vf_falta_dist,
-    rep(1, length(vf_falta_dist)),
+    fv_fugas,
+    fv_falta,
+    rep(1, length(fv_falta)),
     vf_Agua_insu,
-    rep(1, length(vf_falta_dist)), # flooding do not influence protests or water capture
+    rep(1, length(fv_falta)), # flooding do not influence protests or water capture
     vf_H
   )
   # protest
@@ -198,11 +197,11 @@ determine_site_suitability <- function(study_data, value_function_config, mental
     vf_WQ,
     vf_UG,
     vf_Desp_A,
-    vf_fall_dist,
-    fv_falta_dist,
-    rep(1, length(fv_falta_dist)),
+    fv_fugas,
+    fv_falta,
+    rep(1, length(fv_falta)),
     scarcity_index,#vf_scarcity_residents,
-    rep(1, length(fv_falta_dist)), # flooding do not influence protests or water capture
+    rep(1, length(fv_falta)), # flooding do not influence protests or water capture
     vf_H
   )
 
@@ -210,12 +209,12 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   C_R_D <- cbind(
     vf_WQ,
     vf_UG,
-    rep(1, length(fv_falta_dren)),
-    rep(1, length(fv_falta_dren)),
-    fv_falta_dren,
+    rep(1, length(fv_falta)),
+    rep(1, length(fv_falta)),
+    fv_falta,
     vf_garbage,
-    rep(1, length(fv_falta_dren)), # scarcity does not affect floding
-    vf_flood,
+    rep(1, length(fv_falta)), # scarcity does not affect floding
+    vf_pond,
     vf_H
   )
 

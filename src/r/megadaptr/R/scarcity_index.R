@@ -5,7 +5,15 @@
 #'
 #' @param data.frame with variables population_size houses without supply,
 #' @return data frame with new population size
-calculate_scarcity_index<-function(Study_data,value_function_config){
+update_scarcity_index<-function(study_data,value_function_config){
+
+  sewer_age <- value_function_config$sewer_age
+  shortage_age <- value_function_config$shortage_age
+  shortage_failures <- value_function_config$shortage_failures
+  hydraulic_pressure_failure <- value_function_config$hydraulic_pressure_failure
+  subsidence <- value_function_config$subsidence
+
+
   fv_pob_ageb <- sapply((study_data$poblacion /study_data$area) * 1000000,
                        FUN = logistic_vf,
                        k = 0.3,
@@ -21,37 +29,43 @@ fv_viviendas_sagua<- sapply(vs,
                      xmax = max(vs),
                      center = abs((min(vs)-max(vs))/2)-1000)
 
-fv_zonas_crit=0#  zonas criticas no estan en el dataframe
-fv_num_cisternas=0  #add cisternas
-fv_dias_sagua=0#definir
-vf_income<- sapply(study_data$ingreso,
+fv_zonas_crit=sapply(study_data$critic_z,
+                      FUN=gaussian,
+                      a = 23,
+                      center = 0,
+                      xmin = min(study_data$critic_z),
+                      xmax = max(study_data$critic_z))
+
+
+  0#  zonas criticas no estan en el dataframe
+fv_num_cisternas=0  #  study_data$tanks   add cisternas
+
+fv_num_cisternas<-sapply(study_data$tanks,
+                         FUN=convexa_creciente,
+                         gama= .05,
+                         xmax=max(study_data$tanks,na.rm=T),
+                         xmin=min(study_data$tanks,na.rm=T)
+                         )
+
+fv_dias_sagua=sapply(study_data$wo_water,
+                     FUN=gaussian,
+                     a = 15,
+                     center = 0,
+                     xmin = min(study_data$wo_water,na.rm=T),
+                     xmax = max(study_data$wo_water,na.rm=T)
+                     )
+
+
+fv_ingreso<- sapply(study_data$income_pc,
                      FUN = convexa_creciente,
                      gama=.015,
-                     xmin = min(study_data$ingreso,na.rm = T),
-                     xmax = max(study_data$ingreso,na.rm = T))
+                     xmin = min(study_data$income_pc,na.rm = T),
+                     xmax = max(study_data$income_pc,na.rm = T))
 
-fv_antiguedad <- sapply(study_data$antiguedad_Ab,
-                  FUN = campana_invertida,
-                  center = shortage_age$center,
-                  a = shortage_age$a,
-                  xmax = shortage_age$max,
-                  xmin = shortage_age$min)
 
-fv_presion_hid <- sapply(study_data$pres_hid,
-                          FUN = logistic_vf,
-                          k = hydraulic_pressure_failure$k,
-                          center = hydraulic_pressure_failure$center,
-                          xmax = hydraulic_pressure_failure$max,
-                          xmin = hydraulic_pressure_failure$min)
 
-fv_fugas <- sapply(study_data$fugas,
-       FUN = gaussian,
-       a = 10,
-       center = 0,
-       xmax = min(study_data$fugas),
-       xmin = max(study_data$fugas))
 
-l=8
-ind_esc <- ((1/l)*(fv_pob_ageb) + (1/l)*(fv_zonas_crit) + (1/l)*(fv_num_cisternas) + (1/l)*(fv_ingreso) +  (1/l)*(fv_dias_sagua) +  (1/l)*(fv_antiguedad) +  (1/l)*(fv_viviendas_sagua) + (1/l)*(fv_presion_hid) + (1/l)*(fv_fugas))
+l=6
+ind_esc <- ((1/l)*(fv_pob_ageb) + (1/l)*(fv_zonas_crit) + (1/l)*(fv_num_cisternas) + (1/l)*(fv_ingreso) +  (1/l)*(fv_dias_sagua)  +  (1/l)*(fv_viviendas_sagua))
 ind_esc
 }

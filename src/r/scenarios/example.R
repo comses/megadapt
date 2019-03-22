@@ -33,7 +33,7 @@ example <- function(x=numeric(),n_years=5) {
       integer64 = "warn.loss"
     ) # for flooding model
   # Simulation runs only for the city (CDMX) estado=="09"
-  study_area <- subset(study_area, estado == "09")
+  #study_area <- subset(study_area, estado == "09")
   study_area@data <- create_study_data(study_area@data)
 
   #

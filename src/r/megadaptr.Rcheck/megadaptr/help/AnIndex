@@ -1,0 +1,10 @@
+megadaptr-package	megadaptr-package
+create_water_scarcity_model	create_water_scarcity_model
+determine_site_suitability	determine_site_suitability
+load_climate_scenario	load_climate_scenario
+megadaptr	megadaptr-package
+simulate_megadapt	simulate_megadapt
+update_climate	update_climate
+update_ponding	update_ponding
+update_water_scarcity	update_water_scarcity
+update_year_megadapt	update_year_megadapt
