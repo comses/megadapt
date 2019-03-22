@@ -28,7 +28,7 @@ example <- function(x=numeric(),n_years=5) {
   #
   study_area <-
     rgdal::readOGR(
-      data_dir("Layer_MEGADAPT_Oct2018.shp"),
+      data_dir("megadapt_wgs84.shp"),#input_layer.shp
       stringsAsFactors = FALSE,
       integer64 = "warn.loss"
     ) # for flooding model
@@ -41,6 +41,10 @@ example <- function(x=numeric(),n_years=5) {
   #
   ponding_models <- load_ponding_models(data_dir(""))
 
+  # Flooding Model Setup
+  #
+  flooding_models <- load_flooding_models(data_dir(""))
+
   #
   # Water Scarcity Model Setup
   #
@@ -51,7 +55,20 @@ example <- function(x=numeric(),n_years=5) {
   #
   climate_scenario <- read.csv(data_dir("df_prec_esc_85_85.csv"))
 
-  #
+  #Table_climate_scenarios=as.data.frame(read.csv("../geosimulation/runoff/db_escenarios_prec_esc_ids.csv",header = T))
+
+  #generate the path to the place where the data frame of the scenario is stored
+
+  #scenario_name=Table_climate_scenarios[which(Table_climate_scenarios$id==scenario),]$path
+
+  #print(scenario_name)
+
+  #to test I added to scenrio 1 the following path
+  #"../../data/" which is the same as "path_td" variable
+  #read the file and save it inside the run
+  #runoff_scenario=read.csv(paste0("../geosimulation/runoff/outputs/", scenario_name),sep=",")
+
+
   # Value Function Setup
   #
   fv_antiguedad_drenaje <- load_value_function_config(data_dir("funciones_valor/csvs/fv_antiguedad_drenaje.csv"))
@@ -74,7 +91,7 @@ example <- function(x=numeric(),n_years=5) {
 
   #
   # Mental Model Setup
-  #
+
   mm_water_operator_s_lim <- data.frame(read.csv(data_dir("DF101215_GOV_AP modificado PNAS.limit.csv"),
                                                  skip = 1, header = T))[, -c(1, 2, 21)]
   mm_water_operator_d_lim <- data.frame(read.csv(data_dir("SACMEX_Drenaje_limit_SESMO.csv"),
@@ -95,6 +112,7 @@ example <- function(x=numeric(),n_years=5) {
     mental_models = mental_models,
     params = params,
     ponding_models = ponding_models,
+    flooding_models = flooding_models,
     study_area = study_area,
     water_scarcity_model = water_security_model,
     value_function_config = value_function_config

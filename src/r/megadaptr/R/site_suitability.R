@@ -57,9 +57,9 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   vf_SP <- sapply(study_data$social_pressure, FUN = social_pressure_vf)
 
   # rainfall
-  vf_rain <- sapply(study_data$f_prec_v, FUN = rainfall_vf)
+  vf_rain <- sapply(study_data$f_prec_v, FUN = rainfall_vf) #change value function range
   # run-off/escurrimiento
-  vf_run_off <- sapply(study_data$escurri, FUN = run_off_vf)
+  vf_run_off <- sapply(study_data$f_esc, FUN = run_off_vf)
 
   # garbage
   vf_garbage <- sapply(study_data$basura / 10000, FUN = drainages_clogged_vf)
@@ -81,17 +81,18 @@ determine_site_suitability <- function(study_data, value_function_config, mental
                             xmin = hydraulic_pressure_failure$min)
 
   # monto ##!!!#no information about this variable
-  vf_monto <- rep(1, length(study_data$AGEB_ID))
+  vf_monto <- rep(1, length(study_data$ageb_id))
   # hidraulic cost
-  vf_GH <- sapply(study_data$gasto, FUN = Value_Function_cut_offs, xmax = max(study_data$gasto), xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2))
+  vf_GH <- sapply(study_data$q100, FUN = Value_Function_cut_offs, xmax = max(study_data$gasto), xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2))
   # water supply
   vf_Abaste <- sapply(study_data$abastecimi, FUN = Value_Function_cut_offs, xmax = max(study_data$abastecimi, na.rm = T))
   # Petitions from delegations
   vf_pet_del_dr <- sapply(study_data$pet_del_dr, FUN = Peticion_Delegaciones_vf)
   # petitions from users
-  vf_pet_us_d <- sapply(study_data$pet_usr_d, FUN = Peticiones_usuarios_vf, xmax = max(study_data$pet_usr_d, na.rm = T))
+  #vf_pet_us_d <- sapply(study_data$pet_usr_d, FUN = Peticiones_usuarios_vf, xmax = max(study_data$pet_usr_d, na.rm = T))
+  vf_pet_us_d <- rep(1, length(study_data$ageb_id))
   # Media pressure
-  vf_pres_medios <- sapply(study_data$PRES_MED, FUN = pression_medios_vf)
+  vf_pres_medios <- sapply(study_data$pres_med, FUN = pression_medios_vf)
 
 
   # 2)update value functions residents
@@ -106,7 +107,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   vf_H <- sapply(study_data$enf_14, FUN = health_vf)
 
   # water scarcity residents
-  vf_scarcity_residents <- sapply(study_data$NOWater_twoweeks, FUN = scarcity_residents_empirical_vf, tau = 12) # days_wn_water need to be define
+  vf_scarcity_residents <- sapply(study_data$days_wn_water_two_weeks, FUN = scarcity_residents_empirical_vf, tau = 12) # days_wn_water need to be define
 
   # ponding residents
   vf_pond <- sapply(study_data$encharca, FUN = ponding_vf)
@@ -118,7 +119,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   vf_Desp_A <- sapply(study_data$desp_agua, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$desp_agua, na.rm = T))
 
   # Insufiency in water
-  vf_Agua_insu <- sapply(study_data$days_wn_water_month, FUN = scarcity_residents_vf) # days_wn_water need to be define
+  vf_Agua_insu <- sapply(study_data$days_wn_water_two_weeks, FUN = scarcity_residents_vf) # days_wn_water need to be define
 
   # Lack of drainage system
   fv_falta <- sapply(100 * (1 - study_data$falta_dren), FUN = lack_of_infrastructure_vf)

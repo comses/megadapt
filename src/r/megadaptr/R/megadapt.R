@@ -39,9 +39,9 @@ create_study_data <- function(study_data) {
 initial_state <- function(study_data) {
   cbind(
     subset(study_data, select = COLUMNS_TO_SAVE),
-    time_sim = rep(0, length(study_data$AGEB_ID)),
-    year_sim = rep(2018, length(study_data$AGEB_ID)),
-    month_sim = rep(12, length(study_data$AGEB_ID))
+    time_sim = rep(0, length(study_data$ageb_id)),
+    year_sim = rep(2018, length(study_data$ageb_id)),
+    month_sim = rep(12, length(study_data$ageb_id))
   )
 }
 

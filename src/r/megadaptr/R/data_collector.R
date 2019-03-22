@@ -9,15 +9,15 @@
 # Adaptations F
 # Vulneability Index
 COLUMNS_TO_SAVE <- c(
-  "AGEB_ID",
+  "ageb_id",
   "municipio",
   "antiguedad_D",
   "antiguedad_Ab",
-  "f_en",
   "encharca",
-  "FALTA_IN",
-  "capac_w",
-  "falta_dren",
+  "inunda",
+  "rejillas",
+  "q100",
+  "v_sagua",#falta_in change name
   "lambdas",
   "days_wn_water_week",
   "days_wn_water_two_weeks",
