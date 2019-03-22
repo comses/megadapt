@@ -23,6 +23,7 @@ COLUMNS_TO_SAVE <- c(
   "days_wn_water_two_weeks",
   "days_wn_water_year",
   "water_scarcity_weekly",
+  "scarcity_index_aDD",
   "social_pressure",
   "sensitivity_Ab",
   "sensitivity_D",

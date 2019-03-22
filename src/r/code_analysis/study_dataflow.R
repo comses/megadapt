@@ -18,9 +18,9 @@ components <- tibble::tribble(
 
 input <- tibble::tribble(
   ~component_name, ~study_data,
-  'update_scarcity_model', 'CRITICO',
+  'update_scarcity_model', 'critico',
   'update_scarcity_model', 'antiguedad_Ab',
-  'update_scarcity_model', 'V_SAGUA',
+  'update_scarcity_model', 'v_sagua',
   'update_ponding', 'f_prec_v',
   'update_ponding', 'f_esc',
   'update_ponding', 'n_tramos',
@@ -30,7 +30,7 @@ input <- tibble::tribble(
   'determine_site_suitability', 'antiguedad_Ab',
   'determine_site_suitability', 'antiguedad_D',
   'determine_site_suitability', 'q100',
-  'determine_site_suitability', 'V_SAGUA',
+  'determine_site_suitability', 'v_sagua',
   'determine_site_suitability', 'falta_dren',
   'determine_site_suitability', 'falta_in',
   'determine_site_suitability', 'days_wn_water_year',
@@ -38,24 +38,24 @@ input <- tibble::tribble(
   'determine_site_suitability', 'social_pressure',
   'determine_site_suitability', 'PR_2008',
   'determine_site_suitability', 'escurri',
-  'determine_site_suitability', 'BASURA',
+  'determine_site_suitability', 'basura',
   'determine_site_suitability', 'subsidenci',
   'determine_site_suitability', 'pres_hid',
-  'determine_site_suitability', 'AGEB_ID',
+  'determine_site_suitability', 'ageb_id',
   'determine_site_suitability', 'gasto',
   'determine_site_suitability', 'abastecimi',
   'determine_site_suitability', 'pet_del_dr',
   'determine_site_suitability', 'pet_usr_d',
-  'determine_site_suitability', 'PRES_MED',
+  'determine_site_suitability', 'pres_med',
   'determine_site_suitability', 'crec_rb',
   'determine_site_suitability', 'cal_agua',
-  'determine_site_suitability', 'ENF_14',
+  'determine_site_suitability', 'enf_14',
   'determine_site_suitability', 'NOWater_twoweeks',
   'determine_site_suitability', 'desv_agua',
   'determine_site_suitability', 'desp_agua',
   'determine_site_suitability', 'days_wn_water_month',
   'determine_site_suitability', 'pop_growth',
-  'determine_site_suitability', 'FUGAS',
+  'determine_site_suitability', 'falla_dist',
   'take_actions_sacmcx', 'antiguedad_D',
   'take_actions_sacmcx', 'q100',
   'take_actions_sacmcx', 'Interventions_D',
@@ -63,7 +63,7 @@ input <- tibble::tribble(
   'take_actions_sacmcx', 'bombeo_tot',
   'take_actions_sacmcx', 'antiguedad_Ab',
   'take_actions_sacmcx', 'Interventions_Ab',
-  'take_actions_sacmcx', 'V_SAGUA',
+  'take_actions_sacmcx', 'v_sagua',
   'update_adaptation_and_sensitivity', 'house_modifications_D',
   'update_adaptation_and_sensitivity', 'house_modifications_Ab',
   'update_adaptation_and_sensitivity', 'days_wn_water_year',
@@ -72,7 +72,7 @@ input <- tibble::tribble(
   'update_infrastructure_age', 'antiguedad_D',
   'update_infrastructure_age', 'antiguedad_Ab',
   'update_infrastructure_age', 'capac_w',
-  'update_infrastructure_age', 'FALTA_IN',
+  'update_infrastructure_age', 'falla_dist',
   'update_infrastructure_age', 'pop_growth',
   'update_infrastructure_age', 'falta_dren'
 )
@@ -107,7 +107,7 @@ output <- tibble::tribble(
   'update_infrastructure_age', 'capac_w',
   'update_infrastructure_age', 'FALTA_IN',
   'update_infrastructure_age', 'falta_dren'
-  
+
 )
 
 rw_display <- function(type) {
@@ -124,14 +124,14 @@ rw_display <- function(type) {
   }
 }
 
-study_data_variable_names <- input %>% 
-  select(study_data) %>% 
-  union(output %>% 
-          select(study_data)) %>% 
-  distinct(study_data) %>% 
+study_data_variable_names <- input %>%
+  select(study_data) %>%
+  union(output %>%
+          select(study_data)) %>%
+  distinct(study_data) %>%
   arrange(study_data)
 
-rw_data <- input %>% 
+rw_data <- input %>%
   mutate(type='Read') %>%
   union(output %>%
           mutate(type='Write'))

@@ -9,6 +9,8 @@ create_water_scarcity_model <- function(study_data) {
                  data = study_data)
 }
 
+
+
 #' Generate random water scarcity data for a year for all census blocks
 #'
 #' @param water_scarcity_model A model capable of predicting water scarcity probabilities by census block
@@ -38,7 +40,8 @@ update_water_scarcity <-
     } else {
       days_wn_water_year <- study_data$days_wn_water_year + days_wn_water_week
     }
-
+    #update scarcity index here
+    scarcity_index<-calculate_scarcity_index(study_data,value_function_config)
     study_data %>%
       dplyr::mutate(
         days_wn_water_two_weeks = days_wn_water_week + (!! days_wn_water_week),
@@ -49,7 +52,8 @@ update_water_scarcity <-
         ageb_id,
         days_wn_water_week,
         days_wn_water_two_weeks,
-        days_wn_water_year
+        days_wn_water_year,
+        scarcity_index
       )
   }
 

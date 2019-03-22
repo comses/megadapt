@@ -1,5 +1,14 @@
-#' Determine site suitability for
-#'
+#' Determine suitability of spatial units
+#' @param study_data Data frame with spatial units (e.g. shapefile)
+#' @param value_function_config A set of value functions and their parameters
+#'   \describe{
+#'   \item{antiguedad_Ab}{FPotable water infrastructure age in years}
+#'   \item{critico}{Indicator variable of whether census block has less than 4 hours of water per day}
+#'   \item{v_sagua}{Proportion of houses in census block without water}
+#'   }
+#' @param week_of_year The number of weeks up until the present week of the current year
+#' @return data frame with pk and cumulative number of days without clean water this week and year by census block
+
 determine_site_suitability <- function(study_data, value_function_config, mental_models) {
   sewer_age <- value_function_config$sewer_age
   shortage_age <- value_function_config$shortage_age
@@ -48,7 +57,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
 
 
   # e)water scarcity
-  vf_scarcity_sacmex <- sapply(study_data$days_wn_water_year, FUN = scarcity_sacmex_vf) # scarcity_annual is calculated dynamically
+  #vf_scarcity_sacmex <- sapply(study_data$days_wn_water_year, FUN = scarcity_sacmex_vf) # scarcity_annual is calculated dynamically
   # flooding #cchange to flooding
   vf_flood <- sapply(study_data$inunda, FUN = ponding_vf)
   # Ponding
@@ -107,7 +116,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   vf_H <- sapply(study_data$enf_14, FUN = health_vf)
 
   # water scarcity residents
-  vf_scarcity_residents <- sapply(study_data$days_wn_water_two_weeks, FUN = scarcity_residents_empirical_vf, tau = 12) # days_wn_water need to be define
+  #vf_scarcity_residents <- sapply(study_data$days_wn_water_two_weeks, FUN = scarcity_residents_empirical_vf, tau = 12) # days_wn_water need to be define
 
   # ponding residents
   vf_pond <- sapply(study_data$encharca, FUN = ponding_vf)
@@ -128,8 +137,13 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   fv_crecimiento_pop <- sapply(study_data$pop_growth, FUN = urban_growth_f, xmax = max(study_data$pop_growth, na.rm = T))
 
   # Lickages
-  fv_fugas <- sapply(study_data$fugas, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$FUGAS, na.rm = T))
-
+  #fv_fugas <- sapply(study_data$fugas, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$FUGAS, na.rm = T))
+  fv_fugas <- sapply(study_data$fugas,
+                     FUN = gaussian,
+                     a = 10,
+                     center = 0,
+                     xmax = min(study_data$fugas),
+                     xmin = max(study_data$fugas))
   ################################################################################################################
   # join all converted attributes into a single matrix
   all_C_ab <- cbind(
@@ -140,7 +154,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
     vf_monto,
     vf_hid_pressure,
     vf_WQ,
-    vf_scarcity_sacmex,
+    scarcity_index,#vf_scarcity_sacmex,
     vf_pond,
     vf_Abaste,
     vf_pet_del_dr,
@@ -185,7 +199,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
     fv_fugas,
     fv_falta,
     rep(1, length(fv_falta)),
-    vf_scarcity_residents,
+    scarcity_index,#vf_scarcity_residents,
     rep(1, length(fv_falta)), # flooding do not influence protests or water capture
     vf_H
   )
