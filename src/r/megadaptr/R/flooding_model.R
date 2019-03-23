@@ -15,7 +15,7 @@ load_flooding_models <- function(base_path) {
 
 #' Generate ponding data
 #'
-#' @param flooding_models A list of ponding models for each region
+#' @param flooding_models A list of model objects to estimate frequency of flooding for each region
 #' @return floodings
 #' @importFrom gbm predict.gbm
 update_flooding <- function(study_data, flooding_models) {
