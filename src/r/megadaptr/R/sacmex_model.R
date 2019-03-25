@@ -223,7 +223,6 @@ make_public_infrastructure_investments <- function(study_data, site_selection, p
   if (length(A2) > 0) {
     study_data$falta_dren[A2] <- study_data$falta_dren[A2] - study_data$falta_dren[A2] * params$new_infrastructure_effectiveness_rate
     study_data$q100[A2] <- study_data$q100[A2] * (1 + params$maintenance_effectiveness_rate) # capasity of drainage increases with new infrastructure
-    study_data$bombeo_tot[A2] <- study_data$bombeo_tot[A2] + 1 # capasity of drainage increases with new infrastructure
 
     study_data$Interventions_D[A2] <- study_data$Interventions_D[A2] + 1
   }
@@ -294,7 +293,6 @@ update_public_infrastructure <- function(study_data, site_selection, params, n_w
       ageb_id,
       antiguedad_dist,
       antiguedad_dren,
-      bombeo_tot,
       falta_dren,
       Interventions_Ab,
       Interventions_D,
