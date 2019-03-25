@@ -8,6 +8,7 @@ create_study_data <- function(study_data) {
   study_data$days_wn_water_year <- 0L
   study_data$days_wn_water_two_weeks <- 0L
   study_data$days_wn_water_week <- 0L
+  study_data$scarcity_index <- 0L
   study_data$water_scarcity_weekly <- rep(list(
     data.frame(
       days_wn_water_week=integer(),
