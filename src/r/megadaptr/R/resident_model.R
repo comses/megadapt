@@ -3,31 +3,31 @@ determine_residential_infrastructure_suitability <- function(study_data, value_f
   criteria_iz <- as.vector(mental_models$residents$criteria$iz)
 
   # Water quality
-  vf_WQ <- sapply(study_data$cal_agua, FUN = water_quality_residents_vf)
-
+  #vf_WQ <- sapply(study_data$cal_agua, FUN = water_quality_residents_vf)
+  vf_WQ <- study_data$cal_agua
   # Crecimiento urbano
-  vf_UG <- sapply(study_data$crec_urb, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$crec_urb, na.rm = T))
+  vf_UG <- sapply(study_data$crec_urb *study_data$poblacion, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$crec_urb, na.rm = T))
 
-  # agua insuficiente
-  vf_Agua_insu <- sapply(study_data$days_wn_water_year / week_of_year * 4.25, FUN = scarcity_residents_vf) # days_wn_water need to be define
+    # agua insuficiente
+  vf_Agua_insu <- sapply(study_data$scarcity_index, FUN = scarcity_residents_vf) # days_wn_water need to be define
 
   # "Desperdicio de agua"
   vf_Desp_A <- sapply(study_data$desp_agua, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$desp_agua, na.rm = T))
 
   # fugas
-  fv_fugas <- sapply(study_data$FUGAS, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$FUGAS, na.rm = T))
+  fv_fugas <- sapply(study_data$falla_dist, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$falla_dist, na.rm = T))
 
   # falta infrastructura drenaje
   fv_falta <- sapply(100 * (1 - study_data$falta_dren), FUN = lack_of_infrastructure_vf)
 
   # garbage
-  vf_garbage <- sapply(study_data$BASURA / 10000, FUN = drainages_clogged_vf)
+  vf_garbage <- sapply(study_data$basura / 10000, FUN = drainages_clogged_vf)
 
   # Ponding
   vf_pond <- sapply(study_data$encharca, FUN = ponding_vf)
 
   # salud
-  vf_H <- sapply(study_data$ENF_14, FUN = health_vf)
+  vf_H <- sapply(study_data$enf_14, FUN = health_vf)
 
   # house modification flooding
   C_R_D <- cbind(
@@ -103,7 +103,7 @@ update_residential_infrastructure_investments <- function(study_data, value_func
         sensitivity_Ab[HM_Agua] <- 1 - (house_modifications_Ab[HM_Agua] / (params$half_sensitivity_ab + house_modifications_Ab[HM_Agua]))
         sensitivity_Ab
       },
-      vulnerability_Ab = (sensitivity_Ab * days_wn_water_year) / (1 + ingreso),
+      vulnerability_Ab = (sensitivity_Ab * scarcity_index) / (1 + ingreso),
       vulnerability_D = (sensitivity_D * encharca) / (1 + ingreso)
     ) %>%
     dplyr::select(

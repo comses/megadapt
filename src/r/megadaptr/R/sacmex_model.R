@@ -38,7 +38,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
   vf_falta_Ab <- sapply(100 * study_data$falta_dist, FUN = lack_of_infrastructure_vf)
 
   # monto ##!!!#no information about this variable
-  vf_monto <- rep(1, length(study_data$AGEB_ID))
+  vf_monto <- rep(1, length(study_data$ageb_id))
 
   # hydraulic pressure
   vf_hid_pressure <- sapply(study_data$pres_hid,
@@ -58,7 +58,8 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
   vf_Abaste <- sapply(study_data$abastecimi, FUN = Value_Function_cut_offs, xmax = max(study_data$abastecimi, na.rm = T))
 
   # social_pressure
-  vf_SP <- sapply(study_data$social_pressure, FUN = social_pressure_vf)
+  #vf_SP <- sapply(study_data$social_pressure, FUN = social_pressure_vf)
+  vf_SP <-study_data$fv_reportes*(1-study_data$scarcity_index)
 
   all_C_ab <- cbind(
     vf_A_Ab,
@@ -84,7 +85,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
   vf_garbage <- sapply(study_data$basura / 10000, FUN = drainages_clogged_vf)
 
   # run-off/escurrimiento
-  vf_run_off <- sapply(study_data$escurri, FUN = run_off_vf)
+  vf_run_off <- sapply(study_data$f_esc, FUN = run_off_vf)
 
   # subsidance
   vf_subside <- sapply(study_data$subsidenci,
@@ -117,7 +118,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
   vf_pet_us_d <- sapply(study_data$pet_usr_d, FUN = Peticiones_usuarios_vf, xmax = max(study_data$pet_usr_d, na.rm = T))
 
   # flooding #cchange to flooding
-  vf_flood <- sapply(study_data$encharca, FUN = ponding_vf)
+  vf_flood <- sapply(study_data$inunda, FUN = ponding_vf)
 
   all_C_D <- cbind(
     vf_garbage,
@@ -138,6 +139,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
   # calculate distance for each census block for action mantainance and build new infrastructure
   sacmcx_criteria_d <- as.vector(mental_models$sacmcx$criteria$d)
   sacmcx_alternative_weights_d <- mental_models$sacmcx$alternative_weights$d
+
   distance_ideal_A1_D <- sweep(as.matrix(all_C_D),
                                MARGIN = 2,
                                sacmcx_criteria_d / sum(sacmcx_criteria_d),
@@ -209,7 +211,7 @@ make_public_infrastructure_investments <- function(study_data, site_selection, p
   A4 <- site_selection$A4
 
   # take actions sacmex
-  # cahnge value of atributes in agebs selected for action
+  # change value of atributes in agebs selected for action
   # action 1 mantainance D
   if (length(A1) > 0) {
     study_data$antiguedad_dren[A1] <- study_data$antiguedad_dren[A1] - study_data$antiguedad_dren[A1] * params$maintenance_effectiveness_rate
@@ -234,7 +236,7 @@ make_public_infrastructure_investments <- function(study_data, site_selection, p
 
   # action 4 New infra Ab.
   if (length(A4) > 0) {
-    study_data$V_SAGUA[A4] <- study_data$falta_dist[A4] * (1 - params$new_infrastructure_effectiveness_rate)
+    study_data$falta_dist[A4] <- study_data$falta_dist[A4] * (1 - params$new_infrastructure_effectiveness_rate)
     study_data$Interventions_Ab[A4] <- study_data$Interventions_Ab[A4] + 1
   }
 
@@ -267,12 +269,12 @@ depreciate_public_infrastructure <- function(study_data, infrastructure_decay_ra
   weekly_pop_growth <- (1 + study_data$pop_growth)^(1/n_weeks) - 1
 
   # update_capacity of the system
-  study_data$capac_w <- study_data$capac_w * (1 - weekly_infrastructure_decay_rate)
+  study_data$q100 <- study_data$q100 * (1 - weekly_infrastructure_decay_rate)
   # update capacity index
   # FIDEL
   # The proportion of people without infrastructure increases proportionally to
   # the growthof the population in each delegation
-  study_data$FALTA_IN <- study_data$FALTA_IN * (1 + (1 - study_data$FALTA_IN)*weekly_pop_growth)
+  study_data$falta_dist <- study_data$falta_dist * (1 + (1 - study_data$falta_dist)*weekly_pop_growth)
   study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren)*weekly_pop_growth)
 
   study_data

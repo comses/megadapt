@@ -17,7 +17,7 @@ COLUMNS_TO_SAVE <- c(
   "inunda",
   "rejillas",
   "q100",
-  "falta_dist",#falta_in change name
+  "falta_dist",
   "lambdas",
   "days_wn_water_week",
   "days_wn_water_two_weeks",

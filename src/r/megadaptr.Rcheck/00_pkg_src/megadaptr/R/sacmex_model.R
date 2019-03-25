@@ -265,12 +265,12 @@ depreciate_public_infrastructure <- function(study_data, infrastructure_decay_ra
   weekly_pop_growth <- (1 + study_data$pop_growth)^(1/n_weeks) - 1
 
   # update_capacity of the system
-  study_data$capac_w <- study_data$capac_w * (1 - weekly_infrastructure_decay_rate)
+  study_data$q100 <- study_data$q100 * (1 - weekly_infrastructure_decay_rate)
   # update capacity index
   # FIDEL
   # The proportion of people without infrastructure increases proportionally to
   # the growthof the population in each delegation
-  study_data$FALTA_IN <- study_data$falta_dist * (1 + (1 - study_data$falta_dist)*weekly_pop_growth)
+  study_data$dist <- study_data$falta_dist * (1 + (1 - study_data$falta_dist)*weekly_pop_growth)
   study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren)*weekly_pop_growth)
 
   study_data
