@@ -21,11 +21,13 @@ create_water_scarcity_model <- function(study_data) {
 #'   \item{falta_dist}{Proportion of houses in census block without water}
 #'   }
 #' @param week_of_year The number of weeks up until the present week of the current year
+#' @param value_function_config A set of functions to modify the scarcity index
 #' @return data frame with pk and cumulative number of days without clean water this week and year by census block
 update_water_scarcity <-
   function(water_scarcity_model,
            study_data,
-           week_of_year) {
+           week_of_year,
+           value_function_config) {
     prob_water <-
       predict(water_scarcity_model, newdata = study_data, type = "prob", at=0:7)
 
@@ -41,7 +43,8 @@ update_water_scarcity <-
       days_wn_water_year <- study_data$days_wn_water_year + days_wn_water_week
     }
     #update scarcity index here
-    scarcity_index<-update_scarcity_index(study_data,value_function_config)
+    scarcity_index<-update_scarcity_index(study_data,value_function_config=value_function_config)
+
     study_data %>%
       dplyr::mutate(
         days_wn_water_two_weeks = days_wn_water_week + (!! days_wn_water_week),
