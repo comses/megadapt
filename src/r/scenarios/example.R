@@ -51,17 +51,19 @@ example <- function(x=numeric(),n_years=5) {
   water_security_model <- create_water_scarcity_model(study_area@data)
 
   #
-  # Climate Scenario Setup
-  #
-  climate_scenario <- read.csv(data_dir("df_prec_esc_85_85.csv"))
 
-  #Table_climate_scenarios=as.data.frame(read.csv("../geosimulation/runoff/db_escenarios_prec_esc_ids.csv",header = T))
+  Table_climate_scenarios=as.data.frame(read.csv(data_dir("climate_landuse_scenarios/db_escenarios_prec_esc_ids.csv"),header = T))
 
   #generate the path to the place where the data frame of the scenario is stored
 
-  #scenario_name=Table_climate_scenarios[which(Table_climate_scenarios$id==scenario),]$path
+  scenario_name=Table_climate_scenarios[which(Table_climate_scenarios$id==scenario),]$path
 
   #print(scenario_name)
+
+  # Climate Scenario Setup
+  #
+  climate_scenario <- read.csv(data_dir(paste0("climate_landuse_scenarios/",scenario_name)))#scenario_name
+
 
   #to test I added to scenrio 1 the following path
   #"../../data/" which is the same as "path_td" variable
