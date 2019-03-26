@@ -6,5 +6,10 @@ latex: false
 pandoc: 1.19.2.1
 notifications:
   email: comses-dev@googlegroups.com
+apt_packages:
+  - zlib1g-dev
+  - libpng-dev
+  - libgeos-dev
+  - libgdal-dev
 before_install:
   - cd src/r/megadaptr
