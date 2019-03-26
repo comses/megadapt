@@ -73,7 +73,10 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   vf_run_off <- sapply(study_data$f_esc, FUN = run_off_vf)
 
   # garbage
-  vf_garbage <- sapply(study_data$basura / 10000, FUN = drainages_clogged_vf)
+  vf_garbage <- sapply(study_data$basura,
+                       FUN = drainages_clogged_vf,
+                       amplitude = 500000,
+                       Valor_minimo_Y_en_X = max(study_data$basura))
 
   # subsidance
   vf_subside <- sapply(study_data$subsidenci,
@@ -152,7 +155,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
     vf_A_Ab,
     vf_Cap_Ab,
     vf_fall_dist,
-    vf_falta_Ab,
+    vf_falta_dist,
     vf_monto,
     vf_hid_pressure,
     vf_WQ,
