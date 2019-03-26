@@ -35,7 +35,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
                          xmin = shortage_failures$min)
 
   # falta
-  vf_falta_Ab <- sapply(100 * study_data$falta_dist, FUN = lack_of_infrastructure_vf,saturation=1,x_max=100)
+  vf_falta_dist <- sapply(100 * study_data$falta_dist, FUN = lack_of_infrastructure_vf,saturation=1,x_max=100)
 #  plot(study_data$falta_dist,vf_falta_Ab)
   # monto ##!!!#no information about this variable
   vf_monto <- rep(1, length(study_data$ageb_id))
@@ -52,8 +52,8 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
   vf_WQ <- sapply(study_data$cal_agua, FUN = water_quality_residents_vf)
 
   # e)water scarcity
-  vf_scarcity_sacmex <- sapply(study_data$days_wn_water_year, FUN = scarcity_sacmex_vf) # scarcity_annual is calculated dynamically
-
+#  vf_scarcity_sacmex <- sapply(study_data$days_wn_water_year, FUN = scarcity_sacmex_vf) # scarcity_annual is calculated dynamically
+  vf_scarcity_sacmex<-study_data$scarcity_index
   # abastecimiento
   vf_Abaste <- sapply(study_data$abastecimi, FUN = Value_Function_cut_offs, xmax = max(study_data$abastecimi, na.rm = T))
 
@@ -69,7 +69,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
     vf_monto,
     vf_hid_pressure,
     vf_WQ,
-    scarcity_index,
+    vf_scarcity_sacmex,
     vf_pond,
     vf_Abaste,
     vf_pet_del_dr,
@@ -77,10 +77,11 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
     vf_SP
   )
 
+  ## Storm Water Specific
+
   subsidence <- value_function_config$subsidence
   sewer_age <- value_function_config$sewer_age
 
-  ## Storm Water Specific
   # garbage
   vf_garbage <- sapply(study_data$basura / 10000, FUN = drainages_clogged_vf)
 
@@ -111,11 +112,11 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
 #plot(study_data$q100,vf_Cap_D)
   # falla D
   #vf_fall_D <- rep(1, length(study_data$falla_dist))
-  vf_fall_D <- 1 - sapply(study_data$falla_dist,FUN = capacity_drainage_vf,sat=1,x_max=max(study_data$falla_dist),x_min=0)
+  vf_falla_dren <- 1 - sapply(study_data$falla_dren,FUN = capacity_drainage_vf,sat=1,x_max=max(study_data$falla_dist),x_min=0)
 #  plot(study_data$falla_dist,vf_fall_D)
     #falta dren
-  vf_falta_D <- sapply(100 * study_data$falta_dren, FUN = lack_of_infrastructure_vf,x_max=100,saturation=1)
-  plot(study_data$falta_dren,vf_falta_D)
+  vf_falta_dren <- sapply(100 * study_data$falta_dren, FUN = lack_of_infrastructure_vf,x_max=100,saturation=1)
+#  plot(study_data$falta_dren,vf_falta_D)
   # peticiones de usuarions delegacionales
   vf_pet_us_d <- sapply(study_data$pet_usr_d, FUN = Peticiones_usuarios_vf, xmax = max(study_data$pet_usr_d, na.rm = T))
 
@@ -129,7 +130,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
     vf_rain,
     vf_A_D,
     vf_Cap_D,
-    vf_fall_dren,
+    vf_falla_dren,
     vf_falta_dren,
     vf_pet_del_dr,
     vf_pet_us_d,

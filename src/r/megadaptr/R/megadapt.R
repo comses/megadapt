@@ -11,14 +11,14 @@ create_study_data <- function(study_data) {
   study_data$scarcity_index <- 0L
   study_data$encharca <- 0L
   study_data$inunda <- 0L
+  study_data$scarcity_index <- 0L
+  study_data$f_esc <- 0L
+  study_data$f_prec_v <- 0L
   study_data$water_scarcity_weekly <- rep(list(
     data.frame(
       days_wn_water_week=integer(),
       days_wn_water_two_weeks=integer(),
-      days_wn_water_year=integer()),
-      scarcity_index=real(),
-      encharca=real(),
-      inunda=real()
+      days_wn_water_year=integer())
     ),
     nrow(study_data))
 
@@ -59,7 +59,8 @@ create_params <-
            infrastructure_decay_rate = 0.01,
            budget = 1200,
            half_sensitivity_ab = 10,
-           half_sensitivity_d = 10) {
+           half_sensitivity_d = 10,
+           climate_scenario=1) {
     list(
       new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
       maintenance_effectiveness_rate = maintenance_effectiveness_rate,
@@ -67,7 +68,8 @@ create_params <-
       infrastructure_decay_rate = infrastructure_decay_rate,
       budget = budget,
       half_sensitivity_ab = half_sensitivity_ab,
-      half_sensitivity_d = half_sensitivity_d
+      half_sensitivity_d = half_sensitivity_d,
+      climate_scenario = climate_scenario
     )
   }
 
@@ -124,7 +126,16 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
 
   water_scarcity_weeks <- list()
   this_week_study_data <- study_data
+
+
+  climate_changes <- update_climate(
+    study_data = study_data,
+    climate_scenario = climate_scenario
+  )
+  #weekly cycle
   for (n_week in seq(n_weeks)) {
+
+
     site_selection <- work_plan[['data']][[n_week]]
     public_infrastructure_changes <- update_public_infrastructure(
       study_data = this_week_study_data,
@@ -132,6 +143,7 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
       params = params,
       n_weeks = n_weeks
     )
+
     water_scarcity_changes <- update_water_scarcity(
       water_scarcity_model = water_scarcity_model,
       study_data = this_week_study_data,
@@ -170,11 +182,6 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     week_of_year = n_weeks
   )
 
-  climate_changes <- update_climate(
-    study_data = study_data,
-    climate_scenario = climate_scenario
-  )
-
   ponding_changes <- update_ponding(
     study_data = apply_data_changes(
       study_data,
@@ -190,6 +197,8 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
       join_columns = PK_JOIN),
     flooding_models = flooding_models
   )
+#population changes here
+#population_changes<-calculate_new_population(apply_data_changes())
 
   next_year_changes <- cbind(
     residential_investment_changes,

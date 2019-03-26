@@ -236,7 +236,7 @@ initialize_megadapt <- function(n_years=5) {
   #
   # Water Scarcity Model Setup
   #
-  water_security_model <- create_water_scarcity_model(study_area@data)
+  water_scarcity_model <- create_water_scarcity_model(study_area@data)
 
   #
   # Climate Scenario Setup
@@ -288,7 +288,7 @@ initialize_megadapt <- function(n_years=5) {
     params = 0L,
     ponding_models = ponding_models,
     study_area = study_area,
-    water_scarcity_model = water_security_model,
+    water_scarcity_model = water_scarcity_model,
     value_function_config = value_function_config
   )
   megadapt

@@ -11,7 +11,8 @@ example <- function(x=numeric(),n_years=5) {
   for (param_name in c('new_infrastructure_effectiveness_rate',
                   'maintenance_effectiveness_rate',
                   'infrastructure_decay_rate',
-                  'budget')) {
+                  'budget',
+                  'climate_scenario')) {
     if (!is.na(x[param_ind])) {
       custom_params[[param_name]] <- x[param_ind]
     }
@@ -48,7 +49,7 @@ example <- function(x=numeric(),n_years=5) {
   #
   # Water Scarcity Model Setup
   #
-  water_security_model <- create_water_scarcity_model(study_area@data)
+  water_scarcity_model <- create_water_scarcity_model(study_area@data)
 
   #
 
@@ -56,7 +57,7 @@ example <- function(x=numeric(),n_years=5) {
 
   #generate the path to the place where the data frame of the scenario is stored
 
-  scenario_name=Table_climate_scenarios[which(Table_climate_scenarios$id==scenario),]$path
+  scenario_name=Table_climate_scenarios[which(Table_climate_scenarios$id==params$climate_scenario),]$path
 
   #print(scenario_name)
 
@@ -116,7 +117,7 @@ example <- function(x=numeric(),n_years=5) {
     ponding_models = ponding_models,
     flooding_models = flooding_models,
     study_area = study_area,
-    water_scarcity_model = water_security_model,
+    water_scarcity_model = water_scarcity_model,
     value_function_config = value_function_config
   )
   megadapt
