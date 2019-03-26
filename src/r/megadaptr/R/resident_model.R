@@ -18,11 +18,16 @@ determine_residential_infrastructure_suitability <- function(study_data, value_f
   fv_fugas <- sapply(study_data$falla_dist, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$falla_dist, na.rm = T))
 
   # falta infrastructura drenaje
-  fv_falta <- sapply(100 * (1 - study_data$falta_dren), FUN = lack_of_infrastructure_vf)
+  fv_falta <- sapply(100 * (1 - study_data$falta_dren),
+                     FUN = lack_of_infrastructure_vf,
+                     x_max=100*max(study_data$falta_dren))
 
   # garbage
-  vf_garbage <- sapply(study_data$basura / 10000, FUN = drainages_clogged_vf)
-
+  vf_garbage <- sapply(study_data$basura,
+                       FUN = drainages_clogged_vf,
+                       amplitude = 500000,
+                       Valor_minimo_Y_en_X = max(study_data$basura))
+plot(study_data$basura,vf_garbage)
   # Ponding
   vf_pond <- sapply(study_data$encharca, FUN = ponding_vf)
 
@@ -130,18 +135,25 @@ update_protests <- function(study_data, value_function_config, mental_models, we
     mental_models = mental_models,
     week_of_year = week_of_year
   )
-  distance_ideal_protest <- determine_protest_suitability(study_data)
+  #distance_ideal_protest <- determine_protest_suitability(study_data)
 
   # find agebs that will adapt to reduce effects of water scarcity
   HM_Agua <- which(suitability$distance_ideal_House_mod_lluvia < suitability$distance_ideal_House_mod_agua)
 
   # From all census blocks that will adapt to reduce the effect of water scarcity
   # find those that will protest
-  agebs_que_protestan <- HM_Agua[which(distance_ideal_protest[HM_Agua] > suitability$distance_ideal_House_mod_agua[HM_Agua])]
+  #agebs_que_protestan <- HM_Agua[which(distance_ideal_protest[HM_Agua] > suitability$distance_ideal_House_mod_agua[HM_Agua])]
 
   if (week_of_year == 1) {
     study_data$social_pressure <- 0
   }
-  study_data$social_pressure[agebs_que_protestan] <- study_data$social_pressure[agebs_que_protestan] + 1
-  study_data$social_pressure
+  #study_data$social_pressure[agebs_que_protestan] <- study_data$social_pressure[agebs_que_protestan] + 1
+  fv_fail_claim <- sapply(study_data$fail_claim,
+                                                      FUN= convexa_creciente,
+                                                      gama=.2,
+                                                      xmax=max(study_data$fail_claim),
+                                                      xmin=min(study_data$fail_claim))
+
+  study_data$social_pressure <-fv_fail_claim*(1-study_data$scarcity_index)
+    study_data$social_pressure
 }
