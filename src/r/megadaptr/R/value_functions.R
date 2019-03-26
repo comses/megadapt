@@ -79,7 +79,9 @@ scarcity_residents_empirical_vf <- function(x, tau = 12) { #
 
 #######################################################################################################
 
-lack_of_infrastructure_vf <- function(x, p1 = 0.3457691) { # p1 scale parameter
+lack_of_infrastructure_vf <- function(x, saturation=1,x_max) { # p1 scale parameter
+  p1 <- (-log10(log10(1.1 + 0.88 * (10 - saturation)))) / ((log10(x_max))^2)
+
   y_vf <- exp(0 * p1)
   yy_vf <- exp(100 * p1)
   svf <- 1 - ((exp(x * p1) - y_vf) / (yy_vf - y_vf))
