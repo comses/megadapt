@@ -105,7 +105,7 @@ output <- tibble::tribble(
   'update_infrastructure_age', 'antiguedad_dren',
   'update_infrastructure_age', 'antiguedad_dist',
   'update_infrastructure_age', 'capac_w',
-  'update_infrastructure_age', 'FALTA_IN',
+  'update_infrastructure_age', 'falta_dist',
   'update_infrastructure_age', 'falta_dren'
 
 )
