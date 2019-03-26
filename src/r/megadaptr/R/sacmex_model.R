@@ -5,7 +5,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
 
   ## Common
   # peticiones de delegaciones
-  vf_pet_del_dr <- sapply(study_data$pet_del_dr, FUN = Peticion_Delegaciones_vf)
+  vf_pet_del_d<- sapply(study_data$pet_del_d, FUN = Peticion_Delegaciones_vf)
 
   # presion de medios
   vf_pres_medios <- sapply(study_data$pres_med, FUN = pression_medios_vf)
@@ -59,7 +59,14 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
 
   # social_pressure
   #vf_SP <- sapply(study_data$social_pressure, FUN = social_pressure_vf)
-  vf_SP <-study_data$fv_reportes*(1-study_data$scarcity_index)
+
+  fv_fail_claim <- sapply(study_data$fail_claim,
+                        FUN= convexa_creciente,
+                        gama=.2,
+                        xmax=max(study_data$fail_claim),
+                        xmin=min(study_data$fail_claim))
+
+  vf_SP <-fv_fail_claim*(1-study_data$scarcity_index)
 
   all_C_ab <- cbind(
     vf_A_Ab,
@@ -72,7 +79,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
     vf_scarcity_sacmex,
     vf_pond,
     vf_Abaste,
-    vf_pet_del_dr,
+    vf_pet_del_d,
     vf_pres_medios,
     vf_SP
   )
@@ -83,7 +90,10 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
   sewer_age <- value_function_config$sewer_age
 
   # garbage
-  vf_garbage <- sapply(study_data$basura / 10000, FUN = drainages_clogged_vf)
+  vf_garbage <- sapply(study_data$basura,
+                       FUN = drainages_clogged_vf,
+                       amplitude = 500000,
+                       Valor_minimo_Y_en_X = max(study_data$basura))
 
   # run-off/escurrimiento
   vf_run_off <- sapply(study_data$f_esc, FUN = run_off_vf)
@@ -118,7 +128,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
   vf_falta_dren <- sapply(100 * study_data$falta_dren, FUN = lack_of_infrastructure_vf,x_max=100,saturation=1)
 #  plot(study_data$falta_dren,vf_falta_D)
   # peticiones de usuarions delegacionales
-  vf_pet_us_d <- sapply(study_data$pet_usr_d, FUN = Peticiones_usuarios_vf, xmax = max(study_data$pet_usr_d, na.rm = T))
+  vf_pet_us_d <- sapply(study_data$pet_del_d, FUN = Peticiones_usuarios_vf, xmax = max(study_data$pet_del_d, na.rm = T))
 
   # flooding #cchange to flooding
   vf_flood <- sapply(study_data$inunda, FUN = ponding_vf)
@@ -132,16 +142,17 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
     vf_Cap_D,
     vf_falla_dren,
     vf_falta_dren,
-    vf_pet_del_dr,
+    vf_pet_del_d,
     vf_pet_us_d,
     vf_pres_medios,
     vf_pond,
     vf_flood
   )
-
   # calculate distance for each census block for action mantainance and build new infrastructure
   sacmcx_criteria_d <- as.vector(mental_models$sacmcx$criteria$d)
   sacmcx_alternative_weights_d <- mental_models$sacmcx$alternative_weights$d
+
+if(dim(all_C_D)[2]!=length(sacmcx_criteria_d)){stop("number of value functions defined should be the same length as the number of criteria in the mental model")}
 
   distance_ideal_A1_D <- sweep(as.matrix(all_C_D),
                                MARGIN = 2,
@@ -156,6 +167,9 @@ determine_public_infrastructure_investment_suitability <- function(study_data, v
 
   sacmcx_criteria_ab <- as.vector(mental_models$sacmcx$criteria$ab)
   sacmcx_alternative_weights_s <- mental_models$sacmcx$alternative_weights$s
+
+  if(dim(all_C_ab)[2]!=length(sacmcx_criteria_ab)){stop("number of value functions defined should be the same length as the number of criteria in the mental model")}
+
   distance_ideal_A1_Ab <- sweep(as.matrix(all_C_ab),
                                 MARGIN = 2,
                                 sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
@@ -268,7 +282,7 @@ depreciate_public_infrastructure <- function(study_data, infrastructure_decay_ra
   study_data$antiguedad_dist <- study_data$antiguedad_dist + 1/n_weeks
 
   weekly_infrastructure_decay_rate <- (1 + infrastructure_decay_rate)^(1/n_weeks) - 1
-  weekly_pop_growth <- (1 + study_data$pop_growth)^(1/n_weeks) - 1
+  #weekly_pop_growth <- (1 + study_data$pop_growth)^(1/n_weeks) - 1
 
   # update_capacity of the system
   study_data$q100 <- study_data$q100 * (1 - weekly_infrastructure_decay_rate)
@@ -276,8 +290,8 @@ depreciate_public_infrastructure <- function(study_data, infrastructure_decay_ra
   # FIDEL
   # The proportion of people without infrastructure increases proportionally to
   # the growthof the population in each delegation
-  study_data$falta_dist <- study_data$falta_dist * (1 + (1 - study_data$falta_dist)*weekly_pop_growth)
-  study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren)*weekly_pop_growth)
+  #study_data$falta_dist <- study_data$falta_dist * (1 + (1 - study_data$falta_dist)*weekly_pop_growth)
+  #study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren)*weekly_pop_growth)
 
   study_data
 }
