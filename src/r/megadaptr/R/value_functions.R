@@ -53,10 +53,12 @@ convexa_creciente <- function(x, gama, xmax, xmin) {
 #######################################################################################################
 # value functions from expert knowdledge
 
-drainages_clogged_vf <- function(x, p1 = 2.6514, p2 = 5000) { # ;value function criterium: garbage or "drainages-clogged"
-  y_vf <- (exp(-((0 - p1) / p2)^2))
-  yy_vf <- (exp(-((2.6514 - p1) / p2)^2))
-  svf <- 1 - (((exp(-((x - p1) / p2)^2)) - y_vf) / (yy_vf - y_vf))
+drainages_clogged_vf <- function(x, Valor_minimo_Y_en_X, amplitude = 5000) { # ;value function criterium: garbage or "drainages-clogged"
+  #browser()
+  y_vf <- (exp(-((0 - Valor_minimo_Y_en_X) / amplitude)^2))
+  yy_vf <- (exp(-((30 - Valor_minimo_Y_en_X) / amplitude)^2))
+
+  svf <- 1 - (((exp(-((x - Valor_minimo_Y_en_X) / amplitude)^2)) - y_vf) / (yy_vf - y_vf))
   if (svf > 0) {
     return(svf)
   }
