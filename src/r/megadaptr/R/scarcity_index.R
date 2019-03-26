@@ -1,7 +1,7 @@
 #function to calculate the scarcity index as implemented by Estrada nd Grave
 # from LANCIS
 
-#' Generate scarcity index
+#' calculate scarcity index from a set of landscape attributes from the study area value functions
 #'
 #' @param data.frame with variables population_size houses without supply,
 #' @return data frame with new population size
@@ -21,13 +21,13 @@ update_scarcity_index<-function(study_data,value_function_config){
                        xmax = max(study_data$poblacion),
                        center = 15000)
 
-vs=study_area$falta_dist * 1000000
-fv_viviendas_sagua<- sapply(vs,
+
+fv_viviendas_sagua<- sapply(study_data$falta_dist,
                      FUN = gaussian,
-                     a=22,
-                     xmin = min(vs),
-                     xmax = max(vs),
-                     center = abs((min(vs)-max(vs))/2)-1000)
+                     a=30,
+                     xmin = min(study_data$falta_dist),
+                     xmax = max(study_data$falta_dist),
+                     center = 0)
 
 fv_zonas_crit=sapply(study_data$critic_z,
                       FUN=gaussian,
