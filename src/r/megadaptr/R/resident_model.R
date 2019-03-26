@@ -18,7 +18,7 @@ determine_residential_infrastructure_suitability <- function(study_data, value_f
   fv_fugas <- sapply(study_data$falla_dist, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$falla_dist, na.rm = T))
 
   # falta infrastructura drenaje
-  fv_falta <- sapply(100 * (1 - study_data$falta_dren),
+  fv_falta <- sapply(100 * study_data$falta_dren,
                      FUN = lack_of_infrastructure_vf,
                      x_max=100*max(study_data$falta_dren))
 

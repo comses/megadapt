@@ -136,7 +136,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   vf_Agua_insu <- sapply(study_data$days_wn_water_two_weeks, FUN = scarcity_residents_vf) # days_wn_water need to be define
 
   # Lack of drainage system
-  fv_falta_dren <- sapply(100 * (1 - study_data$falta_dren), FUN = lack_of_infrastructure_vf)
+  vf_falta_dren <- sapply(100 * study_data$falta_dren, FUN = lack_of_infrastructure_vf,x_max=100,saturation=1)
 
   # Population growth
   fv_crecimiento_pop <- sapply(study_data$pop_growth, FUN = urban_growth_f, xmax = max(study_data$pop_growth, na.rm = T))
