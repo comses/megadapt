@@ -9,11 +9,17 @@ create_study_data <- function(study_data) {
   study_data$days_wn_water_two_weeks <- 0L
   study_data$days_wn_water_week <- 0L
   study_data$scarcity_index <- 0L
+  study_data$encharca <- 0L
+  study_data$inunda <- 0L
   study_data$water_scarcity_weekly <- rep(list(
     data.frame(
       days_wn_water_week=integer(),
       days_wn_water_two_weeks=integer(),
-      days_wn_water_year=integer())),
+      days_wn_water_year=integer()),
+      scarcity_index=real(),
+      encharca=real(),
+      inunda=real()
+    ),
     nrow(study_data))
 
   # save water scarcity, protests and social pressure
