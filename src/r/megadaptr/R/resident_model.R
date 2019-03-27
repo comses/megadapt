@@ -7,13 +7,12 @@ determine_residential_infrastructure_suitability <- function(study_data, value_f
   vf_WQ <- study_data$cal_agua
   # Crecimiento urbano
   vf_UG <- sapply(study_data$crec_urb *study_data$poblacion, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$crec_urb, na.rm = T))
-
+plot(study_data$crec_urb *study_data$poblacion,vf_UG)
     # agua insuficiente
-  vf_Agua_insu <- sapply(study_data$scarcity_index, FUN = scarcity_residents_vf) # days_wn_water need to be define
+  vf_Agua_insu <- study_data$scarcity_index
 
   # "Desperdicio de agua"
   vf_Desp_A <- sapply(study_data$desp_agua, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$desp_agua, na.rm = T))
-
   # fugas
   fv_fugas <- sapply(study_data$falla_dist, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$falla_dist, na.rm = T))
 
@@ -27,12 +26,16 @@ determine_residential_infrastructure_suitability <- function(study_data, value_f
                        FUN = drainages_clogged_vf,
                        amplitude = 500000,
                        Valor_minimo_Y_en_X = max(study_data$basura))
-plot(study_data$basura,vf_garbage)
+#plot(study_data$basura,vf_garbage)
   # Ponding
-  vf_pond <- sapply(study_data$encharca, FUN = ponding_vf)
-
+  vf_pond <- sapply(study_data$encharca,
+                    FUN = logistic_invertida,
+                    k=0.1,
+                    center=50,
+                    xmax=100,
+                    xmin=0)
   # salud
-  vf_H <- sapply(study_data$enf_14, FUN = health_vf)
+  vf_H <- sapply(study_data$enf_14, FUN = health_vf,max_x=50,saturation=3)
 
   # house modification flooding
   C_R_D <- cbind(
