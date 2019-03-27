@@ -63,14 +63,7 @@ example <- function(x=numeric(),n_years=5) {
 
   # Climate Scenario Setup
   #
-  climate_scenario <- read.csv(data_dir(paste0("climate_landuse_scenarios/",scenario_name)))#scenario_name
-
-
-  #to test I added to scenrio 1 the following path
-  #"../../data/" which is the same as "path_td" variable
-  #read the file and save it inside the run
-  #runoff_scenario=read.csv(paste0("../geosimulation/runoff/outputs/", scenario_name),sep=",")
-
+  climate_scenario <- read.csv(data_dir(paste0("climate_landuse_scenarios/",scenario_name)))
 
   # Value Function Setup
   #
@@ -92,14 +85,13 @@ example <- function(x=numeric(),n_years=5) {
     subsidence=fv_subsidencia
   )
 
-  #
   # Mental Model Setup
-
-  mm_water_operator_s_lim <- data.frame(read.csv(data_dir("DF101215_GOV_AP modificado PNAS.limit.csv"),
+  #
+  mm_water_operator_s_lim <- data.frame(read.csv(data_dir("/mental_models/DF101215_GOV_AP modificado PNAS.limit.csv"),
                                                  skip = 1, header = T))[, -c(1, 2, 21)]
-  mm_water_operator_d_lim <- data.frame(read.csv(data_dir("SACMEX_Drenaje_limit_SESMO.csv"),
+  mm_water_operator_d_lim <- data.frame(read.csv(data_dir("/mental_models/SACMEX_Drenaje_limit_SESMO.csv"),
                                                  skip = 1, header = T))[, -c(1, 2)]
-  mm_iz <- data.frame(read.csv(data_dir("I080316_OTR.limit.csv"), skip = 1, header = T))[, -c(1, 2)]
+  mm_iz <- data.frame(read.csv(data_dir("/mental_models/I080316_OTR.limit.csv"), skip = 1, header = T))[, -c(1, 2)]
 
   mental_models <- create_mental_models(
     mm_water_operator_d_lim = mm_water_operator_d_lim,
