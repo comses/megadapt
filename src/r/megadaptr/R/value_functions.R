@@ -98,11 +98,11 @@ water_quality_residents_vf <- function(x, p1 = 0.3457691) { #
   return(ifelse(test = svf > 0, yes = svf, 0))
 }
 #######################################################################################################
-health_vf <- function(x, p1 = 15.848931) { #
-
-  yy_vf <- 1 - exp((0 - 10) / p1)
-  y_vf <- 1 - exp((100 - 10) / p1)
-  svf <- ((1 - exp((x - 10) / p1)) - y_vf) / (yy_vf - y_vf)
+health_vf <- function(x, max_x,saturation) { #
+control_parameter=10^(3/10*(log(max_x^5)-saturation))
+  yy_vf <- 1 - exp((0 - 10) / control_parameter)
+  y_vf <- 1 - exp((max_x - 10) / control_parameter)
+  svf <- ((1 - exp((x - 10) / control_parameter)) - y_vf) / (yy_vf - y_vf)
   return(ifelse(test = svf > 0, yes = svf, 0))
 }
 #######################################################################################################
