@@ -118,7 +118,7 @@ determine_site_suitability <- function(study_data, value_function_config, mental
   vf_WQ <- sapply(study_data$cal_agua, FUN = water_quality_residents_vf)
 
   # Health
-  vf_H <- sapply(study_data$enf_14, FUN = health_vf)
+  vf_H <- sapply(study_data$enf_14, FUN = health_vf,max_x=50,saturation=3)
 
   # water scarcity residents
   #vf_scarcity_residents <- sapply(study_data$days_wn_water_two_weeks, FUN = scarcity_residents_empirical_vf, tau = 12) # days_wn_water need to be define
