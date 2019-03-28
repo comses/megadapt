@@ -29,7 +29,7 @@ example <- function(x=numeric(),n_years=5) {
   #
   study_area <-
     rgdal::readOGR(
-      data_dir("megadapt_wgs84.shp"),#input_layer.shp
+      data_dir("censusblocks/megadapt_wgs84.shp"),#input_layer.shp
       stringsAsFactors = FALSE,
       integer64 = "warn.loss"
     ) # for flooding model
