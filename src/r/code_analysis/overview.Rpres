@@ -1,0 +1,179 @@
+megadapt
+========================================================
+author:  Andres Baeza, Fidel Serrano Candela, Calvin Pritchard, Manuela Vanegas Ferro, Sean Bergin
+date: 2019-03-27
+autosize: true
+
+Purpose
+========================================================
+
+Simulate the interactions between the environment, residents. It consists of
+<small>
+- Environment
+  - Public and private stormwater infrastructure
+  - Public and private fresh water infrastructure
+  - Climate
+- Residents
+  - Determine private fresh and stormwater infrastructure spending
+  - Apply social pressure to public infrastructure management
+  - Population growth and health
+- Public Infrastructure Managers
+  - Determine public fresh and stormwater infrastructure spending
+
+</small>
+
+Data
+========================================================
+
+- cross-section census block data for demographic and health data (may use multiple censuses in the future)
+- panel census block data for climate
+- residential and manager preference information (analytic network process)
+
+Statistical Models
+========================================================
+
+- predicting the number of days in a week a census block has no water access
+- predict ponding and flooding events
+
+Overview
+=======================================================
+
+- public infrastructure managers make a plan for the upcoming year,
+  then implement plan weekly
+- residents decide whether or not to protest each week based on fresh water
+  availability over the last 4 weeks (and private infrastructure levels)
+- residents decide to create private infrastructure once a year
+- climate (precipitation) data generated yearly
+
+Configuration
+=============
+
+- budget (per year)
+- new infrastructure effectiveness rate (per week)
+- infrastructure maintenance effectiveness rate (per week)
+- infrastructure decay rate (per week)
+- population growth (per week)
+
+Roadmap
+=======================================================
+
+- visualization of model results (Sean Bergin)
+- model modularisation and testing (Calvin Pritchard)
+- perform sensitivity analysis (Manuela Vanegas Ferro)
+- model development (Andres Baeza, Fidel Serrano Candela, others)
+- documentation (everyone)
+
+Modularisation - Motivation
+=======================================================
+
+A modular well-organized codebase helps
+
+- Incorporate new features
+- Onboard new modelers
+- Validate and test components separately
+
+Refactoring
+========================================================
+
+- converted all model component update and setup code to
+  be functions
+- created basic setup and run interface
+- moved all file IO out of model and into examples to
+  avoid hard wiring model settings into all megadapt
+  model instances
+- reorganize code to loosely follow formalisms
+
+Discrete Time System Specification (Moore)
+========================================================
+
+$$
+DTSS = (X, Y, Q, \delta, \lambda, c)
+$$
+
+where
+
+| Name     | Meaning |
+|----------|--------|
+| $X$ | input  |
+| $Y$ | output |
+| $Q$ | state  |
+| $\delta: Q \times X \rightarrow Q$ | state transition function |
+| $\lambda: Q \rightarrow Y$ | output function |
+| $c$ | time step size |
+
+Coupled Discrete Time System Specification
+========================================================
+
+$$
+DTSN = (X, Y, D, \{M_d\}, \{I_d\}, \{Z_d\}, h_N)
+$$
+
+where
+
+| Name      | Meaning       |
+|-----------|---------------|
+| $X$       | input         |
+| $Y$       | output        |
+| $D$       | number of components |
+| $\{M_d\}$ | set of components (can be DTSS or plain functions) |
+| $\{I_d\}$ | component input output relationships |
+| $\{Z_d\}$ | input output translators |
+| $h_N$     | time step size |
+
+Example - Population Growth
+========================================================
+
+| Name   | Value  |
+|--------|--------|
+| $X$    | ()     |
+| $Y$    | population |
+| $Q$    | population |
+| $\delta$  | $\delta((), population) = (1 + r)*population$ |
+| $\lambda$ | $\lambda(population) = population$ |
+| $c$       | week |
+
+For each census block
+
+Example - Infrastructure
+========================================================
+
+| Name | Value |
+|------|-------|
+| $X$  | new_infra, infra_maintenance, depreciation |
+| $Y$  | infra_level |
+| $Q$  | infra_level |
+| $\delta$ | $delta(new\_infra, infra\_level) = new_\_infra\_effectiveness*new\_infra + \\ (1-depreciation)*infra\_level + maintenance\_effectiveness*infra\_maintenance$ |
+| $\lambda$| $\lambda(infra\_level) = infra\_level$ |
+| $c$      | week |
+
+For each census block. Depreciation calculated from population growth. Real model has more than one infrastructure variable.
+
+Future Work (Mine)
+=========================================================
+
+- test model components and functions
+- add data requirement documentation to R package (`megadaptr`)
+- rework interface so residents, infrastructure managers and environment feel more separate
+- incoming dataset validation checks
+
+Future Work (Others)
+========================================================
+
+- documentation
+- encorporate health model, expand demographic model
+- get simulation running on HPC for sensitivity analysis
+- visualization to show model results
+- show model results and visualization to stakeholders
+
+Observations and Challenges
+========================================================
+
+- some transitions are interdependent
+  - weather is generated for a year and then feeds into ponding and
+    flooding models
+- component timing is difficult with shared state and no formal model as a guide
+- basic building blocks still mostly about composing functions (new
+  model functionality state often tightly coupled and requires interaction in the same time step)
+- have adapted code to not need any message translation $Z_d$ for now
+- mixture of components operating on the weekly and yearly timescale requires manual adaptation
+- won't ever fully adopt Coupled DTSS formalism (too much work)
