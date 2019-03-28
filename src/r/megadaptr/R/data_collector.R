@@ -10,6 +10,7 @@
 # Vulneability Index
 COLUMNS_TO_SAVE <- c(
   "ageb_id",
+  "cvgeo",
   "antiguedad_dren",
   "antiguedad_dist",
   "encharca",
