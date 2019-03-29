@@ -13,6 +13,7 @@ Description: A spatial a multi-scale simulation model to understand adaptation t
 License: GPL-3
 Depends: R (>= 3.5.2)
 Imports:
+    assertr,
     bindrcpp,
     dplyr (>= 0.8.0),
     gbm,

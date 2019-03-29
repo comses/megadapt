@@ -31,3 +31,11 @@ update_flooding <- function(study_data, flooding_models) {
     dplyr::ungroup() %>%
     dplyr::select(ageb_id, inunda)
 }
+
+flooding_component <- list(
+  initialize = function(study_data) {
+    study_data %>%
+      dplyr::mutate(inunda = 0)
+  },
+  transition = update_flooding
+)

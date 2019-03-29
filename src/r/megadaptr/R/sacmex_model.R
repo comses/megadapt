@@ -190,12 +190,11 @@ if(dim(all_C_D)[2]!=length(sacmcx_criteria_d)){stop("number of value functions d
   )
 }
 
-determine_public_infrastructure_work_plan <- function(site_suitability, budget, n_weeks) {
+determine_public_infrastructure_work_plan <- function(site_suitability, budget) {
   r <- site_suitability
   n_census_blocks <- min(budget, nrow(r))
   choices <- max.col(as.matrix(r))
   choice_values <- apply(as.matrix(r), 1, max)
-  work_plan <- cut(seq(n_census_blocks), n_weeks, labels = FALSE)
 
   # save ID of selected agebs
   selected_agebs <- order(choice_values)[1:min(budget, length(choice_values))]
@@ -208,17 +207,14 @@ determine_public_infrastructure_work_plan <- function(site_suitability, budget, 
 
   tibble::tibble(
     ageb_id = r$ageb_id[selected_agebs],
-    choices = choices[selected_agebs],
-    work_plan
+    choices = choices[selected_agebs]
   ) %>%
     dplyr::mutate(
       A1 = (choices == 1),
       A2 = (choices == 2),
       A3 = (choices == 3),
       A4 = (choices == 4)
-    ) %>%
-    dplyr::group_by(work_plan) %>%
-    dplyr::group_nest()
+    )
 }
 
 make_public_infrastructure_investments <- function(study_data, site_selection, params) {
@@ -259,7 +255,7 @@ make_public_infrastructure_investments <- function(study_data, site_selection, p
   study_data
 }
 
-create_public_infrastructure_work_plan <- function(study_data, value_function_config, mental_models, budget, n_weeks) {
+create_public_infrastructure_work_plan <- function(study_data, value_function_config, mental_models, budget) {
   suitability <- determine_public_infrastructure_investment_suitability(
     study_data = study_data,
     value_function_config = value_function_config,
@@ -268,24 +264,15 @@ create_public_infrastructure_work_plan <- function(study_data, value_function_co
 
   work_plan <- determine_public_infrastructure_work_plan(
     site_suitability = suitability,
-    budget = budget,
-    n_weeks = n_weeks
+    budget = budget
   )
 
   work_plan
 }
 
-depreciate_public_infrastructure <- function(study_data, infrastructure_decay_rate, n_weeks) {
-  # update infrastructure related atributes
-  # update_age_infrastructure
-  study_data$antiguedad_dren <- study_data$antiguedad_dren + 1/n_weeks
-  study_data$antiguedad_dist <- study_data$antiguedad_dist + 1/n_weeks
-
-  weekly_infrastructure_decay_rate <- (1 + infrastructure_decay_rate)^(1/n_weeks) - 1
-  #weekly_pop_growth <- (1 + study_data$pop_growth)^(1/n_weeks) - 1
-
+depreciate_public_infrastructure <- function(study_data, infrastructure_decay_rate) {
   # update_capacity of the system
-  study_data$q100 <- study_data$q100 * (1 - weekly_infrastructure_decay_rate)
+  study_data$q100 <- study_data$q100 * (1 - infrastructure_decay_rate)
   # update capacity index
   # FIDEL
   # The proportion of people without infrastructure increases proportionally to
@@ -296,7 +283,7 @@ depreciate_public_infrastructure <- function(study_data, infrastructure_decay_ra
   study_data
 }
 
-update_public_infrastructure <- function(study_data, site_selection, params, n_weeks) {
+update_public_infrastructure <- function(study_data, site_selection, params) {
   study_data %>%
     make_public_infrastructure_investments(
       study_data = .,
@@ -304,8 +291,7 @@ update_public_infrastructure <- function(study_data, site_selection, params, n_w
       params = params) %>%
     depreciate_public_infrastructure(
       study_data = .,
-      infrastructure_decay_rate = params$infrastructure_decay_rate,
-      n_weeks = n_weeks) %>%
+      infrastructure_decay_rate = params$infrastructure_decay_rate) %>%
     dplyr::select(
       ageb_id,
       antiguedad_dist,
@@ -316,3 +302,14 @@ update_public_infrastructure <- function(study_data, site_selection, params, n_w
       q100,
       falta_dist)
 }
+
+sacmex_component <- list(
+  initialize = function(study_data) {
+    study_data %>%
+      mutate(antiguedad_dren = 0,
+             antiguedad_dist = 0,
+             Interventions_Ab = 1,
+             Interventions_D = 1)
+  },
+  transition = update_public_infrastructure
+)
