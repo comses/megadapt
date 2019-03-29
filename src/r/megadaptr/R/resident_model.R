@@ -7,8 +7,7 @@ determine_residential_infrastructure_suitability <- function(study_data, value_f
   vf_WQ <- study_data$cal_agua
   # Crecimiento urbano
   vf_UG <- sapply(study_data$crec_urb *study_data$poblacion, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$crec_urb, na.rm = T))
-plot(study_data$crec_urb *study_data$poblacion,vf_UG)
-    # agua insuficiente
+  # agua insuficiente
   vf_Agua_insu <- study_data$scarcity_index
 
   # "Desperdicio de agua"
@@ -26,7 +25,6 @@ plot(study_data$crec_urb *study_data$poblacion,vf_UG)
                        FUN = drainages_clogged_vf,
                        amplitude = 500000,
                        Valor_minimo_Y_en_X = max(study_data$basura))
-#plot(study_data$basura,vf_garbage)
   # Ponding
   vf_pond <- sapply(study_data$encharca,
                     FUN = logistic_invertida,
@@ -80,12 +78,11 @@ plot(study_data$crec_urb *study_data$poblacion,vf_UG)
   )
 }
 
-update_residential_infrastructure_investments <- function(study_data, value_function_config, mental_models, params, week_of_year) {
+update_residential_infrastructure_investments <- function(study_data, value_function_config, mental_models, params) {
   suitability <- determine_residential_infrastructure_suitability(
     study_data = study_data,
     value_function_config = value_function_config,
-    mental_models = mental_models,
-    week_of_year = week_of_year
+    mental_models = mental_models
   )
 
   # find agebs that will adapt to reduce effects of flooding
@@ -125,38 +122,15 @@ update_residential_infrastructure_investments <- function(study_data, value_func
     )
 }
 
-determine_protest_suitability <- function(study_data) {
-  vf_scarcity_residents <- scarcity_residents_empirical_vf(study_data$days_wn_water_two_weeks, tau = 12) # days_wn_water need to be define
-  distance_ideal_protest <- 1 - vf_scarcity_residents
-  distance_ideal_protest
-}
-
-update_protests <- function(study_data, value_function_config, mental_models, week_of_year) {
-  suitability <- determine_residential_infrastructure_suitability(
-    study_data = study_data,
-    value_function_config = value_function_config,
-    mental_models = mental_models,
-    week_of_year = week_of_year
-  )
-  #distance_ideal_protest <- determine_protest_suitability(study_data)
-
-  # find agebs that will adapt to reduce effects of water scarcity
-  HM_Agua <- which(suitability$distance_ideal_House_mod_lluvia < suitability$distance_ideal_House_mod_agua)
-
-  # From all census blocks that will adapt to reduce the effect of water scarcity
-  # find those that will protest
-  #agebs_que_protestan <- HM_Agua[which(distance_ideal_protest[HM_Agua] > suitability$distance_ideal_House_mod_agua[HM_Agua])]
-
-  if (week_of_year == 1) {
-    study_data$social_pressure <- 0
-  }
-  #study_data$social_pressure[agebs_que_protestan] <- study_data$social_pressure[agebs_que_protestan] + 1
-  fv_fail_claim <- sapply(study_data$fail_claim,
-                                                      FUN= convexa_creciente,
-                                                      gama=.2,
-                                                      xmax=max(study_data$fail_claim),
-                                                      xmin=min(study_data$fail_claim))
-
-  study_data$social_pressure <-fv_fail_claim*(1-study_data$scarcity_index)
-    study_data$social_pressure
-}
+resident_component <- list(
+  initialize = function(study_data) {
+    study_data %>%
+      dplyr::mutate(house_modifications_Ab=0L,
+                    house_modifications_D=0L,
+                    sensitivity_Ab = 1,
+                    sensitivity_D = 1,
+                    vulnerability_Ab = 1,
+                    vulnerability_D = 1)
+  },
+  transition = update_residential_infrastructure_investments
+)

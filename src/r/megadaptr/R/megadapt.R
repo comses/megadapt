@@ -1,44 +1,11 @@
 PK_JOIN = c("ageb_id"="ageb_id")
 
 create_study_data <- function(study_data) {
-  study_data$antiguedad_dren <- study_data$antiguedad
-  study_data$antiguedad_dist <- study_data$antiguedad
+  components <-list(flooding_component, climate_component, ponding_component, resident_component, sacmex_component, water_scarcity_index_component)
 
-  # water scarcity (week, month year)
-  study_data$days_wn_water_year <- 0L
-  study_data$days_wn_water_two_weeks <- 0L
-  study_data$days_wn_water_week <- 0L
-  study_data$scarcity_index <- 0L
-  study_data$encharca <- 0L
-  study_data$inunda <- 0L
-  study_data$scarcity_index <- 0L
-  study_data$f_esc <- 0L
-  study_data$f_prec_v <- 0L
-  study_data$water_scarcity_weekly <- rep(list(
-    data.frame(
-      days_wn_water_week=integer(),
-      days_wn_water_two_weeks=integer(),
-      days_wn_water_year=integer())
-    ),
-    nrow(study_data))
-
-  # save water scarcity, protests and social pressure
-  study_data$social_pressure <- 0L
-
-  # save variables associated with adaptation
-  study_data$house_modifications_Ab <- 0L
-  study_data$house_modifications_D <- 0L
-  # sensitivity of neighborhoods to scarcity and flooding
-  study_data$sensitivity_Ab <- 1
-  study_data$sensitivity_D <- 1
-
-  # Vulnerability of populations
-  study_data$vulnerability_Ab <- 1
-  study_data$vulnerability_D <- 1
-
-  # Interventions from water authority
-  study_data$Interventions_D <- 1
-  study_data$Interventions_Ab <- 1
+  for (component in components) {
+    study_data <- component$initialize(study_data)
+  }
 
   study_data
 }
@@ -79,7 +46,6 @@ create_megadapt <- function(climate_scenario,
                             flooding_models,
                             params,
                             study_area,
-                            water_scarcity_model,
                             value_function_config) {
   list(
     climate_scenario = climate_scenario,
@@ -88,7 +54,6 @@ create_megadapt <- function(climate_scenario,
     ponding_models = ponding_models,
     flooding_models = flooding_models,
     study_area = study_area,
-    water_scarcity_model = water_scarcity_model,
     value_function_config = value_function_config
   )
 }
@@ -116,74 +81,37 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
   water_scarcity_model <- megadapt$water_scarcity_model
   value_function_config <- megadapt$value_function_config
 
-  work_plan <- create_public_infrastructure_work_plan(
+  site_selection <- create_public_infrastructure_work_plan(
     study_data = study_data,
     value_function_config = value_function_config,
     mental_models = mental_models,
-    budget = params$budget,
-    n_weeks = n_weeks
+    budget = params$budget
   )
 
-  water_scarcity_weeks <- list()
-  this_week_study_data <- study_data
-
-
-  climate_changes <- update_climate(
+  climate_changes <- climate_component$transition(
     study_data = study_data,
     climate_scenario = climate_scenario
   )
-  #weekly cycle
-  for (n_week in seq(n_weeks)) {
 
+  public_infrastructure_changes <- sacmex_component$transition(
+    study_data = study_data,
+    site_selection = site_selection,
+    params = params
+  )
 
-    site_selection <- work_plan[['data']][[n_week]]
-    public_infrastructure_changes <- update_public_infrastructure(
-      study_data = this_week_study_data,
-      site_selection = site_selection,
-      params = params,
-      n_weeks = n_weeks
-    )
+  water_scarcity_changes <- water_scarcity_index_component$transition(
+    study_data = study_data,
+    value_function_config=value_function_config
+  )
 
-    water_scarcity_changes <- update_water_scarcity(
-      water_scarcity_model = water_scarcity_model,
-      study_data = this_week_study_data,
-      week_of_year = n_week,
-      value_function_config=value_function_config
-    )
-    social_pressure <- update_protests(
-      study_data = this_week_study_data,
-      value_function_config = value_function_config,
-      mental_models = mental_models,
-      week_of_year = n_week
-    )
-    next_week_changes <- cbind(
-      public_infrastructure_changes,
-      water_scarcity_changes %>% dplyr::select(-ageb_id),
-      social_pressure)
-
-    this_week_study_data <- apply_data_changes(
-      this_week_study_data,
-      next_week_changes,
-      join_columns = PK_JOIN)
-
-    water_scarcity_weeks[[n_week]] <- water_scarcity_changes
-  }
-  water_scarcity_weeks <- do.call(rbind, water_scarcity_weeks) %>%
-    dplyr::group_by(ageb_id) %>%
-    dplyr::group_nest(.key='water_scarcity_weekly')
-  this_week_study_data <- this_week_study_data %>%
-    dplyr::select(-water_scarcity_weekly) %>%
-    dplyr::left_join(water_scarcity_weeks, by=PK_JOIN)
-
-  residential_investment_changes <- update_residential_infrastructure_investments(
+  residential_investment_changes <- resident_component$transition(
     study_data = study_data,
     value_function_config = value_function_config,
     mental_models = mental_models,
-    params = params,
-    week_of_year = n_weeks
+    params = params
   )
 
-  ponding_changes <- update_ponding(
+  ponding_changes <- ponding_component$transition(
     study_data = apply_data_changes(
       study_data,
       climate_changes,
@@ -191,24 +119,24 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     ponding_models = ponding_models
   )
 
-  flooding_changes <- update_flooding(
+  flooding_changes <- flooding_component$transition(
     study_data = apply_data_changes(
       study_data,
       climate_changes,
       join_columns = PK_JOIN),
     flooding_models = flooding_models
   )
-#population changes here
-#population_changes<-calculate_new_population(apply_data_changes())
 
   next_year_changes <- cbind(
     residential_investment_changes,
+    public_infrastructure_changes %>% dplyr::select(-ageb_id),
+    water_scarcity_changes %>% dplyr::select(-ageb_id),
     climate_changes %>% dplyr::select(-ageb_id),
     ponding_changes %>% dplyr::select(-ageb_id),
     flooding_changes %>% dplyr::select(-ageb_id)
   )
   next_year_study_data <- apply_data_changes(
-    this_week_study_data,
+    study_data,
     next_year_changes,
     join_columns = PK_JOIN
   )
@@ -232,7 +160,7 @@ create_time_info <- function(n_steps) {
   month_counts <- tibble::tibble(year = as.integer(year_ts),
                                  month = as.integer(month_ts)) %>%
     dplyr::group_by(year, month) %>%
-    dplyr::summarize(n_weeks = n())
+    dplyr::summarize(n_weeks = dplyr::n())
 
   month_counts
 }

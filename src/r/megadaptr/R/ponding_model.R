@@ -31,3 +31,11 @@ update_ponding <- function(study_data, ponding_models) {
     dplyr::ungroup() %>%
     dplyr::select(ageb_id, encharca)
 }
+
+ponding_component <- list(
+  initialize = function(study_data) {
+    study_data %>%
+      dplyr::mutate(encharca = 0L)
+  },
+  transition = update_ponding
+)

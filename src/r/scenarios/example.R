@@ -47,19 +47,11 @@ example <- function(x=numeric(),n_years=5) {
   flooding_models <- load_flooding_models(data_dir(""))
 
   #
-  # Water Scarcity Model Setup
-  #
-  water_scarcity_model <- create_water_scarcity_model(study_area@data)
-
-  #
-
   Table_climate_scenarios=as.data.frame(read.csv(data_dir("climate_landuse_scenarios/db_escenarios_prec_esc_ids.csv"),header = T))
 
   #generate the path to the place where the data frame of the scenario is stored
 
   scenario_name=Table_climate_scenarios[which(Table_climate_scenarios$id==params$climate_scenario),]$path
-
-  #print(scenario_name)
 
   # Climate Scenario Setup
   #
@@ -109,7 +101,6 @@ example <- function(x=numeric(),n_years=5) {
     ponding_models = ponding_models,
     flooding_models = flooding_models,
     study_area = study_area,
-    water_scarcity_model = water_scarcity_model,
     value_function_config = value_function_config
   )
   megadapt
