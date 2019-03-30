@@ -189,7 +189,7 @@ if(dim(all_C_D)[2]!=length(sacmcx_criteria_d)){stop("number of value functions d
     distance_ideal_A2_Ab = distance_ideal_A2_Ab
   )
 }
-
+#################################################################################################################################
 determine_public_infrastructure_work_plan <- function(site_suitability, budget) {
   r <- site_suitability
   n_census_blocks <- min(budget, nrow(r))
@@ -251,7 +251,7 @@ make_public_infrastructure_investments <- function(study_data, site_selection, p
     study_data$falta_dist[A4] <- study_data$falta_dist[A4] * (1 - params$new_infrastructure_effectiveness_rate)
     study_data$Interventions_Ab[A4] <- study_data$Interventions_Ab[A4] + 1
   }
-
+print(mean(study_data$antiguedad_dist))
   study_data
 }
 
