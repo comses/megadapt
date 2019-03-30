@@ -283,7 +283,12 @@ depreciate_public_infrastructure <- function(study_data, infrastructure_decay_ra
   study_data
 }
 
-update_public_infrastructure <- function(study_data, site_selection, params) {
+update_public_infrastructure <- function(study_data, value_function_config, mental_models, params) {
+  site_selection <- create_public_infrastructure_work_plan(
+    study_data = study_data,
+    value_function_config = value_function_config,
+    mental_models = mental_models,
+    budget = params$budget)
   study_data %>%
     make_public_infrastructure_investments(
       study_data = .,

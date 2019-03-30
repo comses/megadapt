@@ -8,5 +8,3 @@ library(magrittr)
 megadapt <- example()
 
 new_results <- simulate_megadapt(megadapt)
-
-map_results(megadapt,new_results)
