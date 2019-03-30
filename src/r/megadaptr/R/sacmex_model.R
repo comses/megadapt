@@ -271,14 +271,17 @@ create_public_infrastructure_work_plan <- function(study_data, value_function_co
 }
 
 depreciate_public_infrastructure <- function(study_data, infrastructure_decay_rate) {
+  study_data$antiguedad_dren <- study_data$antiguedad_dren + 1
+  study_data$antiguedad_dist <- study_data$antiguedad_dist + 1
+
   # update_capacity of the system
   study_data$q100 <- study_data$q100 * (1 - infrastructure_decay_rate)
   # update capacity index
   # FIDEL
   # The proportion of people without infrastructure increases proportionally to
   # the growthof the population in each delegation
-  #study_data$falta_dist <- study_data$falta_dist * (1 + (1 - study_data$falta_dist)*weekly_pop_growth)
-  #study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren)*weekly_pop_growth)
+  #study_data$falta_dist <- study_data$falta_dist * (1 + (1 - study_data$falta_dist)*pop_growth)
+  #study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren)*pop_growth)
 
   study_data
 }
