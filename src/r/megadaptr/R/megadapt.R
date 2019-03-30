@@ -121,8 +121,16 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     flooding_models = flooding_models
   )
 
+  sacmex_changes <- sacmex_component$transition(
+    study_data = study_data,
+    value_function_config = value_function_config,
+    mental_models = mental_models,
+    params = params
+  )
+
   next_year_changes <- cbind(
     residential_investment_changes,
+    sacmex_changes %>% dplyr::select(-ageb_id),
     public_infrastructure_changes %>% dplyr::select(-ageb_id),
     water_scarcity_changes %>% dplyr::select(-ageb_id),
     climate_changes %>% dplyr::select(-ageb_id),
@@ -164,8 +172,8 @@ translate_output_colnames <- function(df) {
     censusblock_id = "ageb_id",
     non_potable_water_infrastructure_age = "antiguedad_dren",
     potable_water_infrastructure_age = "antiguedad_dist",
-    ponding_event_count = "encharca",
-    flooding_event_count = "inunda",
+    days_with_ponding = "encharca",
+    days_with_flooding = "inunda",
     stormwater_entrance_count = "rejillas",
     non_potable_water_system_capacity = "q100",
     percent_without_potable_water = "falta_dist",

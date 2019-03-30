@@ -311,10 +311,10 @@ update_public_infrastructure <- function(study_data, value_function_config, ment
 sacmex_component <- list(
   initialize = function(study_data) {
     study_data %>%
-      mutate(antiguedad_dren = 0,
-             antiguedad_dist = 0,
-             Interventions_Ab = 1,
-             Interventions_D = 1)
+      mutate(antiguedad_dren = antiguedad,
+             antiguedad_dist = antiguedad,
+             Interventions_Ab = 0,
+             Interventions_D = 0)
   },
   transition = update_public_infrastructure
 )
