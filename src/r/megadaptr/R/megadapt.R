@@ -81,13 +81,6 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
   water_scarcity_model <- megadapt$water_scarcity_model
   value_function_config <- megadapt$value_function_config
 
-  site_selection <- create_public_infrastructure_work_plan(
-    study_data = study_data,
-    value_function_config = value_function_config,
-    mental_models = mental_models,
-    budget = params$budget
-  )
-
   climate_changes <- climate_component$transition(
     study_data = study_data,
     climate_scenario = climate_scenario
@@ -95,7 +88,8 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
 
   public_infrastructure_changes <- sacmex_component$transition(
     study_data = study_data,
-    site_selection = site_selection,
+    value_function_config = value_function_config,
+    mental_models = mental_models,
     params = params
   )
 
@@ -127,8 +121,16 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     flooding_models = flooding_models
   )
 
+  sacmex_changes <- sacmex_component$transition(
+    study_data = study_data,
+    value_function_config = value_function_config,
+    mental_models = mental_models,
+    params = params
+  )
+
   next_year_changes <- cbind(
     residential_investment_changes,
+    sacmex_changes %>% dplyr::select(-ageb_id),
     public_infrastructure_changes %>% dplyr::select(-ageb_id),
     water_scarcity_changes %>% dplyr::select(-ageb_id),
     climate_changes %>% dplyr::select(-ageb_id),
@@ -165,6 +167,30 @@ create_time_info <- function(n_steps) {
   month_counts
 }
 
+translate_output_colnames <- function(df) {
+  mapping <- c(
+    censusblock_id = "ageb_id",
+    non_potable_water_infrastructure_age = "antiguedad_dren",
+    potable_water_infrastructure_age = "antiguedad_dist",
+    days_with_ponding = "encharca",
+    days_with_flooding = "inunda",
+    stormwater_entrance_count = "rejillas",
+    non_potable_water_system_capacity = "q100",
+    percent_without_potable_water = "falta_dist",
+    days_no_potable_water = "lambdas",
+    income_per_capita = "income_pc",
+    water_scarcity_index = "scarcity_index",
+    potable_water_sensitivity_index = "sensitivity_Ab",
+    non_potable_water_sensitivity_index = "sensitivity_D",
+    potable_water_vulnerability_index = "vulnerability_Ab",
+    non_potable_water_vulnerability_index = "vulnerability_D",
+    potable_water_system_intervention_count = "Interventions_Ab",
+    non_potable_water_system_intervention_count = "Interventions_D"
+  )
+  df %>%
+    dplyr::rename(!! mapping)
+}
+
 #' Run the megadapt model
 simulate_megadapt <- function(megadapt) {
   all_month_step_counts <- create_time_info(megadapt$params$n_steps)
@@ -188,5 +214,5 @@ simulate_megadapt <- function(megadapt) {
     year_index <- year_index + 1
   }
 
-  results
+  translate_output_colnames(results)
 }

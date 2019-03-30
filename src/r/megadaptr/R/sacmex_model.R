@@ -271,19 +271,27 @@ create_public_infrastructure_work_plan <- function(study_data, value_function_co
 }
 
 depreciate_public_infrastructure <- function(study_data, infrastructure_decay_rate) {
+  study_data$antiguedad_dren <- study_data$antiguedad_dren + 1
+  study_data$antiguedad_dist <- study_data$antiguedad_dist + 1
+
   # update_capacity of the system
   study_data$q100 <- study_data$q100 * (1 - infrastructure_decay_rate)
   # update capacity index
   # FIDEL
   # The proportion of people without infrastructure increases proportionally to
   # the growthof the population in each delegation
-  #study_data$falta_dist <- study_data$falta_dist * (1 + (1 - study_data$falta_dist)*weekly_pop_growth)
-  #study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren)*weekly_pop_growth)
+  #study_data$falta_dist <- study_data$falta_dist * (1 + (1 - study_data$falta_dist)*pop_growth)
+  #study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren)*pop_growth)
 
   study_data
 }
 
-update_public_infrastructure <- function(study_data, site_selection, params) {
+update_public_infrastructure <- function(study_data, value_function_config, mental_models, params) {
+  site_selection <- create_public_infrastructure_work_plan(
+    study_data = study_data,
+    value_function_config = value_function_config,
+    mental_models = mental_models,
+    budget = params$budget)
   study_data %>%
     make_public_infrastructure_investments(
       study_data = .,
@@ -306,10 +314,10 @@ update_public_infrastructure <- function(study_data, site_selection, params) {
 sacmex_component <- list(
   initialize = function(study_data) {
     study_data %>%
-      mutate(antiguedad_dren = 0,
-             antiguedad_dist = 0,
-             Interventions_Ab = 1,
-             Interventions_D = 1)
+      mutate(antiguedad_dren = antiguedad,
+             antiguedad_dist = antiguedad,
+             Interventions_Ab = 0,
+             Interventions_D = 0)
   },
   transition = update_public_infrastructure
 )
