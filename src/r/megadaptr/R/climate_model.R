@@ -37,8 +37,8 @@ update_climate <- function(study_data, next_year_study_data, climate_scenario) {
 climate_component <- list(
   initialize = function(study_data) {
     study_data %>%
-      mutate(f_prec_v=0,
-             f_esc=0)
+      dplyr::mutate(f_prec_v=0,
+                    f_esc=0)
   },
   transition = update_climate
 )
