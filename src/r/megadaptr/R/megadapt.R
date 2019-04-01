@@ -86,13 +86,6 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     climate_scenario = climate_scenario
   )
 
-  public_infrastructure_changes <- sacmex_component$transition(
-    study_data = study_data,
-    value_function_config = value_function_config,
-    mental_models = mental_models,
-    params = params
-  )
-
   water_scarcity_changes <- water_scarcity_index_component$transition(
     study_data = study_data,
     value_function_config=value_function_config
@@ -131,7 +124,6 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
   next_year_changes <- list(
     residential_investment_changes,
     sacmex_changes,
-    public_infrastructure_changes,
     water_scarcity_changes,
     climate_changes,
     ponding_changes,
