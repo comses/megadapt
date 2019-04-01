@@ -137,7 +137,7 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     ponding_changes,
     flooding_changes
   ) %>%
-    purrr::reduce(left_join, by = PK_JOIN)
+    purrr::reduce(dplyr::left_join, by = PK_JOIN)
 
   next_year_study_data <- apply_data_changes(
     study_data,
