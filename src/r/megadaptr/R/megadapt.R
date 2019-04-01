@@ -128,15 +128,17 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     params = params
   )
 
-  next_year_changes <- cbind(
+  next_year_changes <- list(
     residential_investment_changes,
-    sacmex_changes %>% dplyr::select(-ageb_id),
-    public_infrastructure_changes %>% dplyr::select(-ageb_id),
-    water_scarcity_changes %>% dplyr::select(-ageb_id),
-    climate_changes %>% dplyr::select(-ageb_id),
-    ponding_changes %>% dplyr::select(-ageb_id),
-    flooding_changes %>% dplyr::select(-ageb_id)
-  )
+    sacmex_changes,
+    public_infrastructure_changes,
+    water_scarcity_changes,
+    climate_changes,
+    ponding_changes,
+    flooding_changes
+  ) %>%
+    purrr::reduce(left_join, by = PK_JOIN)
+
   next_year_study_data <- apply_data_changes(
     study_data,
     next_year_changes,
