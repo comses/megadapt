@@ -60,3 +60,44 @@ teardown({
     fs::dir_delete('test_data')
   }
 })
+
+describe('sacmex infrastructure allocation', {
+  site_suitability <- tibble::tribble(
+    ~ageb_id, ~A1, ~A2, ~A3, ~A4,
+    1, 1, 0, 0, 0,
+    2, 0, 3, 0, 0,
+    3, 0, 0, 5, 0,
+    4, 0, 0, 0, 7
+    )
+
+  it('is empty when budget is zero', {
+    allocation <- determine_public_infrastructure_work_plan(
+      site_suitability = site_suitability,
+      budget = 0)
+    expect_equal(nrow(allocation), 0)
+  })
+
+  it('includes the census blocks that in most need of work', {
+    allocation <- determine_public_infrastructure_work_plan(
+      site_suitability = site_suitability,
+      budget = 2)
+    expect_equal(allocation$choice_index, c(3, 4))
+    expect_equal(allocation$max_choice_value, c(5, 7))
+    expect_equal(allocation$A1, rep(FALSE, 2))
+    expect_equal(allocation$A2, rep(FALSE, 2))
+    expect_equal(allocation$A3, c(TRUE, FALSE))
+    expect_equal(allocation$A4, c(FALSE, TRUE))
+  })
+
+  it('includes all census blocks if budget is greater than number of census blocks', {
+    allocation <- determine_public_infrastructure_work_plan(
+      site_suitability = site_suitability,
+      budget = 5)
+    expect_equal(allocation$choice_index, c(1, 2, 3, 4))
+    expect_equal(allocation$max_choice_value, c(1, 3, 5, 7))
+    expect_equal(allocation$A1, c(TRUE, FALSE, FALSE, FALSE))
+    expect_equal(allocation$A2, c(FALSE, TRUE, FALSE, FALSE))
+    expect_equal(allocation$A3, c(FALSE, FALSE, TRUE, FALSE))
+    expect_equal(allocation$A4, c(FALSE, FALSE, FALSE, TRUE))
+  })
+})
