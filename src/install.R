@@ -1,16 +1,18 @@
 versions <- list(
+  list(package="assertr"),
+  list(package="bindrcpp"),
   list(package="dplyr", version="0.8.0.1"),
-  list(package="purrr"),
-  list(package="pscl", version="1.5.2"),
+  list(package="fs"),
   list(package="gbm", version="2.1.5"),
   list(package="knitr"),
-  list(package="roxygen2"),
+  list(package="logging"),
+  list(package="qrng"),
+  list(package="pscl", version="1.5.2"),
+  list(package="purrr"),
   list(package="rgdal"),
+  list(package="roxygen2"),
   list(package="testthat"),
-  list(package="bindrcpp"),
   list(package="tidyr"),
-  list(package="assertr"),
-  list(package="logging")
 )
 
 for (version in versions) {
