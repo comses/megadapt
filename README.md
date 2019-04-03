@@ -1,5 +1,7 @@
 # megadapt
 
+![Travis CI](https://travis-ci.org/comses/megadapt.svg?branch=master)
+
 CoMSES MEGADAPT repository for containerized megadapt models
 
 ## Setup
