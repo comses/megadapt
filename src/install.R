@@ -12,7 +12,7 @@ versions <- list(
   list(package="rgdal"),
   list(package="roxygen2"),
   list(package="testthat"),
-  list(package="tidyr"),
+  list(package="tidyr")
 )
 
 for (version in versions) {
