@@ -263,7 +263,7 @@ determine_public_infrastructure_investment_suitability <- function(
 #################################################################################################################################
 determine_public_infrastructure_work_plan <-
   function(site_suitability, budget) {
-    r <- site_suitability %>% select(-ageb_id)
+    r <- site_suitability %>% dplyr::select(-ageb_id)
     n_census_blocks <- min(budget, nrow(r))
     choice_index <- max.col(as.matrix(r))
     max_choice_value <- apply(as.matrix(r), 1, max)

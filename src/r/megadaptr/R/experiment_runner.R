@@ -26,7 +26,7 @@ delete_scenario_cache <-function(path) {
 create_scenario_cache <- function(scenarios, path, runner) {
   if (is.null(scenarios$pk)) {
     scenarios <- scenarios %>%
-      mutate(pk = row_number())
+      dplyr::mutate(pk = row_number())
   }
 
   fs::dir_create(scenario_dir(path))
