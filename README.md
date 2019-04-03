@@ -1,6 +1,6 @@
 # megadapt
 
-![Travis CI](https://travis-ci.org/comses/megadapt.svg?branch=master)
+[![Build Status](https://travis-ci.org/comses/megadapt.svg?branch=master)](https://travis-ci.org/comses/megadapt)
 
 CoMSES MEGADAPT repository for containerized megadapt models
 
