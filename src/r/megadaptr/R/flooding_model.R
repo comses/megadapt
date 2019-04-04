@@ -34,8 +34,7 @@ update_flooding <- function(study_data, flooding_models) {
 
 flooding_component <- list(
   initialize = function(study_data) {
-    study_data %>%
-      dplyr::mutate(inunda = 0)
+    study_data
   },
   transition = update_flooding
 )

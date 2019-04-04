@@ -11,18 +11,6 @@ build_megadapt_model <- function(...) {
   params <- create_params(...)
 
   #
-  # Study Area Setup
-  #
-  study_area <-
-    rgdal::readOGR(
-      data_dir("censusblocks/megadapt_wgs84.shp"),
-      #input_layer.shp
-      stringsAsFactors = FALSE,
-      integer64 = "warn.loss"
-    ) # for flooding model
-  study_area@data <- create_study_data(study_area@data)
-
-  #
   # Ponding Model Setup
   #
   ponding_models <- load_ponding_models(data_dir(""))
@@ -78,6 +66,17 @@ build_megadapt_model <- function(...) {
     subsidence = fv_subsidencia
   )
 
+  #
+  # Study Area Setup
+  #
+  study_area <-
+    rgdal::readOGR(
+      data_dir("censusblocks/megadapt_wgs84.shp"),
+      #input_layer.shp
+      stringsAsFactors = FALSE,
+      integer64 = "warn.loss"
+    ) # for flooding model
+
   # Mental Model Setup
   #
   mm_water_operator_s_lim <-
@@ -117,6 +116,7 @@ build_megadapt_model <- function(...) {
     study_area = study_area,
     value_function_config = value_function_config
   )
+  megadapt <- create_study_data(megadapt)
   megadapt
 }
 

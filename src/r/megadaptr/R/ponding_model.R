@@ -34,8 +34,7 @@ update_ponding <- function(study_data, ponding_models) {
 
 ponding_component <- list(
   initialize = function(study_data) {
-    study_data %>%
-      dplyr::mutate(encharca = 0L)
+    study_data
   },
   transition = update_ponding
 )
