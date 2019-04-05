@@ -72,7 +72,7 @@ build_megadapt_model <- function(...) {
   study_area <-
     rgdal::readOGR(
       data_dir("censusblocks/megadapt_wgs84.shp"),
-      #input_layer.shp
+      verbose = FALSE,
       stringsAsFactors = FALSE,
       integer64 = "warn.loss"
     ) # for flooding model

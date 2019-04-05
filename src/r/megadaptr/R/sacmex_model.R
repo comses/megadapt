@@ -330,7 +330,6 @@ make_public_infrastructure_investments <-
       study_data$Interventions_Ab[A4] <-
         study_data$Interventions_Ab[A4] + 1
     }
-    print(mean(study_data$antiguedad_dist))
     study_data
   }
 
