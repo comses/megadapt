@@ -15,6 +15,6 @@ before_install:
   - cd src/r/megadaptr
 script:
   - R CMD build .
-  - R CMD check *tar.gz && \
+  - R CMD check --no-manual *tar.gz && \
     Rscript -e 'testthat::test_file("../scenarios/test_model_run.R")'
 warnings_are_errors: false
