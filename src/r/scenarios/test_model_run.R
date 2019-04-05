@@ -1,8 +1,7 @@
-library(testthat)
+context('model run')
+
 library(megadaptr)
 source('example.R')
-
-context('model run')
 
 expect_between <- function(object, lb, ub) {
   act <- quasi_label(rlang::enquo(object))
