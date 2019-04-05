@@ -16,5 +16,5 @@ before_install:
 script:
   - R CMD build .
   - R CMD check --no-manual *tar.gz && \
-    Rscript -e 'testthat::test_file("../scenarios/test_model_run.R")'
+    R -e 'stopifnot(testthat:::all_passed(testthat::test_file("../scenarios/test_model_run.R")))'
 warnings_are_errors: false
