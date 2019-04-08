@@ -7,9 +7,9 @@ create_sim <- function(new_infrastructure_effectiveness_rate,
 		    budget,
 		    half_sensitivity_ab,
 		    half_sensitivity_d) {
-  path_to_source <- "." # change path to use it
+  path_to_source <- "."
   path_td <- "../data/"
-  path_to_output <- "../outputs/" # change path to use it
+  path_to_output <- "../outputs/"
 
   #Assign values to variables
 
@@ -20,18 +20,7 @@ create_sim <- function(new_infrastructure_effectiveness_rate,
 			  budget,
 			  half_sensitivity_ab,
 			  half_sensitivity_d)
-  #
-  # Study Area Setup
-  #
 
-  print(data_dir("censusblocks/megadapt_wgs84.shp"))
-  study_area <-
-    rgdal::readOGR(
-      data_dir("censusblocks/megadapt_wgs84.shp"),
-      verbose = FALSE,
-      stringsAsFactors = FALSE,
-      integer64 = "warn.loss"
-    ) # for flooding model
 
 
   #
@@ -39,15 +28,37 @@ create_sim <- function(new_infrastructure_effectiveness_rate,
   #
   ponding_models <- load_ponding_models(data_dir(""))
 
-  #
-  # Water Scarcity Model Setup
-  #
-  water_security_model <- create_water_scarcity_model(study_area@data)
+	# Flooding Model Setup
+	#
+	flooding_models <- load_flooding_models(data_dir(""))
+
+	#
+	Table_climate_scenarios = as.data.frame(read.csv(
+		data_dir(
+			"climate_landuse_scenarios/db_escenarios_prec_esc_ids.csv"
+		),
+		header = T
+	))
+
+	#generate the path to the place where the data frame of the scenario is stored
+
+	scenario_name = Table_climate_scenarios[which(Table_climate_scenarios$id ==
+																									params$climate_scenario), ]$path
 
   #
   # Climate Scenario Setup
   #
-  climate_scenario <- read.csv(data_dir("df_prec_esc_85_85.csv"))
+	#generate the path to the place where the data frame of the scenario is stored
+
+	scenario_name = Table_climate_scenarios[which(Table_climate_scenarios$id ==
+																									params$climate_scenario), ]$path
+
+	# Climate Scenario Setup
+	#
+	climate_scenario <-
+		read.csv(data_dir(paste0(
+			"climate_landuse_scenarios/", scenario_name
+		)))
 
   #
   # Value Function Setup
@@ -70,14 +81,40 @@ create_sim <- function(new_infrastructure_effectiveness_rate,
     subsidence=fv_subsidencia
   )
 
+	#
+	# Study Area Setup
+	#
+
+	study_area <-
+		rgdal::readOGR(
+			data_dir("censusblocks/megadapt_wgs84.shp"),
+			verbose = FALSE,
+			stringsAsFactors = FALSE,
+			integer64 = "warn.loss"
+		) # for flooding model
+
+
   #
   # Mental Model Setup
   #
-  mm_water_operator_s_lim <- data.frame(read.csv(data_dir("DF101215_GOV_AP modificado PNAS.limit.csv"),
-						 skip = 1, header = T))[, -c(1, 2, 21)]
-  mm_water_operator_d_lim <- data.frame(read.csv(data_dir("SACMEX_Drenaje_limit_SESMO.csv"),
-						 skip = 1, header = T))[, -c(1, 2)]
-  mm_iz <- data.frame(read.csv(data_dir("I080316_OTR.limit.csv"), skip = 1, header = T))[, -c(1, 2)]
+	mm_water_operator_s_lim <-
+    data.frame(read.csv(
+      data_dir("/mental_models/DF101215_GOV_AP modificado PNAS.limit.csv"),
+      skip = 1,
+      header = T
+    ))[,-c(1, 2, 21)]
+  mm_water_operator_d_lim <-
+    data.frame(read.csv(
+      data_dir("/mental_models/SACMEX_Drenaje_limit_SESMO.csv"),
+      skip = 1,
+      header = T
+    ))[,-c(1, 2)]
+  mm_iz <-
+    data.frame(read.csv(
+      data_dir("/mental_models/I080316_OTR.limit.csv"),
+      skip = 1,
+      header = T
+    ))[,-c(1, 2)]
 
   mental_models <- create_mental_models(
     mm_water_operator_d_lim = mm_water_operator_d_lim,

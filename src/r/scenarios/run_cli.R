@@ -9,6 +9,8 @@ budget = as.numeric(args[5])
 half_sensitivity_ab = as.numeric(args[6])
 half_sensitivity_d = as.numeric(args[7])
 
+setwd('../megadaptr')
+
 source('../scenarios/create_sim.R')
 source('../scenarios/util.R')
 
