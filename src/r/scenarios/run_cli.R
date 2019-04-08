@@ -1,13 +1,33 @@
 #!/usr/bin/env Rscript
-args = commandArgs(trailingOnly=TRUE)
 
-new_infrastructure_effectiveness_rate = as.numeric(args[1])
-maintenance_effectiveness_rate = as.numeric(args[2])
-n_steps = as.numeric(args[3])
-infrastructure_decay_rate = as.numeric(args[4])
-budget = as.numeric(args[5])
-half_sensitivity_ab = as.numeric(args[6])
-half_sensitivity_d = as.numeric(args[7])
+library("argparse")
+
+parser <- ArgumentParser(description='Run model')
+
+parser$add_argument("--effectiveness_new_infra",
+										type="double", help="rate of effectiveness of new infrastructure", required=T)
+parser$add_argument("--effectiveness_maintenance",
+										type="double", help="rate of effectiveness of maintenance", required=T)
+parser$add_argument("--steps",
+										type="integer", help="run this many steps", default=10)
+parser$add_argument("--infrastructure_decay",
+										type="double", help="rate of infrastructure decay", required=T)
+parser$add_argument("--budget",
+										type="double", help="annual budget for water authority", required=T)
+parser$add_argument("--half_sensitivity_d",
+										type="double", required=T, help="?")
+parser$add_argument("--half_sensitivity_ab",
+										type="double", required=T, help="?")
+
+args <- parser$parse_args()
+
+new_infrastructure_effectiveness_rate = as.numeric(args$effectiveness_new_infra)
+maintenance_effectiveness_rate = as.numeric(args$effectiveness_maintenance)
+n_steps =  as.numeric(args$steps)
+infrastructure_decay_rate =  as.numeric(args$infrastructure_decay)
+budget =  as.numeric(args$budget)
+half_sensitivity_ab = as.numeric(args$half_sensitivity_ab)
+half_sensitivity_d = as.numeric(args$half_sensitivity_d)
 
 setwd('../megadaptr')
 
