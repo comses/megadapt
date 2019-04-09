@@ -8,28 +8,96 @@ source('../scenarios/util.R')
 #(Originally in file VBSAConvergence.R)
 #Convergence of Si and STi indices
 
-# Change these parameters
-simyears=1
-exp.min=1
-exp.max=1
-realmodel=T
-
-exponents<-c(exp.min:exp.max)
-Ns<-2^exponents
-Nmax<-2^exp.max
-k<-4
+# SA Conditions
+SAConditions <- list(
+  simyears=1,
+  exp.min=1,
+  exp.max=1,
+  whichmodel="custom",
+  onCluster=F
+)
 
 
-stt<-system.time(results<-VBSA(exp.min,exp.max,simyears,k,realmodel))
-results
+# Input Parameters and their Names
+noParams <- 5 #number of parameters to take into account
+
+SAParams <- list(
+  p1 = list(
+    name = "effectivity_newInfra",
+    min = 0.01,
+    max = 0.3,
+    isInteger=F
+  ),
+  p2 = list(
+    name = "effectivity_mantenimiento",
+    min = 0.1,
+    max = 0.3,
+    isInteger=F
+  ),
+  p3 = list(
+    name = "decay_infra",
+    min = 0.001,
+    max = 1,
+    isInteger=F
+  ),
+  p4 = list(
+    name = "Budget",
+    min = 24,
+    max = 2428,
+    isInteger=F
+  ),
+  p5 = list(
+    name = "climate_scenario",
+    min = 1,
+    max = 12,
+    isInteger=T
+  )
+)
 
 
-#Plot both Si and STi vs N
-par(mfrow=c(2,2))
-colorss<-c("skyblue","orange","magenta")
-for (i in 1:dim(results)[3]){
-  plot(Ns,results[1,,i],ylim=range(results[,,i]))
-  for (j in 2:dim(results)[1]){
-    points(Ns,results[j,,i],col=colorss[j-1])
-  }
+SAParams <- SAParams[1:noParams]
+
+
+# Output metrics
+oMetricNames <- c("potable_water_vulnerability_index","non_potable_water_vulnerability_index")
+
+
+if (SAConditions$whichmodel=="book"){
+  noParams <- 3 #number of parameters to take into account
+  SAParams <- list(p1 = list(
+      name = "effectivity_newInfra",
+      min = 0,
+      max = 1,
+      isInteger=F
+    ), p2 = list(
+      name = "effectivity_mantenimiento",
+      min = 0,
+      max = 1,
+      isInteger=F
+    ),p3 = list(
+      name = "decay_infra",
+      min = 0,
+      max = 1,
+      isInteger=F
+    ) )
+  SAParams <- SAParams[1:noParams]
+  # Output metrics
+  oMetricNames <- c("vulnerability_Ab")
 }
+
+
+
+
+# #stt<-system.time(results<-VBSA(exp.min,exp.max,simyears,k,realmodel))
+# #results
+#
+# results<-VBSA(exp.min,exp.max,simyears,k,realmodel)
+
+################################################################################################
+################################################################################################
+
+ABMats <- createLinearMatrices(SAConditions,SAParams)
+
+resultsold <- VBSA(SAConditions,SAParams,oMetricNames)
+
+
