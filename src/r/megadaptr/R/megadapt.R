@@ -1,13 +1,26 @@
 PK_JOIN = c("ageb_id"="ageb_id")
 
-create_study_data <- function(study_data) {
-  components <-list(flooding_component, climate_component, ponding_component, resident_component, sacmex_component, water_scarcity_index_component)
+create_study_data <- function(megadapt) {
+  components <-
+    list(
+      climate_component,
+      flooding_component,
+      ponding_component,
+      resident_component,
+      sacmex_component,
+      water_scarcity_index_component
+    )
 
+  study_data <- megadapt$study_area@data
+  args <- megadapt[names(megadapt) != "study_area"]
   for (component in components) {
-    study_data <- component$initialize(study_data)
+    args$study_data <- study_data
+    arg_names <- rlang::fn_fmls_names(component$initialize)
+    study_data <- do.call(component$initialize, args[arg_names])
   }
 
-  study_data
+  megadapt$study_area@data <- study_data
+  megadapt
 }
 
 initial_state <- function(study_data) {

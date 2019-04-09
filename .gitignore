@@ -43,3 +43,11 @@ rsconnect/
 *.swp
 
 .DS_Store
+src/r/scenarios/budget_experiment/index.Rds
+src/r/scenarios/budget_experiment/results/1.Rds
+src/r/scenarios/budget_experiment/results/2.Rds
+src/r/scenarios/budget_experiment/results/3.Rds
+src/r/scenarios/budget_experiment/results/4.Rds
+src/r/scenarios/budget_experiment/results/5.Rds
+src/r/scenarios/budget_experiment/results/6.Rds
+src/r/scenarios/budget_experiment/results/7.Rds

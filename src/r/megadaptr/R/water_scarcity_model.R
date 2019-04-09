@@ -81,9 +81,9 @@ update_water_scarcity_index <- function(study_data, value_function_config) {
 }
 
 water_scarcity_index_component <- list(
-  initialize = function(study_data) {
+  initialize = function(study_data, value_function_config) {
     study_data %>%
-      dplyr::mutate(scarcity_index=0)
+      dplyr::inner_join(update_water_scarcity_index(study_data = study_data, value_function_config = value_function_config), by = PK_JOIN)
   },
   transition = update_water_scarcity_index
 )

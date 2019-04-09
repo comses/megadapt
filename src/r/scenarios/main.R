@@ -5,6 +5,5 @@ library(magrittr)
 
 # set.seed(1000)
 
-megadapt <- example()
-
+megadapt <- build_megadapt_model()
 new_results <- simulate_megadapt(megadapt)

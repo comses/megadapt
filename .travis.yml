@@ -13,4 +13,9 @@ apt_packages:
   - libgdal-dev
 before_install:
   - cd src/r/megadaptr
+script:
+  - R CMD build .
+  - |
+    R CMD check --no-manual *tar.gz && \
+    R -e 'library(testthat); stopifnot(testthat:::all_passed(test_file("../scenarios/test_model_run.R")))'
 warnings_are_errors: false
