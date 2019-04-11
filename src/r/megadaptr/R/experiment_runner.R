@@ -56,7 +56,7 @@ create_cartesian_scenario_cache <- function(model, path, params) {
     scenarios = scenarios,
     path = path,
     runner = function(...) {
-      new_model <- modify_megdapt_model(model = model, ...)
+      new_model <- modify_megadapt_model(model = model, ...)
       simulate_megadapt(new_model)
     }
   )

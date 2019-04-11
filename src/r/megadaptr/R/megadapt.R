@@ -345,7 +345,7 @@ build_megadapt_model <- function(data_root_dir, mental_model_file_names, params 
 #'
 #' @examples
 #' modify_megadapt_model(megadapt, budget = 1500)
-modify_megdapt_model <- function(model, ...) {
+modify_megadapt_model <- function(model, ...) {
   model$params <- create_params(...)
   model
 }
