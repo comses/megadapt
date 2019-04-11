@@ -18,6 +18,7 @@ delete_scenario_cache <-function(path) {
   fs::dir_delete(path)
 }
 
+
 #' Create a scenario cache by running and saving all experiments in the scenario dataframe
 #'
 #' @param scenarios data.frame of all experiment combinations to run
@@ -44,6 +45,23 @@ create_scenario_cache <- function(scenarios, path, runner) {
     path = path
   )
 }
+
+#' Build a scenario cache for an experiment by taking the cartesian product of all parameter levels
+#'
+#' @examples
+#' build_scenario_cache("../scenarios/budget_experiment", list(budget=6:12*100))
+create_cartesian_scenario_cache <- function(model, path, params) {
+  scenarios <- do.call(expand.grid, params)
+  create_scenario_cache(
+    scenarios = scenarios,
+    path = path,
+    runner = function(...) {
+      new_model <- modify_megdapt_model(model = model, ...)
+      simulate_megadapt(new_model)
+    }
+  )
+}
+
 
 #' Load a scenario cache from a file system
 load_scenario_cache <- function(path) {

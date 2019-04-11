@@ -1,15 +1,25 @@
-library(shiny)
-library(leaflet)
-library(rgeos)
-library(rgdal)
-library(ggplot2)
-library(dplyr)
+library("dplyr")
+library("ggplot2")
+library("leaflet")
+library("megadaptr")
+library("rgeos")
+library("rgdal")
+library("shiny")
+
+source('util.R')
 
 cache_path <- "budget_experiment"
+megadapt <- build_megadapt_model(
+  data_root_dir = data_root_dir,
+  mental_model_file_names = mental_model_file_names
+)
 if (fs::dir_exists(cache_path)) {
   cache <- load_scenario_cache(cache_path)
 } else {
-  cache <- build_scenario_cache(cache_path, list(budget=6:12*100))
+  cache <- create_cartesian_scenario_cache(
+    model = megadapt,
+    path = cache_path,
+    params = list(budget=6:12*100))
 }
 
 ui <- fluidPage(

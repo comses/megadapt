@@ -29,23 +29,26 @@ budget =  as.numeric(args$budget)
 half_sensitivity_ab = as.numeric(args$half_sensitivity_ab)
 half_sensitivity_d = as.numeric(args$half_sensitivity_d)
 
-setwd('../megadaptr')
-
-source('../scenarios/create_sim.R')
-source('../scenarios/util.R')
+source('util.R')
 
 library(megadaptr)
 library(magrittr)
 
 # set.seed(1000)
 
-megadapt <- create_sim(new_infrastructure_effectiveness_rate,
-		    maintenance_effectiveness_rate,
-		    n_steps,
-		    infrastructure_decay_rate,
-		    budget,
-		    half_sensitivity_ab,
-		    half_sensitivity_d)
+megadapt <- build_megadapt_model(
+  data_root_dir = data_root_dir,
+  mental_model_file_names = mental_model_file_names,
+  params = create_params(
+    new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
+    maintenance_effectiveness_rate = maintenance_effectiveness_rate,
+    n_steps = n_steps,
+    infrastructure_decay_rate = infrastructure_decay_rate,
+    half_sensitivity_ab = half_sensitivity_ab,
+    half_sensitivity_d = half_sensitivity_d
+  )
+)
+
 results <- simulate_megadapt(megadapt)
 
 sim_id_output=sprintf("sim_%s_%s_%s_%s_%s_%s_%s.rds",
@@ -56,8 +59,6 @@ sim_id_output=sprintf("sim_%s_%s_%s_%s_%s_%s_%s.rds",
 		      budget,
 		      half_sensitivity_ab,
 		      half_sensitivity_d)
-
-
 
 saveRDS(object=results,
 	file = output_dir(sim_id_output))
