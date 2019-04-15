@@ -12,7 +12,7 @@ load_climate_scenario <- function(path) {
 #' @param climate_scenario A data frame containing yearly precipitation and runoff amounts (in millimetres)
 #'   per census block
 #' @return yearly runoff and precipitation values by census block
-update_climate <- function(study_data, next_year_study_data, climate_scenario) {
+update_climate <- function(study_data, climate_scenario) {
   # create a vector of alternative years for sampling
   # and sample one of them each year
   year_sampled_from_Scenario <- sample(size = 1, x = 1993:2013)
@@ -35,10 +35,9 @@ update_climate <- function(study_data, next_year_study_data, climate_scenario) {
 }
 
 climate_component <- list(
-  initialize = function(study_data) {
+  initialize = function(study_data, climate_scenario) {
     study_data %>%
-      dplyr::mutate(f_prec_v=0,
-                    f_esc=0)
+      dplyr::inner_join(update_climate(study_data, climate_scenario), by = PK_JOIN)
   },
   transition = update_climate
 )

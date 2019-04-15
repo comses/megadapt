@@ -1,7 +1,21 @@
-context('util')
+context('megadapt')
 
 library(megadaptr)
 library(dplyr)
+
+expect_between <- function(object, lb, ub) {
+  act <- quasi_label(rlang::enquo(object))
+
+  act$lb <- min(object)
+  act$ub <- max(object)
+  expect(
+    act$lb >= lb || act$ub <= ub,
+    sprintf('%s has range [%d, %d] not contained in [%d, %d]', act$lab, act$lb, act$ub, lb, ub)
+  )
+
+  invisible(act$val)
+}
+
 test_that('apply_data_changes updates original data with changed columns', {
   df <- data.frame(x=1:5, y=6:10, z=11:15, pk=1:5)
   changes <- data.frame(x=5:1, z=1:5, pk=c(1,3,2,4,5))
@@ -99,5 +113,44 @@ describe('sacmex infrastructure allocation', {
     expect_equal(allocation$A2, c(FALSE, TRUE, FALSE, FALSE))
     expect_equal(allocation$A3, c(FALSE, FALSE, TRUE, FALSE))
     expect_equal(allocation$A4, c(FALSE, FALSE, FALSE, TRUE))
+  })
+})
+
+megadapt <- build_megadapt_model(
+  data_root_dir = '../../../../../data',
+  mental_model_file_names = list(
+    potable_water_operator_limit = 'DF101215_GOV_AP modificado PNAS.limit.csv',
+    non_potable_water_operator_limit = 'SACMEX_Drenaje_limit_SESMO.csv',
+    overall_limit = 'I080316_OTR.limit.csv'
+  ),
+  params = list(n_steps = 2)
+)
+
+describe('a megadapt model', {
+  it('can have its parameters modified', {
+    new_megadapt <- modify_megadapt_model(megadapt, new_infrastructure_effectiveness = 0.1)
+    expect_equal(new_megadapt$params$new_infrastructure_effectiveness, 0.1)
+  })
+})
+
+results <- simulate_megadapt(megadapt)
+
+describe('a megadapt model run', {
+  it('should have a water scarcity index within [0, 1]', {
+    expect_between(results$water_scarcity_index, 0, 1)
+  })
+
+  it('should have a number of interventions in census block less than or equal to the number of years simulated', {
+    expect_between(results$potable_water_system_intervention_count, 0, megadapt$params$n_steps)
+    expect_between(results$non_potable_water_system_intervention_count, 0, megadapt$params$n_steps)
+  })
+
+  it('should have a percent with potable water within [0, 1]', {
+    expect_between(results$percent_without_potable_water, 0, 1)
+  })
+
+  it('should have a sensitivity indices within [0, 1]', {
+    expect_between(results$potable_water_sensitivity_index, 0, 1)
+    expect_between(results$non_potable_water_sensitivity_index, 0, 1)
   })
 })

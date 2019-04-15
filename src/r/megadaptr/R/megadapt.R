@@ -1,13 +1,26 @@
 PK_JOIN = c("ageb_id"="ageb_id")
 
-create_study_data <- function(study_data) {
-  components <-list(flooding_component, climate_component, ponding_component, resident_component, sacmex_component, water_scarcity_index_component)
+create_study_data <- function(megadapt) {
+  components <-
+    list(
+      climate_component,
+      flooding_component,
+      ponding_component,
+      resident_component,
+      sacmex_component,
+      water_scarcity_index_component
+    )
 
+  study_data <- megadapt$study_area@data
+  args <- megadapt[names(megadapt) != "study_area"]
   for (component in components) {
-    study_data <- component$initialize(study_data)
+    args$study_data <- study_data
+    arg_names <- rlang::fn_fmls_names(component$initialize)
+    study_data <- do.call(component$initialize, args[arg_names])
   }
 
-  study_data
+  megadapt$study_area@data <- study_data
+  megadapt
 }
 
 initial_state <- function(study_data) {
@@ -209,4 +222,130 @@ simulate_megadapt <- function(megadapt) {
   }
 
   translate_output_colnames(results)
+}
+
+
+#' Build a megadapt model
+#'
+#' @param data_root_dir The base directory from where to locate all the data and configuration files
+#' @param mental_model_file_names File names for the analytic network process limit matrices
+#' @param params Parameterization of the megadapt model created from \code{\link{create_params}}
+build_megadapt_model <- function(data_root_dir, mental_model_file_names, params = list()) {
+  #
+  # Param Setup
+  #
+  params <- do.call(create_params, params)
+
+  #
+  # Ponding Model Setup
+  #
+  ponding_models <- load_ponding_models(data_root_dir)
+
+  #
+  # Flooding Model Setup
+  #
+  flooding_models <- load_flooding_models(data_root_dir)
+
+  #
+  # Climate Scenario Setup
+  #
+  climate_scenario_index = as.data.frame(read.csv(fs::path(data_root_dir, "climate_landuse_scenarios", "index.csv"), header = T))
+
+  scenario_name = climate_scenario_index[which(climate_scenario_index$id == params$climate_scenario), ]$path
+
+  climate_scenario <- read.csv(fs::path(data_root_dir, "climate_landuse_scenarios", scenario_name))
+
+  #
+  # Value Function Setup
+  #
+  value_function_root_dir <- function(...) fs::path(data_root_dir, "funciones_valor", "csvs", ...)
+  fv_antiguedad_drenaje <-
+    load_value_function_config(value_function_root_dir("fv_antiguedad_drenaje.csv"))
+  fv_antiguedad_escasez <-
+    load_value_function_config(value_function_root_dir("fv_antiguedad_escasez.csv"))
+  fv_calidad_agua_sodio_escasez <-
+    load_value_function_config(value_function_root_dir("fv_calidad_agua_sodio_escasez.csv"))
+  fv_falla_escasez <-
+    load_value_function_config(value_function_root_dir("fv_falla_escasez.csv"))
+  fv_horas_servicio_escasez <-
+    load_value_function_config(value_function_root_dir("fv_horas_servicio_escasez.csv"))
+  fv_presion_hidraulica_escasez <-
+    load_value_function_config(value_function_root_dir("fv_presion_hidraulica_escasez.csv"))
+  fv_subsidencia <-
+    load_value_function_config(value_function_root_dir("fv_subsidencia.csv"))
+
+  value_function_config <- create_value_function_config(
+    sewer_age = fv_antiguedad_drenaje,
+    shortage_age = fv_antiguedad_escasez,
+    salt_water_quality = fv_calidad_agua_sodio_escasez,
+    shortage_failures = fv_falla_escasez,
+    hours_of_service_failure = fv_horas_servicio_escasez,
+    hydraulic_pressure_failure = fv_presion_hidraulica_escasez,
+    subsidence = fv_subsidencia
+  )
+
+  #
+  # Study Area Setup
+  #
+  study_area <-
+    rgdal::readOGR(
+      fs::path(data_root_dir, "censusblocks/megadapt_wgs84.shp"),
+      verbose = FALSE,
+      stringsAsFactors = FALSE,
+      integer64 = "warn.loss"
+    )
+
+  #
+  # Mental Model Setup
+  #
+  mm_water_operator_s_lim <-
+    data.frame(read.csv(
+      fs::path(data_root_dir, "mental_models", mental_model_file_names$potable_water_operator_limit),
+      skip = 1,
+      header = T
+    ))[,-c(1, 2, 21)]
+  mm_water_operator_d_lim <-
+    data.frame(read.csv(
+      fs::path(data_root_dir, "mental_models", mental_model_file_names$non_potable_water_operator_limit),
+      skip = 1,
+      header = T
+    ))[,-c(1, 2)]
+  mm_iz <-
+    data.frame(read.csv(
+      fs::path(data_root_dir, "mental_models", mental_model_file_names$overall_limit),
+      skip = 1,
+      header = T
+    ))[,-c(1, 2)]
+
+  mental_models <- create_mental_models(
+    mm_water_operator_d_lim = mm_water_operator_d_lim,
+    mm_water_operator_s_lim = mm_water_operator_s_lim,
+    mm_iz = mm_iz
+  )
+
+  #
+  # Build Main Model
+  #
+  megadapt <- create_megadapt(
+    climate_scenario = climate_scenario,
+    mental_models = mental_models,
+    params = params,
+    ponding_models = ponding_models,
+    flooding_models = flooding_models,
+    study_area = study_area,
+    value_function_config = value_function_config
+  )
+  megadapt <- create_study_data(megadapt)
+  megadapt
+}
+
+#' Modify an existing megadapt model
+#'
+#' @param model megadapt model
+#'
+#' @examples
+#' modify_megadapt_model(megadapt, budget = 1500)
+modify_megadapt_model <- function(model, ...) {
+  model$params <- create_params(...)
+  model
 }

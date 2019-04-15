@@ -1,10 +1,7 @@
-source('../scenarios/example.R')
-
 library(megadaptr)
 library(magrittr)
+source('../scenarios/util.R')
 
-# set.seed(1000)
-
-megadapt <- build_megadapt_model()
-
+megadapt <- build_megadapt_model(data_root_dir = data_root_dir,
+                                 mental_model_file_names = mental_model_file_names)
 new_results <- simulate_megadapt(megadapt)
