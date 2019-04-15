@@ -5,6 +5,7 @@ library(rgdal)
 library(ggplot2)
 library(dplyr)
 
+#First checks to see if a folder with data exists
 cache_path <- "budget_experiment"
 if (fs::dir_exists(cache_path)) {
   cache <- load_scenario_cache(cache_path)
@@ -33,25 +34,15 @@ ui <- fluidPage(
                                  "Number of Actions on Sewer and Drainage Infrastructure" = "non_potable_water_system_intervention_count",
                                  "Potable water infrastructure age" = "potable_water_infrastructure_age",
                                  "Non Potable water infrastructure age" = "non_potable_water_infrastructure_age",
-                                  "Days without potable water" = "days_no_potable_water")
+                                 "Days without potable water" = "days_no_potable_water")
       ),
       selectInput("select_math", "Statistic to Display",
-                  choices = list("Sum" = 1, "Minimum" = 2,
-                                 "Maximum" = 3, "Mean" = 4)
+                  choices = list("Sum" = 1, "Minimum" = 2, "Maximum" = 3, "Mean" = 4)
       ),
       sliderInput("select_budget", "Budget:",
-                  min = 600, max = 1200,
-                  value = 600, step = 100
+                  min = 600, max = 1200, value = 600, step = 100
+                  #,animate = animationOptions(interval = 2000, loop = false)
       ),
-
-     # numericInput("select_year", "Simulation Year", value = 2018),
-      # selectInput("select_scenario", "Simulation Scenario",
-      #             choices = list("Climate Scenario 1" = 1, "Climate Scenario 2" = 2, "Climate Scenario 3" = 3,
-      #                            "Climate Scenario 4" = 4, "Climate Scenario 5" = 5, "Climate Scenario 6" = 6,
-      #                            "Climate Scenario 7" = 7, "Climate Scenario 8" = 8, "Climate Scenario 9" = 9
-      #             ), selected = 1
-      # ),
-
 
       plotOutput("plot", width=400)
     ),
@@ -68,16 +59,15 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
 
-  # Make a barplot or scatterplot depending of the selected point
+  # Make a Plot based on annual values of selected factor
   output$plot=renderPlot({
-    #plot(new_results[[input$select_factor]], new_results$year_sim)
 
     budget = input$select_budget
     ii <- 2000:3000
     theme_set(theme_bw())
       ggplot(new_results, aes(x=year_sim,y=new_results[[input$select_factor]])) +
         geom_bar(stat="identity", width=.5, fill="tomato3") +
-        labs(title= "Factor Over Time", x="Years") +
+        labs(title= "Factor Over Time for all census blocks", x="Years") +
         scale_x_continuous(breaks=ii)
 
 
@@ -89,12 +79,8 @@ server <- function(input, output, session) {
   # Reactive expression for the data subsetted to what the user selected
   filteredData <- reactive({
 
-    #copy new_results with only the selected year
-    #subsetdf <- subset(new_results, as.numeric(new_results$year_sim) == input$select_year)
-    #Generate the Map on the fly for each year - so that it only chooses one year and one variable
-    #new_results <- load_scenario(cache, cache[["index"]][["budget"]] == input$select_budget)
     new_results <- load_scenario(cache, budget == input$select_budget)
-
+    #New results is not modified since it is used by ggplot
     #Create a df with everything 'mathed'
     subsetdf <- new_results
     subsetdf$cvgeo <- NULL # get rid of non-numeric data
@@ -130,6 +116,7 @@ server <- function(input, output, session) {
     x2@data <- x.dat2.ord  # Assign to shapefile the new data.frame
     studyArea_CVG.4.display <<- x2
 
+
   })
 
   # This reactive expression represents the palette function,
@@ -143,10 +130,8 @@ server <- function(input, output, session) {
 
   output$map <- renderLeaflet({
 
-    #cache_path <- 'budget_experiment'
-    #cache <- load_scenario_cache(cache_path)
     new_results <- load_scenario(cache, budget == 600)
-
+    #New results is not modified since it is used by ggplot
     subsetdf <- new_results
     subsetdf$cvgeo <- NULL
     subsetdf = subsetdf %>%
@@ -165,6 +150,7 @@ server <- function(input, output, session) {
     x.dat2.ord$sort_id <- NULL
     x2@data <- x.dat2.ord  # Assign to shapefile the new data.frame
     studyArea_CVG.4.display <<- x2
+
 
 
     cat("Running renderLeaflet")
@@ -189,7 +175,7 @@ server <- function(input, output, session) {
       clearShapes() %>%
       addPolygons(color = "#444444", weight = 1, smoothFactor = 0.5,
                   opacity = 1.0, fillOpacity = 0.5,
-                  fillColor = ~pal(studyArea_CVG.4.display@data[[input$select_factor]]  ), #[[input$select_factor2]] ),
+                  fillColor = ~pal(studyArea_CVG.4.display@data[[input$select_factor]]  ),
                   highlightOptions = highlightOptions(color = "white", weight = 2,
                                                       bringToFront = TRUE)
       )
