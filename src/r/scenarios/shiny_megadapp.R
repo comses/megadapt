@@ -23,6 +23,8 @@ if (fs::dir_exists(cache_path)) {
     params = list(budget=6:12*100))
 }
 
+options(width = 1150)
+
 ui <- fluidPage(
   titlePanel(" MEGADAPT MODEL VIEWER"),
   sidebarLayout(
@@ -46,8 +48,8 @@ ui <- fluidPage(
                                  "Non Potable water infrastructure age" = "non_potable_water_infrastructure_age",
                                  "Days without potable water" = "days_no_potable_water")
       ),
-      selectInput("select_math", "Statistic to Display",
-                  choices = list("Sum" = 1, "Minimum" = 2, "Maximum" = 3, "Mean" = 4)
+      selectInput("select_municipality", "Municipality to Display",
+                  choices = list("All Municipalities" = 10, "M 1" = 1, "M 2" = 2, "M 3" = 3)
       ),
       sliderInput("select_budget", "Budget:",
                   min = 600, max = 1200, value = 600, step = 100
@@ -72,44 +74,49 @@ server <- function(input, output, session) {
   # Make a Plot based on annual values of selected factor
   output$plot=renderPlot({
 
-    budget = input$select_budget
-    ii <- 2000:3000
     theme_set(theme_bw())
-      ggplot(new_results, aes(x=year_sim,y=new_results[[input$select_factor]])) +
-        geom_bar(stat="identity", width=.5, fill="tomato3") +
-        labs(title= "Factor Over Time for all census blocks", x="Years") +
-        scale_x_continuous(breaks=ii)
-
-
+    ggplot(plotData(), aes(x=plot.df[,1],y=plot.df[,2]))  +
+      geom_bar(stat="identity", width=15, fill="tomato3")  +
+      labs(x="Budget Scenarios", y = input$select_factor)
+      #scale_x_continuous(breaks=plot.df[,1])
 
   })
 
+
+  # Reactive expression for the data subsetted to what the user selected
+  plotData <- reactive({
+
+    cache <- load_scenario_cache(cache_path)
+    budgets.tested <- cache[["index"]][["budget"]]
+    values <<- NULL
+    #Iterate through each Budget test and get the average value for the parameter selected
+    for (val in budgets.tested){
+      subsetdf = load_scenario(cache, budget == val)
+      subsetdf$cvgeo <- NULL # get rid of non-numeric data
+      subsetdf = subsetdf %>%
+        group_by(censusblock_id) %>%
+        summarise_all(funs(mean))
+      avg <- mean(subsetdf[[input$select_factor]], na.rm = TRUE)
+      values <<- c(values, avg)
+    }
+    #adjust the budget value to show the fraction of the total census blocks
+   # budgets.tested = budgets.tested / 2400
+
+    plot.df <<- data.frame(budgets.tested,values)
+    plot.df
+
+  })
 
 
   # Reactive expression for the data subsetted to what the user selected
   filteredData <- reactive({
 
-    new_results <- load_scenario(cache, budget == input$select_budget)
-    #New results is not modified since it is used by ggplot
-    #Create a df with everything 'mathed'
-    subsetdf <- new_results
+    subsetdf <- load_scenario(cache, budget == input$select_budget)
     subsetdf$cvgeo <- NULL # get rid of non-numeric data
-    if (input$select_math == 1) {
-      subsetdf = subsetdf %>%
-      group_by(censusblock_id) %>%
-      summarise_all(funs(sum)) }
-    if (input$select_math == 2) {
-      subsetdf = subsetdf %>%
+
+    subsetdf = subsetdf %>%
         group_by(censusblock_id) %>%
-        summarise_all(funs(min)) }
-    if (input$select_math == 3) {
-      subsetdf = subsetdf %>%
-        group_by(censusblock_id) %>%
-        summarise_all(funs(max)) }
-    if (input$select_math == 4) {
-      subsetdf = subsetdf %>%
-        group_by(censusblock_id) %>%
-        summarise_all(funs(mean)) }
+        summarise_all(funs(mean))
 
     #Join the attribute tables
     x <- megadapt[["study_area"]]
@@ -126,27 +133,23 @@ server <- function(input, output, session) {
     x2@data <- x.dat2.ord  # Assign to shapefile the new data.frame
     studyArea_CVG.4.display <<- x2
 
-
   })
 
   # This reactive expression represents the palette function,
   # which changes as the user makes selections in UI.
   colorpal <- reactive({
     #Use one parameter for the color
-    colorNumeric("YlOrRd", studyArea_CVG.4.display@data[[input$select_math]] )
     colorNumeric("YlOrRd", studyArea_CVG.4.display@data[[input$select_factor]] )
 
   })
 
   output$map <- renderLeaflet({
 
-    new_results <- load_scenario(cache, budget == 600)
-    #New results is not modified since it is used by ggplot
-    subsetdf <- new_results
+    subsetdf <- load_scenario(cache, budget == 600)
     subsetdf$cvgeo <- NULL
     subsetdf = subsetdf %>%
       group_by(censusblock_id) %>%
-      summarise_all(funs(sum))
+      summarise_all(funs(mean))
     x <- megadapt[["study_area"]]
     y <- subsetdf
     x$sort_id <- 1:nrow(as(x, "data.frame"))  # Column containing original row order for later sorting
@@ -178,7 +181,6 @@ server <- function(input, output, session) {
   # an observer. Each independent set of things that can change
   # should be managed in its own observer.
   observe({
-    #math_type = input$select_math
      pal <- colorpal()
 
     leafletProxy("map", data = filteredData()) %>%
