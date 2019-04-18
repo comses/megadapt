@@ -23,14 +23,15 @@ if (fs::dir_exists(cache_path)) {
     params = list(budget=6:12*100))
 }
 
-options(width = 1150)
+options(width = 1550)
 
 ui <- fluidPage(
+  responsive = FALSE,
   titlePanel(" MEGADAPT MODEL VIEWER"),
   sidebarLayout(
 
     sidebarPanel(
-      #width =5,
+      #width =6,
 
       helpText("Choose from the Parameters Below to See Simulation Results"),
 
@@ -74,11 +75,11 @@ server <- function(input, output, session) {
   # Make a Plot based on annual values of selected factor
   output$plot=renderPlot({
 
-    theme_set(theme_bw())
+    #theme_set(theme_bw())
     ggplot(plotData(), aes(x=plot.df[,1],y=plot.df[,2]))  +
       geom_bar(stat="identity", width=15, fill="tomato3")  +
-      labs(x="Budget Scenarios", y = input$select_factor)
-      #scale_x_continuous(breaks=plot.df[,1])
+      labs(x="Budget Scenarios", y = input$select_factor) +
+      scale_x_continuous(breaks=plot.df[,1], labels=c("25%", "29%", "33%", "37%", "41%", "46%", "50%"))
 
   })
 
