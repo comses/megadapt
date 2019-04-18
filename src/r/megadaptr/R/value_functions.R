@@ -218,7 +218,7 @@ Value_Function_cut_offs <- function(x, xcuts = c(0.0625, 0.125, 0.25, 0.5), xmax
 # exponent: to control the type of distance h_Cp=2 euclidian# h_Cp=1 manhattan
 
 ideal_distance <- function(x, y, exponent = 1, z) {
-  return((z * rowSums((y^exponent) * ((1 - x)^exponent), na.rm = T))^(1 / exponent))
+  return(((z ^ exponent) * rowSums((y^exponent) * ((1 - x)^exponent), na.rm = T))^(1 / exponent))
 }
 
 
