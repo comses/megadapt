@@ -50,7 +50,9 @@ ui <- fluidPage(
                                  "Days without potable water" = "days_no_potable_water")
       ),
       selectInput("select_municipality", "Municipality to Display",
-                  choices = list("All Municipalities" = 10, "M 1" = 1, "M 2" = 2, "M 3" = 3)
+                  choices = list("All Municipalities" = 1, "Municipality 2" = 2, "Municipality 3" = 3, "Municipality 4" = 4, "Municipality 5" = 5, "Municipality 6" = 6,
+                                 "Municipality 7" = 7,"Municipality 8" = 8,"Municipality 9" = 9,"Municipality 10" = 10,"Municipality 11" = 11,"Municipality 12" = 12,
+                                 "Municipality 13" = 13,"Municipality 14" = 14,"Municipality 15" = 15,"Municipality 16" = 16,"Municipality 17" = 17)
       ),
       sliderInput("select_budget", "Budget:",
                   min = 600, max = 1200, value = 600, step = 100
@@ -75,11 +77,17 @@ server <- function(input, output, session) {
   # Make a Plot based on annual values of selected factor
   output$plot=renderPlot({
 
-    #theme_set(theme_bw())
-    ggplot(plotData(), aes(x=plot.df[,1],y=plot.df[,2]))  +
+    data.for.plot <- plotData()
+
+    if (input$select_municipality > 1) {
+      plot.title <- paste("Municipalty", input$select_municipality, sep = " ")
+    }else{
+      plot.title <- "All Municipalities"}
+
+    ggplot(data.for.plot, aes(x=data.for.plot[,1],y=data.for.plot[,2]))  +
       geom_bar(stat="identity", width=15, fill="tomato3")  +
-      labs(x="Budget Scenarios", y = input$select_factor) +
-      scale_x_continuous(breaks=plot.df[,1], labels=c("25%", "29%", "33%", "37%", "41%", "46%", "50%"))
+      labs(title= plot.title, x="Budget Scenarios", y = input$select_factor) +
+      scale_x_continuous(breaks=data.for.plot[,1], labels=c("25%", "29%", "33%", "37%", "41%", "46%", "50%"))
 
   })
 
@@ -93,17 +101,25 @@ server <- function(input, output, session) {
     #Iterate through each Budget test and get the average value for the parameter selected
     for (val in budgets.tested){
       subsetdf = load_scenario(cache, budget == val)
+      cvgeo.split <- t(sapply(subsetdf$cvgeo, function(x) substring(x, first=c(3), last=c(5))))#Split Municipality Numbers from Census ID
+      municipality <- as.numeric(cvgeo.split)
+      subsetdf <- cbind(subsetdf, municipality) #ADD Municipality Numbers from Census ID
       subsetdf$cvgeo <- NULL # get rid of non-numeric data
       subsetdf = subsetdf %>%
         group_by(censusblock_id) %>%
         summarise_all(funs(mean))
+
+      if (input$select_municipality > 1) {
+         subsetdf <- subsetdf[subsetdf$municipality == as.numeric(input$select_municipality), ]
+       }
+
       avg <- mean(subsetdf[[input$select_factor]], na.rm = TRUE)
       values <<- c(values, avg)
     }
     #adjust the budget value to show the fraction of the total census blocks
-   # budgets.tested = budgets.tested / 2400
+    # budgets.tested = budgets.tested / 2400
 
-    plot.df <<- data.frame(budgets.tested,values)
+    plot.df <- data.frame(budgets.tested,values)
     plot.df
 
   })
@@ -116,8 +132,8 @@ server <- function(input, output, session) {
     subsetdf$cvgeo <- NULL # get rid of non-numeric data
 
     subsetdf = subsetdf %>%
-        group_by(censusblock_id) %>%
-        summarise_all(funs(mean))
+      group_by(censusblock_id) %>%
+      summarise_all(funs(mean))
 
     #Join the attribute tables
     x <- megadapt[["study_area"]]
@@ -182,7 +198,7 @@ server <- function(input, output, session) {
   # an observer. Each independent set of things that can change
   # should be managed in its own observer.
   observe({
-     pal <- colorpal()
+    pal <- colorpal()
 
     leafletProxy("map", data = filteredData()) %>%
       clearShapes() %>%
@@ -202,7 +218,7 @@ server <- function(input, output, session) {
     proxy %>% clearControls()
     pal <- colorpal()
     proxy %>% addLegend(position = "bottomright", title = input$select_factor,
-                       pal = pal, values = studyArea_CVG.4.display@data[[input$select_factor]]
+                        pal = pal, values = studyArea_CVG.4.display@data[[input$select_factor]]
     )
 
   })
