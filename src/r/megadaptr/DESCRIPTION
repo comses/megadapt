@@ -34,5 +34,5 @@ LazyData: true
 RoxygenNote: 6.1.1
 Suggests:
     testthat
-URL: https://github.com/cpritcha/megadaptr
-BugReports: https://github.com/cpritcha/megadaptr/issues
+URL: https://github.com/comses/megadapt
+BugReports: https://github.com/comses/megadapt/issues
