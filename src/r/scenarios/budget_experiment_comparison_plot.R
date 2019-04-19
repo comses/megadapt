@@ -1,6 +1,8 @@
 library(megadaptr)
-library(magrittr)
+library(dplyr)
+library(ggplot2)
 library(tidyr)
+library(tibble)
 source('../scenarios/util.R')
 
 cache_path <- "../scenarios/budget_experiment_cross_section"
@@ -22,7 +24,8 @@ meta <- tibble::tribble(
   "water_vulnerability_index", "Mean Water Vulnerability Index",
   "water_system_intervention_count", "Mean Water System Interventions",
   "water_sensitivity_index", "Mean Water Sensitivity Index",
-  "water_infrastructure_age", "Mean Water Infrastructure Age"
+  "water_infrastructure_age", "Mean Water Infrastructure Age",
+  "percent_lacking", "Percent Lacking Public Infrastructure"
 )
 
 get_name <- function(colname) {
@@ -42,7 +45,9 @@ potable_non_potable_comparison <- scenarios %>%
     potable_water_sensitivity_index=mean(potable_water_sensitivity_index),
     nonpotable_water_sensitivity_index=mean(non_potable_water_sensitivity_index),
     potable_water_infrastructure_age=mean(potable_water_infrastructure_age),
-    nonpotable_water_infrastructure_age=mean(potable_water_infrastructure_age)) %>%
+    nonpotable_water_infrastructure_age=mean(potable_water_infrastructure_age),
+    potable_percent_lacking = mean(potable_percent_lacking),
+    nonpotable_percent_lacking = mean(non_potable_percent_lacking)) %>%
   gather(
     key = "name",
     value = "value",
@@ -53,7 +58,9 @@ potable_non_potable_comparison <- scenarios %>%
     potable_water_sensitivity_index,
     nonpotable_water_sensitivity_index,
     potable_water_infrastructure_age,
-    nonpotable_water_infrastructure_age
+    nonpotable_water_infrastructure_age,
+    potable_percent_lacking,
+    nonpotable_percent_lacking
   ) %>%
   extract(name, into = c("system", "statistic"), "([[:alnum:]]+)_(.+)") %>%
   mutate(statistic = recode(statistic, !!! (meta %>% spread(colname, name) %>% as.list))) %>%
@@ -63,7 +70,7 @@ potable_non_potable_comparison <- scenarios %>%
 ggplot(potable_non_potable_comparison, aes_string(x = "year_sim", y = "value", color = "Budget")) +
   xlab("Year") +
   geom_line() +
-  facet_wrap(vars(system, statistic), scales = "free_y", ncol = 4)
+  facet_wrap(vars(system, statistic), scales = "free_y", ncol = 5)
 
 meta_water_outcomes <- tibble::tribble(
   ~colname, ~name,
@@ -91,4 +98,5 @@ water_outcomes <- scenarios %>%
 ggplot(water_outcomes, aes(x = year_sim, y = value, color = Budget)) +
   geom_line() +
   xlab("Year") +
-  facet_wrap(vars(name))
+  facet_wrap(vars(name), scale="free_y")
+

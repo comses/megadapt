@@ -88,5 +88,5 @@ load_scenario <- function(cache, ...) {
 load_scenarios <- function(cache, ...) {
   matching <- cache$index %>%
     dplyr::filter(...) %>%
-    mutate(scenario = purrr::map(pk, ~readRDS(scenario_path(cache$path, .x))))
+    dplyr::mutate(scenario = purrr::map(pk, ~readRDS(scenario_path(cache$path, .x))))
 }

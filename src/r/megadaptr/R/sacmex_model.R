@@ -264,12 +264,12 @@ determine_public_infrastructure_investment_suitability <- function(
 determine_public_infrastructure_work_plan_separate_budgets <-
   function(site_suitability, potable_water_budget, non_potable_water_budget) {
     non_potable_water_site_suitability <- site_suitability %>%
-      select(ageb_id, non_potable_maintenance, non_potable_new_infrastructure)
+      dplyr::select(ageb_id, non_potable_maintenance, non_potable_new_infrastructure)
     n_non_potable_water_census_blocks = min(non_potable_water_budget, nrow(site_suitability))
     non_potable_infrastructure_plan <- determine_public_infrastructure_work_plan(non_potable_water_site_suitability, non_potable_water_budget)
 
     potable_water_site_suitability <- site_suitability %>%
-      select(ageb_id, potable_maintenance, potable_new_infrastructure)
+      dplyr::select(ageb_id, potable_maintenance, potable_new_infrastructure)
     n_potable_water_census_blocks = min(potable_water_budget, nrow(site_suitability))
     potable_infrastructure_plan <- determine_public_infrastructure_work_plan(potable_water_site_suitability, potable_water_budget)
 

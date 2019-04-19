@@ -18,6 +18,7 @@ COLUMNS_TO_SAVE <- c(
   "rejillas",
   "q100",
   "falta_dist",
+  "falta_dren",
   "lambdas",
   "income_pc",
   "scarcity_index",
