@@ -76,7 +76,8 @@ meta_water_outcomes <- tibble::tribble(
   ~colname, ~name,
   "mean_days_with_flooding", "Mean Days With Flooding",
   "mean_days_with_ponding", "Mean Days With Ponding",
-  "mean_water_scarcity_index", "Mean Water Scarcity Index"
+  "mean_water_scarcity_index", "Mean Water Scarcity Index",
+  "mean_sewer_system_capacity", "Mean Sewer System Capacity"
 )
 
 water_outcomes <- scenarios %>%
@@ -87,12 +88,14 @@ water_outcomes <- scenarios %>%
   summarize(
     mean_days_with_flooding = mean(days_with_flooding),
     mean_days_with_ponding = mean(days_with_ponding),
-    mean_water_scarcity_index = mean(water_scarcity_index)
+    mean_water_scarcity_index = mean(water_scarcity_index),
+    mean_sewer_system_capacity = mean(non_potable_water_system_capacity),
   ) %>%
   gather(key = 'name', value = 'value',
          mean_days_with_flooding,
          mean_days_with_ponding,
-         mean_water_scarcity_index) %>%
+         mean_water_scarcity_index,
+         mean_sewer_system_capacity) %>%
   mutate(name = recode(name, !!! (meta_water_outcomes %>% spread(colname, name))))
 
 ggplot(water_outcomes, aes(x = year_sim, y = value, color = Budget)) +
