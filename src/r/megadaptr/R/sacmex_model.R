@@ -254,43 +254,58 @@ determine_public_infrastructure_investment_suitability <- function(
 
   tibble::tibble(
     ageb_id = study_data$ageb_id,
-    distance_ideal_A1_D = distance_ideal_A1_D,
-    distance_ideal_A2_D = distance_ideal_A2_D,
-    distance_ideal_A1_Ab = distance_ideal_A1_Ab,
-    distance_ideal_A2_Ab = distance_ideal_A2_Ab
+    non_potable_maintenance = distance_ideal_A1_D,
+    non_potable_new_infrastructure = distance_ideal_A2_D,
+    potable_maintenance = distance_ideal_A1_Ab,
+    potable_new_infrastructure = distance_ideal_A2_Ab
   )
 }
 #################################################################################################################################
+determine_public_infrastructure_work_plan_separate_budgets <-
+  function(site_suitability, potable_water_budget, non_potable_water_budget) {
+    non_potable_water_site_suitability <- site_suitability %>%
+      select(ageb_id, non_potable_maintenance, non_potable_new_infrastructure)
+    n_non_potable_water_census_blocks = min(non_potable_water_budget, nrow(site_suitability))
+    non_potable_infrastructure_plan <- determine_public_infrastructure_work_plan(non_potable_water_site_suitability, non_potable_water_budget)
+
+    potable_water_site_suitability <- site_suitability %>%
+      select(ageb_id, potable_maintenance, potable_new_infrastructure)
+    n_potable_water_census_blocks = min(potable_water_budget, nrow(site_suitability))
+    potable_infrastructure_plan <- determine_public_infrastructure_work_plan(potable_water_site_suitability, potable_water_budget)
+
+    dplyr::bind_rows(non_potable_infrastructure_plan, potable_infrastructure_plan)
+  }
+
 determine_public_infrastructure_work_plan <-
   function(site_suitability, budget) {
     r <- site_suitability %>% dplyr::select(-ageb_id)
+    choice_names <- colnames(r)
     n_census_blocks <- min(budget, nrow(r))
-    choice_index <- max.col(as.matrix(r))
+    choice_name <- choice_names[max.col(as.matrix(r))]
     max_choice_value <- apply(as.matrix(r), 1, max)
 
-    site_suitability %>%
+    ordered_best_choices <- site_suitability %>%
       dplyr::select(ageb_id) %>%
       dplyr::mutate(
-        choice_index = !! choice_index,
+        choice_name = !! choice_name,
         max_choice_value = !! max_choice_value
       ) %>%
-      dplyr::arrange(-max_choice_value) %>%
-      dplyr::slice(0:min(budget, nrow(site_suitability))) %>%
-      dplyr::mutate(
-        A1 = choice_index == 1,
-        A2 = choice_index == 2,
-        A3 = choice_index == 3,
-        A4 = choice_index == 4
-      ) %>%
-      dplyr::arrange(ageb_id)
+      dplyr::arrange(-max_choice_value)
+
+    ordered_best_choices[0:n_census_blocks,]
   }
+
+.site_selection_inds <- function(study_data, site_selection, choice_name) {
+  matching_ids <- site_selection$ageb_id[site_selection$choice_name == choice_name]
+  study_data$ageb_id %in% matching_ids
+}
 
 make_public_infrastructure_investments <-
   function(study_data, site_selection, params) {
-    A1 <- which(site_selection$A1)
-    A2 <- which(site_selection$A2)
-    A3 <- which(site_selection$A3)
-    A4 <- which(site_selection$A4)
+    A1 <- .site_selection_inds(study_data, site_selection, "non_potable_maintenance")
+    A2 <- .site_selection_inds(study_data, site_selection, "non_potable_new_infrastructure")
+    A3 <- .site_selection_inds(study_data, site_selection, "potable_maintenance")
+    A4 <- .site_selection_inds(study_data, site_selection, "potable_new_infrastructure")
 
     # take actions sacmex
     # change value of atributes in agebs selected for action
@@ -345,8 +360,10 @@ create_public_infrastructure_work_plan <-
         mental_models = mental_models
       )
 
-    work_plan <- determine_public_infrastructure_work_plan(site_suitability = suitability,
-                                                           budget = budget)
+    work_plan <- determine_public_infrastructure_work_plan_separate_budgets(
+      site_suitability = suitability,
+      potable_water_budget = budget,
+      non_potable_water_budget = budget)
 
     work_plan
   }

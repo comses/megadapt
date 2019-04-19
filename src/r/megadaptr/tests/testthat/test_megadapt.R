@@ -75,7 +75,7 @@ teardown({
   }
 })
 
-describe('sacmex infrastructure allocation', {
+describe('sacmex infrastructure allocation (mutually exclusive)', {
   site_suitability <- tibble::tribble(
     ~ageb_id, ~A1, ~A2, ~A3, ~A4,
     1, 1, 0, 0, 0,
@@ -95,24 +95,72 @@ describe('sacmex infrastructure allocation', {
     allocation <- determine_public_infrastructure_work_plan(
       site_suitability = site_suitability,
       budget = 2)
-    expect_equal(allocation$choice_index, c(3, 4))
-    expect_equal(allocation$max_choice_value, c(5, 7))
-    expect_equal(allocation$A1, rep(FALSE, 2))
-    expect_equal(allocation$A2, rep(FALSE, 2))
-    expect_equal(allocation$A3, c(TRUE, FALSE))
-    expect_equal(allocation$A4, c(FALSE, TRUE))
+    expect_equal(allocation$ageb_id, c(4, 3))
+    expect_equal(as.character(allocation$choice_name), c("A4", "A3"))
+    expect_equal(allocation$max_choice_value, c(7, 5))
   })
 
   it('includes all census blocks if budget is greater than number of census blocks', {
     allocation <- determine_public_infrastructure_work_plan(
       site_suitability = site_suitability,
       budget = 5)
-    expect_equal(allocation$choice_index, c(1, 2, 3, 4))
-    expect_equal(allocation$max_choice_value, c(1, 3, 5, 7))
-    expect_equal(allocation$A1, c(TRUE, FALSE, FALSE, FALSE))
-    expect_equal(allocation$A2, c(FALSE, TRUE, FALSE, FALSE))
-    expect_equal(allocation$A3, c(FALSE, FALSE, TRUE, FALSE))
-    expect_equal(allocation$A4, c(FALSE, FALSE, FALSE, TRUE))
+    expect_equal(allocation$ageb_id, c(4, 3, 2, 1))
+    expect_equal(as.character(allocation$choice_name), c("A4", "A3", "A2", "A1"))
+    expect_equal(allocation$max_choice_value, c(7, 5, 3, 1))
+  })
+})
+
+describe('sacmex infracstructure allocation with separate potable, non potable budgets', {
+  site_suitability <- tibble::tribble(
+    ~ageb_id,
+    ~non_potable_maintenance,
+    ~non_potable_new_infrastructure,
+    ~potable_maintenance,
+    ~potable_new_infrastructure,
+    1, 1, 0, 6, 0,
+    2, 0, 3, 0, 0,
+    3, 0, 0, 5, 0,
+    4, 0, 5, 0, 7
+  )
+
+  it('is empty when both budgets are zero', {
+    allocation <- determine_public_infrastructure_work_plan_separate_budgets(
+      site_suitability = site_suitability,
+      potable_water_budget = 0,
+      non_potable_water_budget = 0)
+    expect_equal(nrow(allocation), 0)
+  })
+
+  it('includes the census blocks that in most need of non potable work if non potable budget greater than zero', {
+    allocation <- determine_public_infrastructure_work_plan_separate_budgets(
+      site_suitability = site_suitability,
+      potable_water_budget = 0,
+      non_potable_water_budget = 3)
+    expect_equal(allocation$ageb_id, c(4, 2, 1))
+    expect_equal(
+      as.character(allocation$choice_name),
+      c("non_potable_new_infrastructure", "non_potable_new_infrastructure", "non_potable_maintenance"))
+    expect_equal(allocation$max_choice_value, c(5, 3, 1))
+  })
+
+  it('includes the census blocks that in most need of potable work if potable budget greater than zero', {
+    allocation <- determine_public_infrastructure_work_plan_separate_budgets(
+      site_suitability = site_suitability,
+      potable_water_budget = 3,
+      non_potable_water_budget = 0)
+    expect_equal(allocation$ageb_id, c(4, 1, 3))
+    expect_equal(
+      as.character(allocation$choice_name),
+      c("potable_new_infrastructure", "potable_maintenance", "potable_maintenance"))
+    expect_equal(allocation$max_choice_value, c(7, 6, 5))
+  })
+
+  it('includes all census blocks with a large enough budget', {
+    allocation <- determine_public_infrastructure_work_plan_separate_budgets(
+      site_suitability = site_suitability,
+      potable_water_budget = 4,
+      non_potable_water_budget = 4)
+    expect_equal(nrow(allocation), 8)
   })
 })
 
