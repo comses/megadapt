@@ -3,7 +3,7 @@ library(magrittr)
 library(tidyr)
 source('../scenarios/util.R')
 
-cache_path <- "budget_experiment_cross_section"
+cache_path <- "../scenarios/budget_experiment_cross_section"
 megadapt <- build_megadapt_model(
   data_root_dir = data_root_dir,
   mental_model_file_names = mental_model_file_names
@@ -29,8 +29,8 @@ get_name <- function(colname) {
   meta$name[meta$colname == colname]
 }
 
-scenarios <- load_scenarios(cache) %>% tidyr::unnest()
-df <- scenarios %>%
+scenarios <- as_tibble(load_scenarios(cache) %>% tidyr::unnest())
+potable_non_potable_comparison <- scenarios %>%
   filter(year_sim != 2018) %>%
   mutate(budget = factor(budget)) %>%
   group_by(budget, year_sim) %>%
@@ -60,8 +60,35 @@ df <- scenarios %>%
   mutate(system = recode(system, potable = "Potable", nonpotable = "Non Potable")) %>%
   rename(Budget=budget)
 
-ggplot(df, aes_string(x = "year_sim", y = "value", color = "Budget")) +
+ggplot(potable_non_potable_comparison, aes_string(x = "year_sim", y = "value", color = "Budget")) +
   xlab("Year") +
   geom_line() +
   facet_wrap(vars(system, statistic), scales = "free_y", ncol = 4)
 
+meta_water_outcomes <- tibble::tribble(
+  ~colname, ~name,
+  "mean_days_with_flooding", "Mean Days With Flooding",
+  "mean_days_with_ponding", "Mean Days With Ponding",
+  "mean_water_scarcity_index", "Mean Water Scarcity Index"
+)
+
+water_outcomes <- scenarios %>%
+  filter(year_sim != 2018) %>%
+  mutate(budget = factor(budget)) %>%
+  rename(Budget = budget) %>%
+  group_by(Budget, year_sim) %>%
+  summarize(
+    mean_days_with_flooding = mean(days_with_flooding),
+    mean_days_with_ponding = mean(days_with_ponding),
+    mean_water_scarcity_index = mean(water_scarcity_index)
+  ) %>%
+  gather(key = 'name', value = 'value',
+         mean_days_with_flooding,
+         mean_days_with_ponding,
+         mean_water_scarcity_index) %>%
+  mutate(name = recode(name, !!! (meta_water_outcomes %>% spread(colname, name))))
+
+ggplot(water_outcomes, aes(x = year_sim, y = value, color = Budget)) +
+  geom_line() +
+  xlab("Year") +
+  facet_wrap(vars(name))
