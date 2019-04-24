@@ -23,6 +23,7 @@ COLUMNS_TO_SAVE <- c(
   "income_pc",
   "scarcity_index",
   "sensitivity_Ab",
+  "tanks",
   "sensitivity_D",
   "vulnerability_Ab",
   "vulnerability_D",

@@ -108,6 +108,10 @@ update_residential_infrastructure_investments <- function(study_data, value_func
         sensitivity_Ab[HM_Agua] <- 1 - (house_modifications_Ab[HM_Agua] / (params$half_sensitivity_ab + house_modifications_Ab[HM_Agua]))
         sensitivity_Ab
       },
+      tanks := {
+        tanks[HM_Agua] <- tanks[HM_Agua] + 1 / params$half_sensitivity_ab
+        tanks
+      },
       vulnerability_Ab = (sensitivity_Ab * scarcity_index) / (1 + ingreso),
       vulnerability_D = (sensitivity_D * encharca) / (1 + ingreso)
     ) %>%
@@ -117,6 +121,7 @@ update_residential_infrastructure_investments <- function(study_data, value_func
       sensitivity_D,
       house_modifications_Ab,
       sensitivity_Ab,
+      tanks,
       vulnerability_Ab,
       vulnerability_D
     )
