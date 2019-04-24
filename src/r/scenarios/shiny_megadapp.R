@@ -8,6 +8,8 @@ library("shiny")
 
 source('util.R')
 
+#define budget
+Budg=(2:24)*100
 #First checks to see if a folder with data exists
 cache_path <- "budget_experiment"
 megadapt <- build_megadapt_model(
@@ -20,7 +22,7 @@ if (fs::dir_exists(cache_path)) {
   cache <- create_cartesian_scenario_cache(
     model = megadapt,
     path = cache_path,
-    params = list(budget=6:12*100))
+    params = list(budget=Budg))
 }
 
 options(width = 1550)
@@ -33,14 +35,14 @@ ui <- fluidPage(
     sidebarPanel(
       #width =6,
 
-      helpText("Choose from the Parameters Below to See Simulation Results"),
+      helpText("Choose from the parameters below to see simulation results"),
 
       p(),
 
       p(),
 
       p(),
-      selectInput("select_factor", "Simulation Factor",
+      selectInput("select_factor", "Indicator",
                   choices = list("Vulnerability of residents to potable water scarcity" = "potable_water_vulnerability_index",
                                  "Vulnerability of residents to to flooding" = "non_potable_water_vulnerability_index",
                                  "Number of Actions on Potable Water Infrastructure" = "potable_water_system_intervention_count",
@@ -55,7 +57,7 @@ ui <- fluidPage(
                                  "Municipality 13" = 13,"Municipality 14" = 14,"Municipality 15" = 15,"Municipality 16" = 16,"Municipality 17" = 17)
       ),
       sliderInput("select_budget", "Budget:",
-                  min = 600, max = 1200, value = 600, step = 100
+                  min = 200, max = 2400, value = 600, step = 200
                   #,animate = animationOptions(interval = 2000, loop = false)
       ),
 
@@ -87,7 +89,7 @@ server <- function(input, output, session) {
     ggplot(data.for.plot, aes(x=data.for.plot[,1],y=data.for.plot[,2]))  +
       geom_bar(stat="identity", width=15, fill="tomato3")  +
       labs(title= plot.title, x="Budget Scenarios", y = input$select_factor) +
-      scale_x_continuous(breaks=data.for.plot[,1], labels=c("25%", "29%", "33%", "37%", "41%", "46%", "50%"))
+      scale_x_continuous(breaks=data.for.plot[,1], labels=round(Budg/2400,1))
 
   })
 
