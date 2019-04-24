@@ -324,7 +324,7 @@ make_public_infrastructure_investments <-
       study_data$falta_dren[A2] <-
         study_data$falta_dren[A2] - study_data$falta_dren[A2] * params$new_infrastructure_effectiveness_rate
       study_data$q100[A2] <-
-        study_data$q100[A2] * (1 + params$maintenance_effectiveness_rate) # capasity of drainage increases with new infrastructure
+        study_data$q100[A2] * (1 + params$new_infrastructure_effectiveness_rate) # capasity of drainage increases with new infrastructure
 
       study_data$Interventions_D[A2] <-
         study_data$Interventions_D[A2] + 1
