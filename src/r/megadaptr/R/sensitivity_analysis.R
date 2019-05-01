@@ -79,9 +79,9 @@ runn<-function(megadapt,oMetricNames) {
 
 VBSA<-function(SAConditions,SAParams,oMetricNames) {
   if (SAConditions$onCluster) {
-    plan(multisession)
+    future::plan(multisession)
   } else {
-    plan(sequential)
+    future::plan(sequential)
   }
 
   exp.min <- SAConditions$exp.min
