@@ -16,6 +16,8 @@ Imports:
     assertr,
     bindrcpp,
     dplyr (>= 0.8.0),
+    future.apply,
+    future.batchtools,
     fs (>= 1.2.0),
     glue,
     gbm,
@@ -23,12 +25,11 @@ Imports:
     magrittr,
     pscl,
     purrr,
-    rgdal,
-    tibble,
-    tidyr,
     qrng,
-    future.apply,
-    future.batchtools
+    rgdal,
+    rlang,
+    tibble,
+    tidyr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
