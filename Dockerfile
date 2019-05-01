@@ -1,7 +1,7 @@
 FROM rocker/rstudio:3.5.3
 
 RUN apt-get update \
-  && apt-get install -y zlib1g-dev libpng-dev libgeos-dev libgdal-dev \
+  && apt-get install -y zlib1g-dev libpng-dev libgeos-dev libgdal-dev qpdf \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY ./src/.R /home/rstudio
