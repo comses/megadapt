@@ -10,7 +10,7 @@ expect_between <- function(object, lb, ub) {
   act$ub <- max(object)
   expect(
     act$lb >= lb || act$ub <= ub,
-    sprintf('%s has range [%d, %d] not contained in [%d, %d]', act$lab, act$lb, act$ub, lb, ub)
+    sprintf('%s has range [%f, %f] not contained in [%f, %f]', act$lab, act$lb, act$ub, lb, ub)
   )
 
   invisible(act$val)
@@ -163,6 +163,10 @@ describe('sacmex infracstructure allocation with separate potable, non potable b
     expect_equal(nrow(allocation), 8)
   })
 })
+
+if (Sys.getenv('R_INTEGRATION_TESTS') == '') {
+  skip('Skipping integration tests')
+}
 
 megadapt <- build_megadapt_model(
   data_root_dir = '../../../../../data',
