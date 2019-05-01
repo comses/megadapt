@@ -11,7 +11,7 @@ Authors@R: c(
     )
 Description: A spatial a multi-scale simulation model to understand adaptation to water vulnerability in cities.
 License: GPL-3
-Depends: R (>= 3.5.2)
+Depends: R (>= 3.5)
 Imports:
     assertr,
     bindrcpp,
