@@ -7,6 +7,7 @@ fs,NA
 future.apply,NA
 future.batchtools,NA
 gbm,"2.1.5"
+ggplot2,NA
 knitr,NA
 leaflet,NA
 logging,NA
@@ -14,6 +15,7 @@ qrng,NA
 pscl,"1.5.2"
 purrr,NA
 rgdal,NA
+rgeos,NA
 roxygen2,NA
 rmarkdown,NA
 shiny,NA
