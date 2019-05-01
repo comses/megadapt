@@ -33,6 +33,9 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
 Suggests:
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
 URL: https://github.com/comses/megadapt
 BugReports: https://github.com/comses/megadapt/issues
+VignetteBuilder: knitr

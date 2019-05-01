@@ -47,9 +47,6 @@ create_scenario_cache <- function(scenarios, path, runner) {
 }
 
 #' Build a scenario cache for an experiment by taking the cartesian product of all parameter levels
-#'
-#' @examples
-#' build_scenario_cache("../scenarios/budget_experiment", list(budget=6:12*100))
 create_cartesian_scenario_cache <- function(model, path, params) {
   scenarios <- do.call(expand.grid, params)
   create_scenario_cache(
