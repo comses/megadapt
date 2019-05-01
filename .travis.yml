@@ -13,3 +13,4 @@ apt_packages:
   - libgdal-dev
 before_install:
   - cd src/r/megadaptr
+  - R -e "devtools::document()"
