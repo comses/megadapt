@@ -13,5 +13,5 @@ apt_packages:
   - libgdal-dev
 before_install:
   - cd src/r/megadaptr
-  - R -e "install.packages('devtools')"
+  - R -e "install.packages(c('devtools', 'roxygen2'))"
   - R -e "devtools::document()"
