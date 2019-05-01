@@ -81,8 +81,6 @@ runn<-function(megadapt,oMetricNames) {
 #Sensitivity Analysis. Produces two indexes (first-order and total-order) per variable studied.
 
 VBSA<-function(SAConditions,SAParams,oMetricNames) {
-  library("future")
-
   if (SAConditions$onCluster) {
     plan(multisession)
   } else {
