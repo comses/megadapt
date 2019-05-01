@@ -1,6 +1,4 @@
-FROM rocker/rstudio:3.5.2
-
-ARG R_PACKRAT_CACHE_DIR
+FROM rocker/rstudio:3.5.3
 
 RUN apt-get update \
   && apt-get install -y zlib1g-dev libpng-dev libgeos-dev libgdal-dev \
@@ -8,12 +6,12 @@ RUN apt-get update \
 
 COPY ./src/.R /home/rstudio
 
-WORKDIR /home/rstudio/code/src
+WORKDIR /home/rstudio/code/src/r
 
 # Install R packages
-COPY ./src/.Rprofile .
-COPY ./src/install.R .
-RUN R -e 'install.packages("devtools")'
+COPY ./src/r/Rprofile.site /usr/local/lib/R/etc/
+RUN R -e "install.packages('devtools')"
+COPY ./src/r/install.R ./src/r/package.csv ./
 RUN Rscript install.R
 COPY --chown=rstudio:rstudio ./src/r r
 RUN chown -R rstudio:rstudio /home/rstudio
