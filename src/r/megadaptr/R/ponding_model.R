@@ -15,6 +15,7 @@ load_ponding_models <- function(base_path) {
 
 #' Generate ponding data
 #'
+#' @param study_data Megadapt model data for current year
 #' @param ponding_models A list of ponding models for each region
 #' @return ponding
 #' @importFrom gbm predict.gbm

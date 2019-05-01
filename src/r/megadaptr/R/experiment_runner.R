@@ -21,6 +21,7 @@ delete_scenario_cache <-function(path) {
 
 #' Create a scenario cache by running and saving all experiments in the scenario dataframe
 #'
+#' @export
 #' @param scenarios data.frame of all experiment combinations to run
 #' @param path file path to the scenario cache
 #' @param runner callback to run the simulation parameterized by a row of the scenarios data.frame
@@ -47,6 +48,14 @@ create_scenario_cache <- function(scenarios, path, runner) {
 }
 
 #' Build a scenario cache for an experiment by taking the cartesian product of all parameter levels
+#'
+#' @export
+#' @param model a megadapt model
+#' @param path the file path of where you want the cache to be
+#' @param params parameter levels to create new megadapt models with.
+#' It is used to create of dataframe with all possible combinations of
+#' of parameter levels.
+#' @return a scenario cache
 create_cartesian_scenario_cache <- function(model, path, params) {
   scenarios <- do.call(expand.grid, params)
   create_scenario_cache(
@@ -61,6 +70,10 @@ create_cartesian_scenario_cache <- function(model, path, params) {
 
 
 #' Load a scenario cache from a file system
+#'
+#' @export
+#' @param path the file path to the scenario cache
+#' @return a scenario cache
 load_scenario_cache <- function(path) {
   index <- readRDS(fs::path(path, 'index.Rds'))
   list(
@@ -71,7 +84,11 @@ load_scenario_cache <- function(path) {
 
 #' Load a scenario from a cache by some filter criteria
 #'
+#' @export
 #' @param cache cache to lookup results from
+#' @param ... filter expressions to apply to the scenario cache.
+#' Must resolve to a unique scenario.
+#' @return a scenario
 load_scenario <- function(cache, ...) {
   matching <- cache$index %>%
     dplyr::filter(...) %>%
@@ -81,7 +98,10 @@ load_scenario <- function(cache, ...) {
 
 #' Load all scenarios in a matching matching filter criteria
 #'
+#' @export
 #' @param cache cache to lookup results from
+#' @param ... filter expression to apply
+#' @return nested tibble of scenarios matching filter criteria
 load_scenarios <- function(cache, ...) {
   matching <- cache$index %>%
     dplyr::filter(...) %>%

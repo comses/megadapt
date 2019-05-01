@@ -15,6 +15,7 @@ load_flooding_models <- function(base_path) {
 
 #' Generate ponding data
 #'
+#' @param study_data Megadapt model data for current time step
 #' @param flooding_models A list of model objects to estimate frequency of flooding for each region
 #' @return floodings
 #' @importFrom gbm predict.gbm
