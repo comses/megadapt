@@ -17,7 +17,7 @@ read_package <- function(file_name) {
 }
 
 install <- function() {
-  manifest <- read_package('package.csv')
+  manifest <- read_package('r_package_manifest.csv')
 
   lapply(manifest, function(args) {
     do.call(devtools::install_version, args)

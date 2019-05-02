@@ -1,0 +1,15 @@
+version: "3.6"
+services:
+  shiny:
+    build:
+      context: ../../..
+      dockerfile: src/r/webapp/Dockerfile
+    environment:
+      MEGADAPT_DATA_PATH: "/srv/data"
+    ports:
+      - "127.0.0.1:3838:3838"
+    volumes:
+      - "../../../data:/srv/data"
+      - "logs:/var/log/shiny-server"
+volumes:
+  logs:

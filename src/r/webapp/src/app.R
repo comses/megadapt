@@ -6,14 +6,20 @@ library("rgeos")
 library("rgdal")
 library("shiny")
 
-source('util.R')
+mental_model_file_names = list(
+  potable_water_operator_limit = 'DF101215_GOV_AP modificado PNAS.limit.csv',
+  non_potable_water_operator_limit = 'SACMEX_Drenaje_limit_SESMO.csv',
+  overall_limit = 'I080316_OTR.limit.csv'
+)
+
+DATA_PATH = Sys.getenv("MEGADAPT_DATA_PATH", unset="../../../../data")
 
 #define budget
 Budg=(2:24)*100
 #First checks to see if a folder with data exists
 cache_path <- "budget_experiment"
 megadapt <- build_megadapt_model(
-  data_root_dir = data_root_dir,
+  data_root_dir = DATA_PATH,
   mental_model_file_names = mental_model_file_names
 )
 if (fs::dir_exists(cache_path)) {
