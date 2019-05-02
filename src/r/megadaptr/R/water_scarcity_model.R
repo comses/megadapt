@@ -13,7 +13,7 @@ update_water_scarcity_index <- function(study_data, value_function_config) {
     value_function_config$hydraulic_pressure_failure
   subsidence <- value_function_config$subsidence
 
-
+#population
   fv_pob_ageb <-
     sapply((study_data$poblacion / study_data$area) * 1000000,
            FUN = logistic_vf,
