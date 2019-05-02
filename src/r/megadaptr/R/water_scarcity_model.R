@@ -3,8 +3,11 @@
 
 #' calculate scarcity index from a set of landscape attributes from the study area value functions
 #'
-#' @param data.frame with variables population_size houses without supply,
-#' @return data frame with new population size
+#' @param study_data data.frame with variables population_size houses without supply
+#' @param value_function_config List of functions determining the impact of population
+#' density, potable water accessibility and potable water critical zone status on the
+#' water scarcity index
+#' @return water scarcity index by census block
 update_water_scarcity_index <- function(study_data, value_function_config) {
   sewer_age <- value_function_config$sewer_age
   shortage_age <- value_function_config$shortage_age

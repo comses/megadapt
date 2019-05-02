@@ -11,11 +11,14 @@ Authors@R: c(
     )
 Description: A spatial a multi-scale simulation model to understand adaptation to water vulnerability in cities.
 License: GPL-3
-Depends: R (>= 3.5.2)
+Depends: R (>= 3.5)
 Imports:
     assertr,
     bindrcpp,
     dplyr (>= 0.8.0),
+    future,
+    future.apply,
+    future.batchtools,
     fs (>= 1.2.0),
     glue,
     gbm,
@@ -23,16 +26,18 @@ Imports:
     magrittr,
     pscl,
     purrr,
-    rgdal,
-    tibble,
-    tidyr,
     qrng,
-    future.apply,
-    future.batchtools
+    rgdal,
+    rlang,
+    tibble,
+    tidyr
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
 Suggests:
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
 URL: https://github.com/comses/megadapt
 BugReports: https://github.com/comses/megadapt/issues
+VignetteBuilder: knitr

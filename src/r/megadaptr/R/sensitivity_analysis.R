@@ -3,9 +3,6 @@
 # This file creates the matrices used in the Variance-Based Sensitivity Analysis of MEGADAPT
 # For this version, we are going to test the effect of 4 parameters, whose particular values are taken from a linear transformation of the Sobol' sequence.
 
-#' Docs
-#'
-
 createLinearMatrices <- function(SAConds,SAParams) {
   N <- 2 ^ SAConds$exp.max
   k <- length(SAParams)
@@ -81,12 +78,10 @@ runn<-function(megadapt,oMetricNames) {
 #Sensitivity Analysis. Produces two indexes (first-order and total-order) per variable studied.
 
 VBSA<-function(SAConditions,SAParams,oMetricNames) {
-  library("future")
-
   if (SAConditions$onCluster) {
-    plan(multisession)
+    future::plan(multisession)
   } else {
-    plan(sequential)
+    future::plan(sequential)
   }
 
   exp.min <- SAConditions$exp.min

@@ -32,6 +32,30 @@ initial_state <- function(study_data) {
   )
 }
 
+#' Create a parameter set for the megadapt model
+#'
+#' @export
+#' @param new_infrastructure_effectiveness_rate the percent increase in
+#' drainage capacity for a census block if a new non potable infrastructure
+#' investment is taken. The percent decrease in potable water reports about
+#' pipe leakage and infrastructure failure if potable water investment is
+#' undertaken in a census block
+#' @param maintenance_effectiveness_rate the percent increase in drainage
+#' capacity for a census block if non potable infrastructure maintenance is
+#' is undertaken. The percent decrease in potable water infrastructure age
+#' if potable water infrastructure maintenance is undertaken
+#' @param n_steps the number of years to run the model for
+#' @param infrastructure_decay_rate the percent decrease in non potable water
+#' infrastructure capacity from infrastructure breakdown in a year
+#' @param budget the number of census blocks that can be invested in a year.
+#' The budget value is identical for potable and non potable infrastructure
+#' (if the budget is 200 then it is 200 for potable and 200 for non potable
+#' infrastructure)
+#' @param half_sensitivity_ab sensitivity to fresh water access
+#' @param half_sensitivity_d sensitivity to ponding and flooding
+#' @param climate_scenario the climate scenario id used to lookup the climate
+#' scenario
+#' @return a parameter list used to configure a megadapt model
 create_params <-
   function(new_infrastructure_effectiveness_rate = 0.07,
            maintenance_effectiveness_rate = 0.07,
@@ -83,6 +107,12 @@ apply_data_changes <- function(data, changes, join_columns) {
 }
 
 #' Run the megadapt model one year
+#'
+#' @export
+#' @param megadapt a megadapt model
+#' @param month_step_counts list with the year being simulated
+#' and the number of weeks in the year
+#' @return a megadapt model for the next year
 update_year_megadapt <- function(megadapt, month_step_counts) {
   n_weeks <- sum(month_step_counts$n_weeks)
   climate_scenario <- megadapt$climate_scenario
@@ -200,6 +230,10 @@ translate_output_colnames <- function(df) {
 }
 
 #' Run the megadapt model
+#'
+#' @export
+#' @param megadapt a megadapt model
+#' @return yearly time series of megadapt model run results
 simulate_megadapt <- function(megadapt) {
   all_month_step_counts <- create_time_info(megadapt$params$n_steps)
   years <- sort(unique(all_month_step_counts$year))
@@ -228,6 +262,7 @@ simulate_megadapt <- function(megadapt) {
 
 #' Build a megadapt model
 #'
+#' @export
 #' @param data_root_dir The base directory from where to locate all the data and configuration files
 #' @param mental_model_file_names File names for the analytic network process limit matrices
 #' @param params Parameterization of the megadapt model created from \code{\link{create_params}}
@@ -342,10 +377,9 @@ build_megadapt_model <- function(data_root_dir, mental_model_file_names, params 
 
 #' Modify an existing megadapt model
 #'
+#' @export
 #' @param model megadapt model
-#'
-#' @examples
-#' modify_megadapt_model(megadapt, budget = 1500)
+#' @param ...   parameters to override from prototype model
 modify_megadapt_model <- function(model, ...) {
   model$params <- create_params(...)
   model

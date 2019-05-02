@@ -1,8 +1,10 @@
 ---
 title: "MEGADAPT: A Computational Framework For The Adaptation of Megacities"
-output:
-  html_document:
-    df_print: paged
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 # 1.	Introduction
