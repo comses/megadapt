@@ -5,6 +5,7 @@ library("megadaptr")
 library("rgeos")
 library("rgdal")
 library("shiny")
+library("shiny.i18n")
 
 mental_model_file_names = list(
   potable_water_operator_limit = 'DF101215_GOV_AP modificado PNAS.limit.csv',
@@ -31,47 +32,53 @@ if (fs::dir_exists(cache_path)) {
     params = list(budget=Budg))
 }
 
-options(width = 1550)
+
+
+#LANGUAGE SETTINGS
+translator <- Translator$new(translation_json_path = "translation.json")
+translator$set_translation_language("en")
 
 ui <- fluidPage(
   responsive = FALSE,
-  titlePanel(" MEGADAPT MODEL VIEWER"),
+  titlePanel(" MEGADAPT MODEL"),
   sidebarLayout(
 
     sidebarPanel(
       #width =6,
 
-      helpText("Choose from the parameters below to see simulation results"),
+      textOutput("choose_params"),
+
 
       p(),
 
       p(),
 
       p(),
-      selectInput("select_factor", "Indicator",
-                  choices = list("Vulnerability of residents to potable water scarcity" = "potable_water_vulnerability_index",
-                                 "Vulnerability of residents to to flooding" = "non_potable_water_vulnerability_index",
-                                 "Number of Actions on Potable Water Infrastructure" = "potable_water_system_intervention_count",
-                                 "Number of Actions on Sewer and Drainage Infrastructure" = "non_potable_water_system_intervention_count",
-                                 "Potable water infrastructure age" = "potable_water_infrastructure_age",
-                                 "Non Potable water infrastructure age" = "non_potable_water_infrastructure_age",
-                                 "Days without potable water" = "days_no_potable_water")
-      ),
-      selectInput("select_municipality", "Municipality to Display",
-                  choices = list("All Municipalities" = 1, "Municipality 2" = 2, "Municipality 3" = 3, "Municipality 4" = 4, "Municipality 5" = 5, "Municipality 6" = 6,
-                                 "Municipality 7" = 7,"Municipality 8" = 8,"Municipality 9" = 9,"Municipality 10" = 10,"Municipality 11" = 11,"Municipality 12" = 12,
-                                 "Municipality 13" = 13,"Municipality 14" = 14,"Municipality 15" = 15,"Municipality 16" = 16,"Municipality 17" = 17)
-      ),
-      sliderInput("select_budget", "Budget:",
-                  min = 200, max = 2400, value = 600, step = 200
-                  #,animate = animationOptions(interval = 2000, loop = false)
-      ),
 
-      plotOutput("plot", width=400)
+      uiOutput("factor_chooser"),
+
+      # selectInput("select_municipality", "",#i18n()$t("Municipality to Display"),
+      #             choices = list("All Municipalities" = 1, "Azcapotzalco" = 2, "Coyoacán" = 3, "Cuajimalpa de Morelos" = 4, "Gustavo A. Madero" = 5, "Iztacalco" = 6,
+      #                            "Iztapalapa" = 7,"La Magdalena Contreras" = 8,"Milpa Alta" = 9,"Álvaro Obregón" = 10,"Tláhuac" = 11,"Tlalpan" = 12,
+      #                            "Xochimilco" = 13,"Benito Juárez" = 14,"Cuauhtémoc" = 15,"Miguel Hidalgo" = 16,"Venustiano Carranza" = 17)
+      # ),
+      # sliderInput("select_budget", "Budget:",
+      #             min = 600, max = 1200, value = 600, step = 100
+      #             #,animate = animationOptions(interval = 2000, loop = false)
+      # ),
+
+       p(),
+       selectInput('selected_language',
+                   "Language",
+                   choices = list("English" = "en", "Espanol" = "es"))
+      #             selected = input$selected_language),
+
+      #plotOutput("plot", width=400)
     ),
     mainPanel(
 
-      leafletOutput("map", height =700, width = 700)
+      leafletOutput("map", height =900, width = 800)
+      #uiOutput("map_maker")
 
     )
   )
@@ -86,19 +93,101 @@ server <- function(input, output, session) {
   output$plot=renderPlot({
 
     data.for.plot <- plotData()
-
-    if (input$select_municipality > 1) {
-      plot.title <- paste("Municipalty", input$select_municipality, sep = " ")
-    }else{
-      plot.title <- "All Municipalities"}
+    plot.title <- plotTitle()
+    label.values <- data.for.plot[,1]
+    label.values <- as.integer((label.values  / 2428) * 100) #2428 Is the total number of cenusus units, or AGEB_ID
+    label.values <- as.character(label.values)
+    label.values <- paste(label.values, "%", sep="")
 
     ggplot(data.for.plot, aes(x=data.for.plot[,1],y=data.for.plot[,2]))  +
       geom_bar(stat="identity", width=15, fill="tomato3")  +
-      labs(title= plot.title, x="Budget Scenarios", y = input$select_factor) +
-      scale_x_continuous(breaks=data.for.plot[,1], labels=round(Budg/2400,1))
+      labs(title= plot.title, x=i18n()$t("Budget Scenarios"), y = factorName()) +
+      scale_x_continuous(breaks=data.for.plot[,1], labels=label.values)
 
   })
 
+  output$choose_params <- renderText({
+    i18n()$t("Choose from the Parameters Below to See Simulation Results")
+  })
+
+
+  output$map_maker <- renderUI({
+    tagList(
+    leafletOutput("map", height =700, width = 700)
+    )
+  })
+
+  output$factor_chooser<- renderUI({
+
+    tagList(
+      selectInput("select_factor", i18n()$t("Simulation Factor"), choices = factorList()
+      ),
+      selectInput("select_municipality", i18n()$t("Municipality to Display"),
+                  choices = list("All Municipalities" = 1, "Azcapotzalco" = 2, "Coyoacán" = 3, "Cuajimalpa de Morelos" = 4, "Gustavo A. Madero" = 5, "Iztacalco" = 6,
+                                 "Iztapalapa" = 7,"La Magdalena Contreras" = 8,"Milpa Alta" = 9,"Álvaro Obregón" = 10,"Tláhuac" = 11,"Tlalpan" = 12,
+                                 "Xochimilco" = 13,"Benito Juárez" = 14,"Cuauhtémoc" = 15,"Miguel Hidalgo" = 16,"Venustiano Carranza" = 17)
+      ),
+      sliderInput("select_budget", i18n()$t("Budget:"),
+                  min = Budg[1], max = tail(Budg, n=1), value = Budg[1], step = (Budg[2] - Budg[1])
+      ),
+      plotOutput("plot")
+    )
+  })
+
+
+  i18n <- reactive({
+
+    selected <- input$selected_language
+
+    if (length(selected) > 0) { # && selected %in% SUPPORTED_LANGUAGES
+      translator$set_translation_language(selected)
+    } else {
+      translator$set_translation_language("en")
+    }
+    translator
+  })
+
+  factorName <- reactive({
+
+     if(length(input$select_factor) < 1){
+       name.of.factor = i18n()$t("Vulnerability of residents to potable water scarcity")
+     }
+    else{
+      if (identical(input$select_factor, "potable_water_vulnerability_index")){name.of.factor = i18n()$t("Vulnerability of residents to potable water scarcity")}
+      if (identical(input$select_factor, "non_potable_water_vulnerability_index")){name.of.factor = i18n()$t("Vulnerability of residents to flooding")}
+      if (identical(input$select_factor, "potable_water_system_intervention_count")){name.of.factor = i18n()$t("Number of Actions on Potable Water Infrastructure")}
+      if (identical(input$select_factor, "non_potable_water_system_intervention_count")){name.of.factor = i18n()$t("Number of Actions on Sewer and Drainage Infrastructure")}
+      if (identical(input$select_factor,"potable_water_infrastructure_age")){name.of.factor = i18n()$t("Potable water infrastructure age")}
+      if (identical(input$select_factor, "non_potable_water_infrastructure_age")){name.of.factor = i18n()$t("Non Potable water infrastructure age")}
+      if (identical(input$select_factor,"days_no_potable_water")){name.of.factor = i18n()$t("Days without potable water")}
+    }
+    name.of.factor
+
+  })
+
+  factorList <- reactive({
+
+   if (identical(input$selected_language,"en")){
+   choices =  list("Vulnerability of residents to potable water scarcity" = "potable_water_vulnerability_index",
+         "Vulnerability of residents to flooding" = "non_potable_water_vulnerability_index",
+         "Number of Actions on Potable Water Infrastructure" = "potable_water_system_intervention_count",
+         "Number of Actions on Sewer and Drainage Infrastructure" = "non_potable_water_system_intervention_count",
+         "Potable water infrastructure age" = "potable_water_infrastructure_age",
+         "Non Potable water infrastructure age" = "non_potable_water_infrastructure_age",
+         "Days without potable water" = "days_no_potable_water")
+   }
+
+    if (identical(input$selected_language,"es")){
+   choices =  list("Vulnerabilidad de los residentes ante la escasez de agua potable" = "potable_water_vulnerability_index",
+                   "Vulnerabilidad de los residentes a las inundaciones" = "non_potable_water_vulnerability_index",
+                   "Número de acciones en infraestructura de agua potable" = "potable_water_system_intervention_count",
+                   "Número de acciones en la infraestructura de alcantarillado y drenaje" = "non_potable_water_system_intervention_count",
+                   "Edad de la infraestructura de agua potable" = "potable_water_infrastructure_age",
+                   "Infraestructura de agua no potable" = "non_potable_water_infrastructure_age",
+                   "Días sin agua potable" = "days_no_potable_water")
+    }
+    choices
+  })
 
   # Reactive expression for the data subsetted to what the user selected
   plotData <- reactive({
@@ -121,6 +210,7 @@ server <- function(input, output, session) {
          subsetdf <- subsetdf[subsetdf$municipality == as.numeric(input$select_municipality), ]
        }
 
+
       avg <- mean(subsetdf[[input$select_factor]], na.rm = TRUE)
       values <<- c(values, avg)
     }
@@ -132,11 +222,38 @@ server <- function(input, output, session) {
 
   })
 
+  plotTitle <- reactive({
+    if (input$select_municipality == 1) { plot.title <- "All Municipalities"}
+    else if (input$select_municipality == 2) {plot.title <- "Azcapotzalco"}
+    else if (input$select_municipality == 3) {plot.title <- "Coyoacán"}
+    else if (input$select_municipality == 4) {plot.title <- "Cuajimalpa de Morelos"}
+    else if (input$select_municipality == 5) {plot.title <- "Gustavo A. Madero"}
+    else if (input$select_municipality == 6) {plot.title <- "Iztacalco"}
+    else if (input$select_municipality == 7) {plot.title <- "Iztapalapa"}
+    else if (input$select_municipality == 8) {plot.title <- "La Magdalena Contreras"}
+    else if (input$select_municipality == 9) {plot.title <- "Milpa Alta"}
+    else if (input$select_municipality == 10) {plot.title <- "Álvaro Obregón"}
+    else if (input$select_municipality == 11) {plot.title <- "Tláhuac"}
+    else if (input$select_municipality == 12) {plot.title <- "Tlalpan"}
+    else if (input$select_municipality == 13) {plot.title <- "Xochimilco"}
+    else if (input$select_municipality == 14) {plot.title <- "Benito Juárez"}
+    else if (input$select_municipality == 15) {plot.title <- "Cuauhtémoc"}
+    else if (input$select_municipality == 16) {plot.title <- "Miguel Hidalgo"}
+    else if (input$select_municipality == 17) {plot.title <- "Venustiano Carranza"}
+  })
+
 
   # Reactive expression for the data subsetted to what the user selected
   filteredData <- reactive({
 
-    subsetdf <- load_scenario(cache, budget == input$select_budget)
+    if(length(input$select_factor) < 1){
+      subsetdf <- load_scenario(cache, budget == 600)
+    }
+    else{
+      subsetdf <- load_scenario(cache, budget == input$select_budget)
+    }
+
+
     subsetdf$cvgeo <- NULL # get rid of non-numeric data
 
     subsetdf = subsetdf %>%
@@ -164,7 +281,16 @@ server <- function(input, output, session) {
   # which changes as the user makes selections in UI.
   colorpal <- reactive({
     #Use one parameter for the color
-    colorNumeric("YlOrRd", studyArea_CVG.4.display@data[[input$select_factor]] )
+    #colorNumeric("YlOrRd", studyArea_CVG.4.display@data[[input$select_factor]] )
+    if(length(input$select_factor) < 1){
+      colorBin("YlOrRd", studyArea_CVG.4.display@data[["potable_water_vulnerability_index"]], bins = 7)
+    }
+    else{
+      colorBin("YlOrRd", studyArea_CVG.4.display@data[[input$select_factor]] , bins = 7)
+    }
+
+
+
 
   })
 
@@ -207,12 +333,19 @@ server <- function(input, output, session) {
   # should be managed in its own observer.
   observe({
     pal <- colorpal()
+    if(length(input$select_factor) < 1){
+      values.4.fill = studyArea_CVG.4.display@data[["potable_water_vulnerability_index"]]
+    }
+    else{
+      values.4.fill =  studyArea_CVG.4.display@data[[input$select_factor]]
+    }
+
 
     leafletProxy("map", data = filteredData()) %>%
       clearShapes() %>%
-      addPolygons(color = "#444444", weight = 1, smoothFactor = 0.5,
+      addPolygons(color = "#444444", weight = 1, smoothFactor = 1.0,
                   opacity = 1.0, fillOpacity = 0.5,
-                  fillColor = ~pal(studyArea_CVG.4.display@data[[input$select_factor]]  ),
+                  fillColor = ~pal(values.4.fill ), #fillColor = ~pal(studyArea_CVG.4.display@data[[input$select_factor]]  ),
                   highlightOptions = highlightOptions(color = "white", weight = 2,
                                                       bringToFront = TRUE)
       )
@@ -222,11 +355,20 @@ server <- function(input, output, session) {
   observe({
     proxy <- leafletProxy("map", data = studyArea_CVG.4.display)
 
+
+    #if(is.null(input$cellsVars) ) return()
     # Remove any existing legend, and create a new one.
     proxy %>% clearControls()
-    pal <- colorpal()
-    proxy %>% addLegend(position = "bottomright", title = input$select_factor,
-                        pal = pal, values = studyArea_CVG.4.display@data[[input$select_factor]]
+    pal <<- colorpal()
+    if(length(input$select_factor) < 1){
+      values.4.legend = studyArea_CVG.4.display@data[["potable_water_vulnerability_index"]]
+    }
+    else{
+      values.4.legend =  studyArea_CVG.4.display@data[[input$select_factor]]
+    }
+
+    proxy %>% addLegend(position = "bottomright", title = factorName(),
+                        pal = pal, values = values.4.legend, labels = c("Low", "","","Medium","", "High")
     )
 
   })

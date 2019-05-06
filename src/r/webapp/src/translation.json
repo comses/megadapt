@@ -1,0 +1,55 @@
+{
+  "cultural_date_format": "%d-%m-%Y",
+  "languages": ["en", "es"],
+  "translation": [
+      {
+        "en": "Simulation Factor",
+        "es": "Factor de Simulación"
+      },
+      {
+        "en": "Choose from the Parameters Below to See Simulation Results",
+        "es": "Elija entre los siguientes parámetros para ver los resultados de la simulación"
+      },
+      {
+        "en": "Budget Scenarios",
+        "es": "Escenarios de Presupuesto"
+      },
+      {
+        "en": "Vulnerability of residents to potable water scarcity",
+        "es": "Vulnerabilidad de los residentes ante la escasez de agua potable"
+      },
+      {
+        "en": "Vulnerability of residents to flooding",
+        "es": "Vulnerabilidad de los residentes a las inundaciones"
+      },
+            {
+        "en": "Number of Actions on Potable Water Infrastructure",
+        "es": "Número de acciones en infraestructura de agua potable"
+      },
+      {
+        "en": "Number of Actions on Sewer and Drainage Infrastructure",
+        "es": "Número de acciones en la infraestructura de alcantarillado y drenaje"
+      },
+      {
+        "en": "Potable water infrastructure age",
+        "es": "Antigüedad de la infraestructura de agua potable"
+      },
+      {
+        "en": "Non Potable water infrastructure age",
+        "es": "Infraestructura de agua no potable"
+      },
+      {
+        "en": "Days without potable water",
+        "es": "Días sin agua potable"
+      },
+      {
+        "en": "Municipality to Display",
+        "es": "Municipio para Mostrar"
+      },
+      {
+        "en": "Budget:",
+        "es": "Presupuesto:"
+      }
+
+    ]
+}
