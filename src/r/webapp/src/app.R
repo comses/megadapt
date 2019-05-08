@@ -13,10 +13,14 @@ mental_model_file_names = list(
   overall_limit = 'I080316_OTR.limit.csv'
 )
 
-DATA_PATH = Sys.getenv("MEGADAPT_DATA_PATH", unset="../../../../data")
+if (fs::file_exists('/in_docker')) {
+  DATA_PATH <- '/srv/data'
+} else {
+  DATA_PATH <- '../../../../data'
+}
 
 #define budget
-Budg=(2:24)*100
+Budg <- (2:24)*100
 #First checks to see if a folder with data exists
 cache_path <- "budget_experiment"
 megadapt <- build_megadapt_model(
