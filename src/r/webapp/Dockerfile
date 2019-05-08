@@ -9,11 +9,13 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/* /var/tmp/*
 RUN Rscript r_package_install.R
 
+COPY /data /srv/data
 COPY ./src/r/megadaptr /tmp/
 RUN R CMD INSTALL .
 
-RUN touch /in_docker && rm -rf /srv/shiny-server/* && chown -R shiny:shiny /srv/shiny-server
+RUN touch /in_docker && rm -rf /srv/shiny-server/* && chown -R shiny:shiny /srv/
 USER shiny
-COPY ./src/r/webapp/src /srv/shiny-server
+COPY --chown=shiny:shiny ./src/r/webapp/src /srv/shiny-server
+RUN cd /srv/shiny-server && Rscript bootstrap.R
 
 WORKDIR /srv/shiny-server

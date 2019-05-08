@@ -7,36 +7,11 @@ library("rgdal")
 library("shiny")
 library("shiny.i18n")
 
-mental_model_file_names = list(
-  potable_water_operator_limit = 'DF101215_GOV_AP modificado PNAS.limit.csv',
-  non_potable_water_operator_limit = 'SACMEX_Drenaje_limit_SESMO.csv',
-  overall_limit = 'I080316_OTR.limit.csv'
-)
-
-if (fs::file_exists('/in_docker')) {
-  DATA_PATH <- '/srv/data'
-} else {
-  DATA_PATH <- '../../../../data'
-}
-
-#define budget
-Budg <- (2:24)*100
-#First checks to see if a folder with data exists
-cache_path <- "budget_experiment"
-megadapt <- build_megadapt_model(
-  data_root_dir = DATA_PATH,
-  mental_model_file_names = mental_model_file_names
-)
-if (fs::dir_exists(cache_path)) {
-  cache <- load_scenario_cache(cache_path)
-} else {
-  cache <- create_cartesian_scenario_cache(
-    model = megadapt,
-    path = cache_path,
-    params = list(budget=Budg))
-}
-
-
+model_cache_env <- new.env()
+source("bootstrap.R", model_cache_env)
+megadapt <- model_cache_env$model_cache$megadapt
+cache <- model_cache_env$model_cache$cache
+budget <- model_cache_env$model_cache$budget
 
 #LANGUAGE SETTINGS
 translator <- Translator$new(translation_json_path = "translation.json")
@@ -132,7 +107,7 @@ server <- function(input, output, session) {
                                  "Xochimilco" = 13,"Benito Juárez" = 14,"Cuauhtémoc" = 15,"Miguel Hidalgo" = 16,"Venustiano Carranza" = 17)
       ),
       sliderInput("select_budget", i18n()$t("Budget:"),
-                  min = Budg[1], max = tail(Budg, n=1), value = Budg[1], step = (Budg[2] - Budg[1])
+                  min = budget[1], max = tail(budget, n=1), value = budget[1], step = (budget[2] - budget[1])
       ),
       plotOutput("plot")
     )
@@ -195,8 +170,6 @@ server <- function(input, output, session) {
 
   # Reactive expression for the data subsetted to what the user selected
   plotData <- reactive({
-
-    cache <- load_scenario_cache(cache_path)
     budgets.tested <- cache[["index"]][["budget"]]
     values <<- NULL
     #Iterate through each Budget test and get the average value for the parameter selected
@@ -251,7 +224,7 @@ server <- function(input, output, session) {
   filteredData <- reactive({
 
     if(length(input$select_factor) < 1){
-      subsetdf <- load_scenario(cache, budget == 600)
+      subsetdf <- load_scenario(cache, budget == 1200)
     }
     else{
       subsetdf <- load_scenario(cache, budget == input$select_budget)
@@ -300,7 +273,7 @@ server <- function(input, output, session) {
 
   output$map <- renderLeaflet({
 
-    subsetdf <- load_scenario(cache, budget == 600)
+    subsetdf <- load_scenario(cache, budget == 1200)
     subsetdf$cvgeo <- NULL
     subsetdf = subsetdf %>%
       group_by(censusblock_id) %>%

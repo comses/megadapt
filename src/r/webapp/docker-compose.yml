@@ -7,5 +7,4 @@ services:
     ports:
       - "127.0.0.1:3000:3838"
     volumes:
-      - "../../../data:/srv/data"
       - "./log:/var/log/shiny-server"
