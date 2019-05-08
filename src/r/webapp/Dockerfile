@@ -12,6 +12,7 @@ RUN Rscript r_package_install.R
 COPY ./src/r/megadaptr /tmp/
 RUN R CMD INSTALL .
 
+RUN touch /in_docker && rm -rf /srv/shiny-server/* && chown -R shiny:shiny /srv/shiny-server
 USER shiny
 COPY ./src/r/webapp/src /srv/shiny-server
 
