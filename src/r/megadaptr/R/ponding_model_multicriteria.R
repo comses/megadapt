@@ -69,7 +69,7 @@ fv_historic_ponding_freq<-sapply(
 ponding_multicriteria_index_component <- list(
   initialize = function(study_data, value_function_config) {
     study_data %>%
-      dplyr::inner_join(update_ponding_index(study_data = study_data, value_function_config = value_function_config), by = PK_JOIN)
+      dplyr::inner_join(update_ponding_index(study_data = study_data), by = PK_JOIN)
   },
   transition = update_ponding_index
 )
