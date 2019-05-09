@@ -47,8 +47,12 @@
         "es": "Municipio para Mostrar"
       },
       {
-        "en": "Budget:",
-        "es": "Presupuesto:"
+        "en": "Budget",
+        "es": "Presupuesto"
+      },
+      {
+        "en": "All Municipalities",
+        "es": "Todos los municipios"
       }
 
     ]
