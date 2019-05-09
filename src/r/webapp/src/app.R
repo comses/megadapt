@@ -7,31 +7,12 @@ library("rgdal")
 library("shiny")
 library("shiny.i18n")
 
-mental_model_file_names = list(
-  potable_water_operator_limit = 'DF101215_GOV_AP modificado PNAS.limit.csv',
-  non_potable_water_operator_limit = 'SACMEX_Drenaje_limit_SESMO.csv',
-  overall_limit = 'I080316_OTR.limit.csv'
-)
 
-DATA_PATH = Sys.getenv("MEGADAPT_DATA_PATH", unset="../../../../data")
-
-#define budget
-Budg=(2:24)*100
-#First checks to see if a folder with data exists
-cache_path <- "budget_experiment"
-megadapt <- build_megadapt_model(
-  data_root_dir = DATA_PATH,
-  mental_model_file_names = mental_model_file_names
-)
-if (fs::dir_exists(cache_path)) {
-  cache <<- load_scenario_cache(cache_path)
-} else {
-  cache <<- create_cartesian_scenario_cache(
-    model = megadapt,
-    path = cache_path,
-    params = list(budget=Budg))
-}
-
+model_cache_env <- new.env()
+source("bootstrap.R", model_cache_env)
+megadapt <- model_cache_env$model_cache$megadapt
+cache <- model_cache_env$model_cache$cache
+budget <- model_cache_env$model_cache$budget
 
 
 #LANGUAGE SETTINGS
@@ -191,6 +172,7 @@ server <- function(input, output, session) {
   # Reactive expression for the data subsetted to what the user selected
   plotData <- reactive({
 
+
     budgets.tested.list = budgetList()
     budget.names = names(budgets.tested.list)
     budgets.tested = unname(budgets.tested.list)
@@ -225,33 +207,12 @@ server <- function(input, output, session) {
 
   })
 
-  ## get rid of this and make it connected to an array
-  plotTitle <- reactive({
-    if (input$select_municipality == 1) { plot.title <- "All Municipalities"}
-    else if (input$select_municipality == 2) {plot.title <- "Azcapotzalco"}
-    else if (input$select_municipality == 3) {plot.title <- "Coyoacán"}
-    else if (input$select_municipality == 4) {plot.title <- "Cuajimalpa de Morelos"}
-    else if (input$select_municipality == 5) {plot.title <- "Gustavo A. Madero"}
-    else if (input$select_municipality == 6) {plot.title <- "Iztacalco"}
-    else if (input$select_municipality == 7) {plot.title <- "Iztapalapa"}
-    else if (input$select_municipality == 8) {plot.title <- "La Magdalena Contreras"}
-    else if (input$select_municipality == 9) {plot.title <- "Milpa Alta"}
-    else if (input$select_municipality == 10) {plot.title <- "Álvaro Obregón"}
-    else if (input$select_municipality == 11) {plot.title <- "Tláhuac"}
-    else if (input$select_municipality == 12) {plot.title <- "Tlalpan"}
-    else if (input$select_municipality == 13) {plot.title <- "Xochimilco"}
-    else if (input$select_municipality == 14) {plot.title <- "Benito Juárez"}
-    else if (input$select_municipality == 15) {plot.title <- "Cuauhtémoc"}
-    else if (input$select_municipality == 16) {plot.title <- "Miguel Hidalgo"}
-    else if (input$select_municipality == 17) {plot.title <- "Venustiano Carranza"}
-  })
-
 
   # Reactive expression for the data subsetted to what the user selected
   filteredData <- reactive({
 
     if(length(input$select_factor) < 1){
-      subsetdf <- load_scenario(cache, budget == 600)
+      subsetdf <- load_scenario(cache, budget == 1200)
     }
     else{
       subsetdf <- load_scenario(cache, budget == input$select_budget)
@@ -300,7 +261,7 @@ server <- function(input, output, session) {
 
   output$map <- renderLeaflet({
 
-    subsetdf <- load_scenario(cache, budget == 600)
+    subsetdf <- load_scenario(cache, budget == 1200)
     subsetdf$cvgeo <- NULL
     subsetdf = subsetdf %>%
       group_by(censusblock_id) %>%

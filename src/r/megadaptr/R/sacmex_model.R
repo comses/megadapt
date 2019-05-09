@@ -310,7 +310,8 @@ make_public_infrastructure_investments <-
     # take actions sacmex
     # change value of atributes in agebs selected for action
     # action 1 mantainance D
-    if (length(A1) > 0) {
+    #The effect of mantainance will not surpass the max. q100 for each ageb!!!
+        if (length(A1) > 0) {
       study_data$antiguedad_dren[A1] <-
         study_data$antiguedad_dren[A1] - study_data$antiguedad_dren[A1] * params$maintenance_effectiveness_rate
       study_data$q100[A1] <-
