@@ -18,10 +18,10 @@ fv_f_prec_v<-sapply(
 
 fv_q100<-sapply(
   study_data$q100,
-  FUN= concava_creciente,
+  FUN= convexa_creciente,
   xmax= 2064.34,
   xmin= 0,
-  gamma=0.049)
+  gama=0.01975)
 
 
 fv_f_esc<-sapply(
@@ -32,33 +32,31 @@ fv_f_esc<-sapply(
   gama=0.035)
 
 fv_historic_ponding_freq<-sapply(
-  study_data$encharca,
+  study_data$prom_en,
   FUN= logistic_invertida,
-  xmax= 97.92955,
+  xmax= 10,
   xmin= 0,
-  k=0.083,
-  center=49)# min+(max-min)/2 ==49
+  k=0.108,
+  center=3.5)# min+(max-min)/2 ==49
 
 
-  #if(study_data$runnoff_yesNo==1){
-  w_f_prec_v=1/4
-  w_q100=1/4
-  w_f_esc=1/4
-  w_historic_ponding_freq=1/4
+#calculate weights for each factor
+#For now, weights are equal for all the factors: 1/3 for areas without runoff and
+#1/4 for areas with runoff
+
+  w_historic_ponding_freq=1/(megadapt$study_area$runoff_bin+3)
+  w_f_prec_v=1/(megadapt$study_area$runoff_bin+3)
+  w_q100=1/(megadapt$study_area$runoff_bin+3)
+  w_f_esc=megadapt$study_area$runoff_bin/(megadapt$study_area$runoff_bin+3)
+
+
+rowSums(cbind(w_f_prec_v,w_q100,w_f_esc,w_historic_ponding_freq))
+
   encharca_index=(w_historic_ponding_freq*fv_historic_ponding_freq) +
                 (w_f_prec_v*fv_f_prec_v) +
                 (w_q100*fv_q100)+
                 (w_f_esc*fv_f_esc)
 
-#  }
-  #else{
-  #w_f_prec_v=1/3
-  #w_q100=1/3
-  #w_historic_ponding_freq=1/3
-  #pooding_index=(w_historic_ponding_freq*fv_historic_ponding_freq) +
-                #(w_f_prec_v*fv_f_prec_v) +
-                #(w_q100*fv_q100)
-#  }
   tibble::tibble(
     ageb_id = study_data$ageb_id,
     encharca_index = encharca_index) #crear variable en dataframe
