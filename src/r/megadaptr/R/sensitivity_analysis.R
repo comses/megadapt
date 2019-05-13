@@ -3,6 +3,9 @@
 # This file creates the matrices used in the Variance-Based Sensitivity Analysis of MEGADAPT
 # For this version, we are going to test the effect of 4 parameters, whose particular values are taken from a linear transformation of the Sobol' sequence.
 
+#' Docs
+#'
+
 createLinearMatrices <- function(SAConds,SAParams) {
   N <- 2 ^ SAConds$exp.max
   k <- length(SAParams)
@@ -66,7 +69,7 @@ runn<-function(megadapt,oMetricNames) {
   results <- simulate_megadapt(megadapt)
 
   lastT<-max(results$time_sim)
-  Vlast<-subset(results,time_sim==lastT,select=oMetricNames)
+  Vlast<-subset(results,time_sim==lastT,select = oMetricNames)
   return(Vlast)
 }
 
@@ -78,16 +81,19 @@ runn<-function(megadapt,oMetricNames) {
 #Sensitivity Analysis. Produces two indexes (first-order and total-order) per variable studied.
 
 VBSA<-function(SAConditions,SAParams,oMetricNames) {
+  library("future")
+
   if (SAConditions$onCluster) {
-    future::plan(multisession)
+    plan(multisession)
   } else {
-    future::plan(sequential)
+    plan(sequential)
   }
 
   exp.min <- SAConditions$exp.min
   exp.max <- SAConditions$exp.max
   maxN <- 2^exp.max
   k <- length(SAParams)
+  noStats <- length(SAConditions$outStats)
   #
   # #Create matrix
   # ABMats<-createLinearMatrices(maxN,k)
@@ -99,38 +105,66 @@ VBSA<-function(SAConditions,SAParams,oMetricNames) {
 
 
   #Create array of results: number of rows corresponds to number of model metrics, columns correspond to rows in ABMats (1<j<N), and 3rd dim corresponds to the matrices (1<i<k+2), where 1=A, 2=B, 3:end=ABi
-  #It's kind of awkward, but it was the only way I could find to organize the data, given that modelMetrics can have more than one output
-  Y<-array(dim = c(length(oMetricNames),maxN,(dim(ABMats)[3])))
-           # dimnames = list("OutMetric","N","ABi"))
+  # 2 dim now is 17 (number of mun + total), shifted the rest dims
 
-  #Run simulations
-  if (SAConditions$whichmodel=="custom") {
-    megadapt<-initialize_megadapt(SAConditions$simyears)
-    Y<-future.apply::future_apply(ABMats,c(1,3),function(x) modelMetrics(x,megadapt))
+  if (runMod) {
+    Yi<-array(dim = c(length(oMetricNames),maxN,(dim(ABMats)[3])))
+    # dimnames = list("OutMetric","N","ABi"))
 
-    #how to couple it to other models?
+    #Run simulations
+    if (SAConditions$whichmodel=="custom") {
+      if (SAConditions$municip) {
+        Yi<-array(dim = c(length(oMetricNames)*noStats,SAConditions$noMunip+1,maxN,(dim(ABMats)[3])))
+      }
+      # megadapt<-initialize_megadapt(SAConditions$simyears)
+      megadapt <- build_megadapt_model(data_root_dir = data_root_dir,
+                                       mental_model_file_names = mental_model_file_names,
+                                       params = list(n_steps=SAConditions$simyears))
+      Yi<-future.apply::future_apply(ABMats,c(1,3),function(x) modelMetrics(x,megadapt))
 
-  } else if (SAConditions$whichmodel=="toy") {
-    Y<-future.apply::future_apply(ABMats,c(1,3),function(x) toyFunction(x))
-  } else if (SAConditions$whichmodel=="book") {
-    Y<-future.apply::future_apply(ABMats,c(1,3),function(x) bookEx(x))
+
+    } else if (SAConditions$whichmodel=="toy") {
+      Yi<-future.apply::future_apply(ABMats,c(1,3),function(x) toyFunction(x))
+    } else if (SAConditions$whichmodel=="book") {
+      Yi<-future.apply::future_apply(ABMats,c(1,3),function(x) bookEx(x))
+    }
+
+    if (SAConditions$municip) {
+      Y<-array(unlist(Yi),dim = c(SAConditions$noMunip+1,length(oMetricNames)*noStats,maxN,(dim(ABMats)[3])))
+      Y<-aperm(Y,c(3,4,1,2))
+
+
+    } else {
+      if (length(oMetricNames) > 1) {
+        Y<-aperm(Yi,c(2,3,1))
+      }
+    }
+
+
+    saveRDS(Y,"modelOuts")
+  } else {
+    Y<-readRDS("modelOuts")
   }
 
-  if (length(oMetricNames) > 1) {
-    Y<-aperm(Y,c(2,3,1))
-  }
 
 
   #Calculate sensitivity indices
   #rows<->parameters, columns<->N, third<->(output metrics)*2: first Si for all metrics, then STi for all metrics
-  resultss <- array(dim=c(k,(exp.max - exp.min+1),(length(oMetricNames)*2)))
+  #outdated
+  noStats <- length(SAConditions$outStats)
 
-  if (length(oMetricNames) == 1){
+  if (SAConditions$municip){
+    resultss <- array(dim=c(k,(exp.max - exp.min+1),(length(oMetricNames)*2),(SAConditions$noMunip+1),(noStats*length(oMetricNames))))
+  } else {
+    resultss <- array(dim=c(k,(exp.max - exp.min+1),(length(oMetricNames)*2)))
+  }
+
+
+  if (length(oMetricNames) == 1 && SAConditions$municip == FALSE){
     for (i in exp.min:exp.max) {
       N<-2^i
 
       Sis<-calc.Si(Y,N,k)
-      Sis
       STis<-calc.STi(Y,N,k)
       resultss[1:k,(i-exp.min+1),]<-c(Sis,STis)
     }
@@ -138,15 +172,25 @@ VBSA<-function(SAConditions,SAParams,oMetricNames) {
     for (i in exp.min:exp.max) {
       N<-2^i
 
-      Sis<-apply(Y,3,function(x) calc.Si(x,N,k))
-      Sis
-      STis<-apply(Y,3,function(x) calc.STi(x,N,k))
+      if (SAConditions$municip) {
+        Sis<-apply(Y,c(3,4),function(x) calc.Si(x,N,k))
+        print(Sis)
+        STis<-apply(Y,c(3,4),function(x) calc.STi(x,N,k))
+        resultss[1:k,(i-exp.min+1),1,1:(SAConditions$noMunip+1),1:(noStats*2)]<-Sis
+        resultss[1:k,(i-exp.min+1),2,1:(SAConditions$noMunip+1),1:(noStats*2)]<-STis
+      } else {
+        Sis<-apply(Y,c(3),function(x) calc.Si(x,N,k))
+        print(Sis)
+        STis<-apply(Y,c(3),function(x) calc.STi(x,N,k))
+        resultss[1:k,(i-exp.min+1),]<-c(Sis,STis)
+      }
 
-      resultss[1:k,(i-exp.min+1),]<-c(Sis,STis)
     }
   }
 
-  return(resultss)
+  outt <- longFormThis(Yi,resultss)
+
+  return(outt)
 }
 
 # Function that gets the summary statistic from the variables of interest
@@ -158,8 +202,7 @@ modelMetrics<-function(x,megadapt){
   for (param_name in c('new_infrastructure_effectiveness_rate',
                        'maintenance_effectiveness_rate',
                        'infrastructure_decay_rate',
-                       'budget',
-                       'climate_scenario')) {
+                       'budget')) {
     if (!is.na(x[param_ind])) {
       custom_params[[param_name]] <- x[param_ind]
     }
@@ -170,34 +213,63 @@ modelMetrics<-function(x,megadapt){
   #
   # Param Setup
   #
-  params <- do.call(create_params, custom_params)
+  # params <- do.call(create_params, custom_params)
 
 
+  # #
+  # Table_climate_scenarios=as.data.frame(read.csv(data_dir("climate_landuse_scenarios/db_escenarios_prec_esc_ids.csv"),header = T))
   #
-  Table_climate_scenarios=as.data.frame(read.csv(data_dir("climate_landuse_scenarios/db_escenarios_prec_esc_ids.csv"),header = T))
-
-  #generate the path to the place where the data frame of the scenario is stored
-
-  scenario_name=Table_climate_scenarios[which(Table_climate_scenarios$id==params$climate_scenario),]$path
-
-  # Climate Scenario Setup
+  # #generate the path to the place where the data frame of the scenario is stored
   #
-  climate_scenario <- read.csv(data_dir(paste0("climate_landuse_scenarios/",scenario_name)))
+  # scenario_name=Table_climate_scenarios[which(Table_climate_scenarios$id==params$climate_scenario),]$path
+  #
+  # # Climate Scenario Setup
+  # #
+  # climate_scenario <- read.csv(data_dir(paste0("climate_landuse_scenarios/",scenario_name)))
 
 
 
-  # Add parameters to the megadapt object
-  megadapt$params <- params
-  megadapt$climate_scenario <- climate_scenario
+  # # Add parameters to the megadapt object
+  # megadapt$params <- params
+  # megadapt$climate_scenario <- climate_scenario
+  megadapt <- modify_megadapt_model(megadapt, custom_params)
 
   # print(megadapt$params)
 
   #Run model and get results from last year
-  Vlast<<-runn(megadapt)
-  means<-apply(Vlast,2,function(x) mean(x,na.rm=T))
+  # Vlast<-runn(megadapt,oMetricNames)
+  results <- simulate_megadapt(megadapt)
 
-  return(means)
+  lastT<-max(results$time_sim)
+
+  if (SAConditions$municip){
+    Vlast<-subset(results,time_sim==lastT,select = c("cvgeo",oMetricNames))
+    Vlast$Mun <- substr(Vlast$cvgeo, start = 1, stop = 5) #apply(Vlast,1,function(x) substr(x, start = 1, stop = 5))
+    metrics <- dplyr::group_by(Vlast,Mun) %>% dplyr::summarise(
+      "potable_water_vulnerability_index_mean"=mean(potable_water_vulnerability_index,na.rm=T),
+      "non_potable_water_vulnerability_index_mean"=mean(non_potable_water_vulnerability_index,na.rm=T),
+      "potable_water_vulnerability_index_max"=max(potable_water_vulnerability_index,na.rm=T),
+      "non_potable_water_vulnerability_index_max"=max(non_potable_water_vulnerability_index,na.rm=T),
+      "potable_water_vulnerability_index_min"=min(potable_water_vulnerability_index,na.rm=T),
+      "non_potable_water_vulnerability_index_min"=min(non_potable_water_vulnerability_index,na.rm=T)) %>%
+      dplyr::select(-Mun)
+    metrics<-dplyr::add_row(metrics,
+        "potable_water_vulnerability_index_mean"=mean(metrics$potable_water_vulnerability_index_mean,na.rm=T),
+        "non_potable_water_vulnerability_index_mean"=mean(metrics$non_potable_water_vulnerability_index_mean,na.rm=T),
+        "potable_water_vulnerability_index_max"=max(metrics$potable_water_vulnerability_index_max,na.rm=T),
+        "non_potable_water_vulnerability_index_max"=max(metrics$non_potable_water_vulnerability_index_max,na.rm=T),
+        "potable_water_vulnerability_index_min"=min(metrics$potable_water_vulnerability_index_min,na.rm=T),
+        "non_potable_water_vulnerability_index_min"=min(metrics$non_potable_water_vulnerability_index_min,na.rm=T))
+
+    # metrics<-data.matrix(metrics)
+  } else {
+    Vlast<-subset(results,time_sim==lastT,select = oMetricNames)
+    metrics<-apply(Vlast,2,function(x) mean(x,na.rm=T))
+  }
+
+  return(metrics)
 }
+
 
 
 
@@ -213,7 +285,7 @@ calc.Si<-function(y,N,k) {
   Ares<-y[1:N,1]
   Bres<-y[1:N,2]
   vis<-apply(y[1:N,3:(k+2)],2,function(x) calc.Vi(x,N,Ares,Bres))
-  print(vis)
+  # print(vis)
   si<-vis/vhat
   si # returns a matrix where rows are the k parameters, columns are the metrics used as model output
 }
@@ -420,23 +492,50 @@ plotPieCharts <- function(x,expon,metric) {
 
 ################################################################################################
 ################################################################################################
-# # Setup functions
-#
-# setSAConds <- function(exp.min,
-#                        exp.max,
-#                        whichmodel,
-#                        simyears = 40) {
-#   list(
-#     exp.min = exp.min,
-#     exp.max = exp.max,
-#     whichmodel = whichmodel,
-#     simyears = simyears
-#   )
-# }
-#
-# setSAParams <- function(inputParamsNames,
-#                         ){
-#
-# }
+# Long form dataframe
 
+longFormThis <- function(outs,SA) {
+  # target_statistic (mean vulnerability etc)
+  # community (Iztapalapa, All of Mexico City)
+  # param (budget)
+  # outcome_name (first order sensitivity index, total order sensitivity index, min, max, mean)
+  # outcome_value (some floating point) value
+
+  long <- tibble::tibble('target_statistic'=character(),
+                         'community'=character(),
+                         'param'=character(),
+                         'outcome_name'=character(),
+                         'outcome_value'=numeric())
+
+  target_stats <- c("PotableVuln","NonPotableVuln")
+  communities <- c("Azcapotzalco",
+                   "Coyoacan",
+                   "Cuajimalpa de Morelos",
+                   "Gustavo A. Madero",
+                   "Iztacalco",
+                   "Iztapalapa",
+                   "La Magdalena Contreras",
+                   "Milpa Alta",
+                   "Alvaro Obregon",
+                   "Tlahuac",
+                   "Tlalpan",
+                   "Xochimilco",
+                   "Benito Juarez",
+                   "Cuauhtemoc",
+                   "Miguel Hidalgo",
+                   "Venustiano Carranza")
+  param <- NULL
+  for (i in 1:length(SAParams)) {
+    param[i] <- SAParams[[i]]$name
+  }
+  outcomes <- c("Si","STi","Mean","Max","Min")
+
+  long<-dplyr::add_row(long,"target_statistic"=1,
+                       "community"=2,
+                       "param"=3,
+                       "outcome_name"=4,
+                       "outcome_value"=5)
+
+
+}
 
