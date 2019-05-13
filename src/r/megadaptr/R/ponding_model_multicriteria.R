@@ -44,10 +44,10 @@ fv_historic_ponding_freq<-sapply(
 #For now, weights are equal for all the factors: 1/3 for areas without runoff and
 #1/4 for areas with runoff
 
-  w_historic_ponding_freq=1/(megadapt$study_area$runoff_bin+3)
-  w_f_prec_v=1/(megadapt$study_area$runoff_bin+3)
-  w_q100=1/(megadapt$study_area$runoff_bin+3)
-  w_f_esc=megadapt$study_area$runoff_bin/(megadapt$study_area$runoff_bin+3)
+  w_historic_ponding_freq=1/(study_data$runoff_bin+3)
+  w_f_prec_v=1/(study_data$runoff_bin+3)
+  w_q100=1/(study_data$runoff_bin+3)
+  w_f_esc=study_data$runoff_bin/(study_data$runoff_bin+3)
 
 
 rowSums(cbind(w_f_prec_v,w_q100,w_f_esc,w_historic_ponding_freq))

@@ -1,4 +1,3 @@
-rm(list=ls())
 library(megadaptr)
 source('../scenarios/util.R')
 
@@ -91,14 +90,6 @@ if (SAConditions$whichmodel=="book"){
 
   SAConditions$municip=FALSE
 }
-
-
-
-
-# #stt<-system.time(results<-VBSA(exp.min,exp.max,simyears,k,realmodel))
-# #results
-#
-# results<-VBSA(exp.min,exp.max,simyears,k,realmodel)
 
 ################################################################################################
 ################################################################################################

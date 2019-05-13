@@ -1,11 +1,8 @@
-
-# (Originally in file VBSAMatrices.R)
-# This file creates the matrices used in the Variance-Based Sensitivity Analysis of MEGADAPT
-# For this version, we are going to test the effect of 4 parameters, whose particular values are taken from a linear transformation of the Sobol' sequence.
-
-#' Docs
+#' Create possible input parameter combinations for running the sensitivity analysis
 #'
-
+#' @param SAConds sensitivity analysis configuration object
+#' @param SAParams sensitivity analysis input parameter sample space
+#' @return input parameter combinations as an N-dimensional array
 createLinearMatrices <- function(SAConds,SAParams) {
   N <- 2 ^ SAConds$exp.max
   k <- length(SAParams)
@@ -78,15 +75,17 @@ runn<-function(megadapt,oMetricNames) {
 ################################################################################################
 
 #(Originally in file VBSA.R)
-#Sensitivity Analysis. Produces two indexes (first-order and total-order) per variable studied.
 
+#'Sensitivity Analysis. Produces two indexes (first-order and total-order) per variable studied.
+#'
+#' @param SAConditions sensivity analysis configuration object
+#' @param SAParams sensitivity analysis input parameter sample space
+#' @param oMetricNames outcomes variable name vector
 VBSA<-function(SAConditions,SAParams,oMetricNames) {
-  library("future")
-
   if (SAConditions$onCluster) {
-    plan(multisession)
+    future::plan(future::multisession)
   } else {
-    plan(sequential)
+    future::plan(future::sequential)
   }
 
   exp.min <- SAConditions$exp.min
@@ -112,6 +111,7 @@ VBSA<-function(SAConditions,SAParams,oMetricNames) {
     # dimnames = list("OutMetric","N","ABi"))
 
     #Run simulations
+
     if (SAConditions$whichmodel=="custom") {
       if (SAConditions$municip) {
         Yi<-array(dim = c(length(oMetricNames)*noStats,SAConditions$noMunip+1,maxN,(dim(ABMats)[3])))
@@ -124,9 +124,9 @@ VBSA<-function(SAConditions,SAParams,oMetricNames) {
 
 
     } else if (SAConditions$whichmodel=="toy") {
-      Yi<-future.apply::future_apply(ABMats,c(1,3),function(x) toyFunction(x))
+      Yi<-future.apply::future_apply(ABMats,c(1,3),toyFunction)
     } else if (SAConditions$whichmodel=="book") {
-      Yi<-future.apply::future_apply(ABMats,c(1,3),function(x) bookEx(x))
+      Yi<-future.apply::future_apply(ABMats,c(1,3),bookEx)
     }
 
     if (SAConditions$municip) {
@@ -190,7 +190,7 @@ VBSA<-function(SAConditions,SAParams,oMetricNames) {
 
   outt <- longFormThis(Yi,resultss)
 
-  return(outt)
+  return(resultss)
 }
 
 # Function that gets the summary statistic from the variables of interest
