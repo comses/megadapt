@@ -26,12 +26,8 @@ determine_residential_infrastructure_suitability <- function(study_data, value_f
                        amplitude = 500000,
                        Valor_minimo_Y_en_X = max(study_data$basura))
   # Ponding
-  vf_pond <- sapply(study_data$encharca,
-                    FUN = logistic_invertida,
-                    k=0.1,
-                    center=50,
-                    xmax=100,
-                    xmin=0)
+  vf_pond <- study_data$encharca_index
+
   # salud
   vf_H <- sapply(study_data$enf_14, FUN = health_vf,max_x=50,saturation=3)
 
@@ -113,7 +109,7 @@ update_residential_infrastructure_investments <- function(study_data, value_func
         tanks
       },
       vulnerability_Ab = (sensitivity_Ab * scarcity_index) / (1 + ingreso),
-      vulnerability_D = (sensitivity_D * encharca) / (1 + ingreso)
+      vulnerability_D = (sensitivity_D * encharca_index) / (1 + ingreso)
     ) %>%
     dplyr::select(
       ageb_id,
