@@ -210,6 +210,7 @@ translate_output_colnames <- function(df) {
     non_potable_water_infrastructure_age = "antiguedad_dren",
     potable_water_infrastructure_age = "antiguedad_dist",
     days_with_ponding = "encharca",
+    average_ponding ="prom_en",
     days_with_flooding = "inunda",
     stormwater_entrance_count = "rejillas",
     non_potable_water_system_capacity = "q100",
