@@ -1,3 +1,27 @@
+.scale_inputs <- function(n_params, SAParams) {
+  interc <- rep(0, n_params)
+  for (i in 1:n_params) {
+    interc[i] <- SAParams[[i]]$min
+  }
+
+  slope <- rep(0, n_params)
+  for (j in 1:n_params) {
+    slope[j] <- (SAParams[[j]]$max - SAParams[[j]]$min)
+  }
+
+  S = qrng::sobol(N + 4, 2 * n_params, skip = 1)
+
+  for (i in 1:(2 * n_params)) {
+    if (i <= n_params) {
+      S[, i] <- S[, i] * slope[i] + interc[i]
+    } else {
+      S[, i] = S[, i] * slope[i - n_params] + interc[i - n_params]
+    }
+  }
+
+  S
+}
+
 #' Create possible input parameter combinations for running the sensitivity analysis
 #'
 #' @param SAConds sensitivity analysis configuration object
@@ -7,33 +31,7 @@ createLinearMatrices <- function(SAConds, SAParams) {
   N <- 2 ^ SAConds$exp.max
   k <- length(SAParams)
 
-  interc <- rep(0, k)
-  for (i in 1:k) {
-    interc[i] <- SAParams[[i]]$min
-  }
-
-  slope <- rep(0, k)
-  for (j in 1:k) {
-    slope[j] <- (SAParams[[j]]$max - SAParams[[j]]$min)
-  }
-
-
-  S = qrng::sobol(N + 4, 2 * k, skip = 1)
-
-  for (i in 1:(2 * k)) {
-    if (i <= k) {
-      S[, i] <- S[, i] * slope[i] + interc[i]
-      if (SAParams[[i]]$isInteger == T) {
-        S[, i] = round(S[, i])
-      }
-    } else {
-      S[, i] = S[, i] * slope[i - k] + interc[i - k]
-      if (SAParams[[i - k]]$isInteger == T) {
-        S[, i] = round(S[, i])
-      }
-    }
-  }
-
+  S <- .scale_inputs(k, SAParams)
 
   ABMats <- array(dim = c(N, k, (k + 2)))
   ABMats[, , ] <- S[1:N, 1:k]
@@ -47,11 +45,6 @@ createLinearMatrices <- function(SAConds, SAParams) {
   # }
 
   return(ABMats)
-
-  # ABpath<-paste("/VBSAMatrices/ABMats",as.character(N),".rds",sep="")
-
-  # saveRDS(ABMats,ABpath)
-
 }
 
 ################################################################################################
