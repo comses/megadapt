@@ -9,7 +9,6 @@ services:
     ports:
       - "127.0.0.1:8787:8787"
     volumes:
-      - "./data:/home/rstudio/code/data"
       - "./VBSAMatrices:/home/rstudio/code/VBSAMatrices"
       - "./output:/home/rstudio/code/output"
       - "./src/r:/home/rstudio/code/src/r"

@@ -5,7 +5,7 @@ RUN apt-get update \
   && ./apt_install.sh \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY ./src/r /home/rstudio
+COPY ./src/r /home/rstudio/code/src/r
 
 WORKDIR /home/rstudio/code/src/r
 

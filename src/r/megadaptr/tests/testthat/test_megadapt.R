@@ -171,7 +171,7 @@ if (Sys.getenv('R_INTEGRATION_TESTS') == '') {
 megadapt <- build_megadapt_model(
   data_root_dir = '../../../../../data',
   mental_model_file_names = list(
-    potable_water_operator_limit = 'DF101215_GOV_AP modificado PNAS.limit.csv',
+    potable_water_operator_limit = 'DF101215_GOV_AP_modificado_PNAS.limit.csv',
     non_potable_water_operator_limit = 'SACMEX_Drenaje_limit_SESMO.csv',
     overall_limit = 'I080316_OTR.limit.csv'
   ),
