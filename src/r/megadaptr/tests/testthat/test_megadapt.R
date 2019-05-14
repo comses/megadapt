@@ -31,8 +31,8 @@ test_that('apply_data_changes updates original data with changed columns', {
 })
 
 describe('a scenario cache', {
-  runner <- function(birth_rate, death_rate) {
-    tibble(x=(1 + birth_rate - death_rate)^(1:10))
+  runner <- function(p) {
+    tibble(x=(1 + p$birth_rate - p$death_rate)^(1:10))
   }
   scenarios <- expand.grid(birth_rate=1:3*0.02, death_rate=1:2*0.01)
   cache_path <- 'test_data'
@@ -54,7 +54,7 @@ describe('a scenario cache', {
   it('can load a scenario result', {
     cache <- load_scenario_cache(cache_path)
     scenario <- load_scenario(cache, birth_rate == 0.02, death_rate == 0.01)
-    expected_scenario <- runner(birth_rate = 0.02, death_rate = 0.01)
+    expected_scenario <- runner(list(birth_rate = 0.02, death_rate = 0.01))
     expect_equal(scenario$x, expected_scenario$x)
   })
 
