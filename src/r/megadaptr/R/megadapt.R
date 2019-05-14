@@ -5,7 +5,7 @@ create_study_data <- function(megadapt) {
     list(
       climate_component,
       flooding_component,
-      ponding_component,
+      ponding_multicriteria_index_component,
       resident_component,
       sacmex_component,
       water_scarcity_index_component
@@ -141,12 +141,11 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     params = params
   )
 
-  ponding_changes <- ponding_component$transition(
+  ponding_changes <- ponding_multicriteria_index_component$transition(
     study_data = apply_data_changes(
       study_data,
       climate_changes,
-      join_columns = PK_JOIN),
-    ponding_models = ponding_models
+      join_columns = PK_JOIN)
   )
 
   flooding_changes <- flooding_component$transition(
@@ -209,8 +208,7 @@ translate_output_colnames <- function(df) {
     censusblock_id = "ageb_id",
     non_potable_water_infrastructure_age = "antiguedad_dren",
     potable_water_infrastructure_age = "antiguedad_dist",
-    days_with_ponding = "encharca",
-    average_ponding ="prom_en",
+    days_with_ponding = "prom_en",
     days_with_flooding = "inunda",
     stormwater_entrance_count = "rejillas",
     non_potable_water_system_capacity = "q100",
@@ -219,6 +217,7 @@ translate_output_colnames <- function(df) {
     days_no_potable_water = "lambdas",
     income_per_capita = "income_pc",
     water_scarcity_index = "scarcity_index",
+    ponding_index = "encharca_index",
     potable_water_sensitivity_index = "sensitivity_Ab",
     non_potable_water_sensitivity_index = "sensitivity_D",
     potable_water_vulnerability_index = "vulnerability_Ab",
@@ -380,8 +379,8 @@ build_megadapt_model <- function(data_root_dir, mental_model_file_names, params 
 #'
 #' @export
 #' @param model megadapt model
-#' @param ...   parameters to override from prototype model
-modify_megadapt_model <- function(model, ...) {
-  model$params <- create_params(...)
+#' @param params parameters to override from prototype model
+modify_megadapt_model <- function(model, params) {
+  model$params <- do.call(create_params, params)
   model
 }

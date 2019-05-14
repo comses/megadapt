@@ -16,7 +16,7 @@ determine_public_infrastructure_investment_suitability <- function(
   vf_flood <- sapply(study_data$inunda, FUN = ponding_vf)
 
   # Ponding
-  vf_pond <- sapply(study_data$encharca, FUN = ponding_vf)
+  vf_pond <- study_data$encharca_index
 
   ## Fresh Water Specific
   # age infrastructure Abastecimiento

@@ -1,7 +1,6 @@
 library(megadaptr)
 source('../scenarios/util.R')
 
-
 ################################################################################################
 ################################################################################################
 
@@ -10,16 +9,20 @@ source('../scenarios/util.R')
 
 # SA Conditions
 SAConditions <- list(
-  simyears=1,
+  simyears=5,
   exp.min=1,
   exp.max=1,
   whichmodel="custom",
-  onCluster=F
+  onCluster=F,
+  municip=F,
+  noMunip=16,
+  outStats=c("mean","max","min")
 )
 
+runMod<-T
 
 # Input Parameters and their Names
-noParams <- 5 #number of parameters to take into account
+noParams <- 4 #number of parameters to take into account
 
 SAParams <- list(
   p1 = list(
@@ -64,40 +67,35 @@ oMetricNames <- c("potable_water_vulnerability_index","non_potable_water_vulnera
 
 if (SAConditions$whichmodel=="book"){
   noParams <- 3 #number of parameters to take into account
-  SAParams <- list(p1 = list(
+  SAParams <- list(
+    p1 = list(
       name = "effectivity_newInfra",
       min = 0,
       max = 1,
-      isInteger=F
-    ), p2 = list(
+      isInteger=F),
+    p2 = list(
       name = "effectivity_mantenimiento",
       min = 0,
       max = 1,
-      isInteger=F
-    ),p3 = list(
+      isInteger=F),
+    p3 = list(
       name = "decay_infra",
       min = 0,
       max = 1,
-      isInteger=F
-    ) )
+      isInteger=F)
+    )
   SAParams <- SAParams[1:noParams]
   # Output metrics
   oMetricNames <- c("vulnerability_Ab")
+
+  SAConditions$municip=FALSE
 }
 
-
-
-
-# #stt<-system.time(results<-VBSA(exp.min,exp.max,simyears,k,realmodel))
-# #results
-#
-# results<-VBSA(exp.min,exp.max,simyears,k,realmodel)
-
 ################################################################################################
 ################################################################################################
 
-ABMats <- createLinearMatrices(SAConditions,SAParams)
+ABMats <- megadaptr:::createLinearMatrices(SAConditions,SAParams)
 
-resultsold <- VBSA(SAConditions,SAParams,oMetricNames)
+resultsold <- megadaptr:::VBSA(SAConditions,SAParams,oMetricNames)
 
 
