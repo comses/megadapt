@@ -231,7 +231,7 @@ server <- function(input, output, session) {
     y <- subsetdf
     x$sort_id <- 1:nrow(as(x, "data.frame"))  # Column containing original row order for later sorting
     x.dat <- as(x, "data.frame")  # Create new data.frame object
-    x.dat <-as.data.frame(x.dat[,c(1,49)])
+    x.dat <-as.data.frame(x.dat[,c(1,ncol(x.dat))])
     x.dat2 <- merge(x.dat, y, by.x = "ageb_id", by.y = "censusblock_id")  # Merge
     x.dat2.ord <- x.dat2[order(x.dat2$sort_id), ]  # Reorder back to original
     x2 <- x[x$sort_id %in% x.dat2$sort_id, ]  # Make new set of polygons, dropping those which arent in merge
@@ -295,7 +295,7 @@ server <- function(input, output, session) {
     y <- subsetdf
     x$sort_id <- 1:nrow(as(x, "data.frame"))  # Column containing original row order for later sorting
     x.dat <- as(x, "data.frame")  # Create new data.frame object
-    x.dat <-as.data.frame(x.dat[,c(1,49)])
+    x.dat <-as.data.frame(x.dat[,c(1,ncol(x.dat))])
     x.dat2 <- merge(x.dat, y, by.x = "ageb_id", by.y = "censusblock_id")  # Merge
     x.dat2.ord <- x.dat2[order(x.dat2$sort_id), ]  # Reorder back to original
     x2 <- x[x$sort_id %in% x.dat2$sort_id, ]  # Make new set of polygons, dropping those which arent in merge
