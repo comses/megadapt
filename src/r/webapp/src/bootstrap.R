@@ -11,7 +11,7 @@ initialize_model_cache <- function() {
     data_root_dir <- '/srv/data'
     cache_path <- '/srv/cache'
   } else {
-    data_root_dir <- '../../../../data'
+    data_root_dir <- system.file('rawdata', package='megadaptr')
     cache_path <- 'budget_experiment'
   }
 

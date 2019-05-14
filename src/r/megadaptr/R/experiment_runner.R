@@ -37,7 +37,7 @@ create_scenario_cache <- function(scenarios, path, runner) {
     scenario <- scenarios[scenario_row_id,]
     pk <- scenario$pk
     args <- dplyr::select(scenario, -pk)
-    data <- do.call(runner, args)
+    data <- runner(args)
     save_scenario_to_cache(data = data, path = path, pk = pk)
   }
 
@@ -61,8 +61,8 @@ create_cartesian_scenario_cache <- function(model, path, params) {
   create_scenario_cache(
     scenarios = scenarios,
     path = path,
-    runner = function(...) {
-      new_model <- modify_megadapt_model(model = model, ...)
+    runner = function(params) {
+      new_model <- modify_megadapt_model(model = model, params)
       simulate_megadapt(new_model)
     }
   )
