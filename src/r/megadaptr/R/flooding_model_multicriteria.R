@@ -16,8 +16,8 @@ fv_f_prec_v<-sapply(
    xmin=10590.85,# [mm/km2]
   gama= 0.035)
 
-fv_q100<-sapply(
-  study_data$q100,
+fv_non_potable_capacity<-sapply(
+  study_data$non_potable_capacity,
   FUN= convexa_creciente,
   xmax= 2064.34,
   xmin= 0,
@@ -46,14 +46,14 @@ fv_historic_flooding_freq<-sapply(
 
   w_historic_flooding_freq=1/(study_data$runoff_bin+3)
   w_f_prec_v=1/(study_data$runoff_bin+3)
-  w_q100=1/(study_data$runoff_bin+3)
+  w_fv_non_potable_capacity=1/(study_data$runoff_bin+3)
   w_f_esc=study_data$runoff_bin/(study_data$runoff_bin+3)
 
 
 
   flooding_index=(w_historic_flooding_freq*fv_historic_flooding_freq) +
                 (w_f_prec_v*fv_f_prec_v) +
-                (w_q100*fv_q100)+
+                (w_fv_non_potable_capacity*fv_non_potable_capacity)+
                 (w_f_esc*fv_f_esc)
 
   tibble::tibble(
