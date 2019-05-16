@@ -16,7 +16,7 @@ COLUMNS_TO_SAVE <- c(
   "prom_en",
   "inunda",
   "rejillas",
-  "q100",
+  "non_potable_capacity",
   "falta_dist",
   "falta_dren",
   "lambdas",
