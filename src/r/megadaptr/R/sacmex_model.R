@@ -184,7 +184,7 @@ determine_public_infrastructure_investment_suitability <- function(
     )
 
   # flooding #cchange to flooding
-  vf_flood <- sapply(study_data$inunda, FUN = ponding_vf)
+  vf_flood <- study_data$flooding_index
 
   all_C_D <- cbind(
     vf_garbage,
@@ -312,6 +312,7 @@ make_public_infrastructure_investments <-
     # action 1 mantainance D
     #The effect of mantainance will not surpass the max. q100 for each ageb!!!
         if (length(A1) > 0) {
+       #   browser()
       study_data$antiguedad_dren[A1] <-
         study_data$antiguedad_dren[A1] - study_data$antiguedad_dren[A1] * params$maintenance_effectiveness_rate
       study_data$q100[A1] <-
@@ -331,6 +332,7 @@ make_public_infrastructure_investments <-
         study_data$Interventions_D[A2] + 1
     }
 
+    #
     # action 3 mantainance Ab.
     if (length(A3) > 0) {
       study_data$antiguedad_dist[A3] <-
