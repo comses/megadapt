@@ -3,11 +3,16 @@ context('megadapt')
 library(megadaptr)
 library(dplyr)
 
-expect_between <- function(object, lb, ub) {
+expect_between <- function(object, lb, ub, allow_empty = FALSE) {
   act <- quasi_label(rlang::enquo(object))
 
-  act$lb <- min(object)
-  act$ub <- max(object)
+  if (allow_empty) {
+    act$lb <- suppressWarnings(min(object))
+    act$ub <- suppressWarnings(min(object))
+  } else {
+    act$lb <- min(object)
+    act$ub <- max(object)
+  }
   expect(
     act$lb >= lb || act$ub <= ub,
     sprintf('%s has range [%f, %f] not contained in [%f, %f]', act$lab, act$lb, act$ub, lb, ub)
@@ -164,45 +169,45 @@ describe('sacmex infracstructure allocation with separate potable, non potable b
   })
 })
 
-if (Sys.getenv('R_INTEGRATION_TESTS') == '') {
-  skip('Skipping integration tests')
-}
-
-megadapt <- build_megadapt_model(
-  data_root_dir = '../../../../../data',
-  mental_model_file_names = list(
-    potable_water_operator_limit = 'DF101215_GOV_AP_modificado_PNAS.limit.csv',
-    non_potable_water_operator_limit = 'SACMEX_Drenaje_limit_SESMO.csv',
-    overall_limit = 'I080316_OTR.limit.csv'
-  ),
-  params = list(n_steps = 2)
-)
-
 describe('a megadapt model', {
+  if (Sys.getenv('R_INTEGRATION_TESTS') == '') {
+    skip('Skipping integration tests')
+  }
+
+  megadapt <- build_megadapt_model(
+    data_root_dir = system.file("rawdata", package = 'megadaptr', mustWork = TRUE),
+    mental_model_file_names = list(
+      potable_water_operator_limit = 'DF101215_GOV_AP_modificado_PNAS.limit.csv',
+      non_potable_water_operator_limit = 'SACMEX_Drenaje_limit_SESMO.csv',
+      overall_limit = 'I080316_OTR.limit.csv'
+    ),
+    params = list(n_steps = 2)
+  )
+
   it('can have its parameters modified', {
-    new_megadapt <- modify_megadapt_model(megadapt, new_infrastructure_effectiveness = 0.1)
+    new_megadapt <- modify_megadapt_model(megadapt, list(new_infrastructure_effectiveness = 0.1))
     expect_equal(new_megadapt$params$new_infrastructure_effectiveness, 0.1)
   })
-})
 
-results <- simulate_megadapt(megadapt)
+  describe('a megadapt model run', {
+    results <- simulate_megadapt(megadapt)
 
-describe('a megadapt model run', {
-  it('should have a water scarcity index within [0, 1]', {
-    expect_between(results$water_scarcity_index, 0, 1)
-  })
+    it('should have a water scarcity index within [0, 1]', {
+      expect_between(results$water_scarcity_index, 0, 1)
+    })
 
-  it('should have a number of interventions in census block less than or equal to the number of years simulated', {
-    expect_between(results$potable_water_system_intervention_count, 0, megadapt$params$n_steps)
-    expect_between(results$non_potable_water_system_intervention_count, 0, megadapt$params$n_steps)
-  })
+    it('should have a number of interventions in census block less than or equal to the number of years simulated', {
+      expect_between(results$potable_water_system_intervention_count, 0, megadapt$params$n_steps)
+      expect_between(results$non_potable_water_system_intervention_count, 0, megadapt$params$n_steps)
+    })
 
-  it('should have a percent with potable water within [0, 1]', {
-    expect_between(results$percent_without_potable_water, 0, 1)
-  })
+    it('should have a percent with potable water within [0, 1]', {
+      expect_between(results$potable_percent_lacking, 0, 1)
+    })
 
-  it('should have a sensitivity indices within [0, 1]', {
-    expect_between(results$potable_water_sensitivity_index, 0, 1)
-    expect_between(results$non_potable_water_sensitivity_index, 0, 1)
+    it('should have a sensitivity indices within [0, 1]', {
+      expect_between(results$potable_water_sensitivity_index, 0, 1)
+      expect_between(results$non_potable_water_sensitivity_index, 0, 1)
+    })
   })
 })
