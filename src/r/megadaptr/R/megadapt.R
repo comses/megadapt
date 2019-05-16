@@ -4,7 +4,7 @@ create_study_data <- function(megadapt) {
   components <-
     list(
       climate_component,
-      flooding_component,
+      flooding_multicriteria_index_component,
       ponding_multicriteria_index_component,
       resident_component,
       sacmex_component,
@@ -148,12 +148,11 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
       join_columns = PK_JOIN)
   )
 
-  flooding_changes <- flooding_component$transition(
+  flooding_changes <- flooding_multicriteria_index_component$transition(
     study_data = apply_data_changes(
       study_data,
       climate_changes,
-      join_columns = PK_JOIN),
-    flooding_models = flooding_models
+      join_columns = PK_JOIN)
   )
 
   sacmex_changes <- sacmex_component$transition(
