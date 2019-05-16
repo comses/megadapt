@@ -7,6 +7,8 @@ library("rgdal")
 library("shiny")
 library("shiny.i18n")
 
+library("shinydashboard")
+
 
 model_cache_env <- new.env()
 source("bootstrap.R", model_cache_env)
@@ -23,42 +25,118 @@ translator$set_translation_language("en")
 municipalities <<- readOGR(dsn = "municipiosDFCenso3", layer = "municipiosDFCenso3")
 
 
-ui <- fluidPage(
-  responsive = FALSE,
-  titlePanel(" MEGADAPT MODEL"),
-  sidebarLayout(
-
-    sidebarPanel(
-      #width =6,
-
-      textOutput("choose_params"),
-
-
-      p(),
-
-      p(),
-
-      p(),
-
-      uiOutput("factor_chooser"),
-
-
-       p(),
-       selectInput('selected_language',
-                   "Language",
-                   choices = list("English" = "en", "Espanol" = "es"))
-      #             selected = input$selected_language),
-
-
-    ),
-    mainPanel(
-
-      leafletOutput("map", height =900, width = 800)
-
-    )
-  )
+header <- dashboardHeader(
+  title = "Megadapt Model"
 )
 
+body <- dashboardBody(
+
+  tabItems(
+    tabItem("results_tab",
+
+
+
+  fluidRow(
+    column(width = 7,
+            box(width = NULL, status = "warning",
+                uiOutput("factor_chooser")
+            ),
+           box(width = 910,height = 875, solidHeader = TRUE,
+               leafletOutput("map", height =870, width = 900)
+           ),
+            box(width = 100,
+                uiOutput("mapUI")
+            )
+    ),
+    column(width = 3,
+           box(width = NULL, status = "warning",
+               uiOutput("municSelector")
+           ),
+           box(width = 450, status = "warning",
+               uiOutput("plot_view")
+          #     selectInput('selected_language',
+           #                "Language",
+            #               choices = list("English" = "en", "Espanol" = "es"))
+           #     checkboxGroupInput("directions", "Show",
+           #                        choices = c(
+           #                          Northbound = 4,
+           #                          Southbound = 1,
+           #                          Eastbound = 2,
+           #                          Westbound = 3
+           #                        ),
+           #                        selected = c(1, 2, 3, 4)
+           #     ),
+           #     p(
+           #       class = "text-muted",
+           #       paste("Note: a route number can have several different trips, each",
+           #             "with a different path. Only the most commonly-used path will",
+           #             "be displayed on the map."
+           #       )
+           #     ),
+           #     actionButton("zoomButton", "Zoom to fit buses")
+            ),
+            box(width = NULL, status = "warning"
+           #     selectInput("interval", "Refresh interval",
+           #                 choices = c(
+           #                   "30 seconds" = 30,
+           #                   "1 minute" = 60,
+           #                   "2 minutes" = 120,
+           #                   "5 minutes" = 300,
+           #                   "10 minutes" = 600
+           #                 ),
+           #                 selected = "60"
+           #     ),
+           #     uiOutput("timeSinceLastUpdate"),
+           #     actionButton("refresh", "Refresh now"),
+           #     p(class = "text-muted",
+           #       br(),
+           #       "Source data updates every 30 seconds."
+           #     )
+            )
+   )
+  )
+    ))#,
+  # tabItems(
+  #   tabItem("info_tab",
+  #
+  #           paste("The agent-based model presented here simulates the decision-making processes of different socio-institutional and socio-political actors of Mexico City, and their actions and decisions to adapt to hydrological risk and vulnerabilities.
+  #                 The model is divided in three modules that together they incorporate a set of procedures to simulate the socio-hydrological vulnerability in a Megacity. These modules are: The socio-Institutional module, the risk module and the socio-political module. The three modules represent different actors and agents that interact internally and with other agents from the other modules.
+  #                 The socio-institutional module represents the decisions of socio-institutional agents to invest in infrastructure systems associated to water management. In this module, the decision-making procedures that simulate the decisions are built using multi-criteria decision techniques.
+  #                 The socio-political module represents the action of resident and other local stakeholder actors that can influence the decisions of socio-institutional actors.
+  #                 Finnaly, the risk module simulates events of exposure. Within the module, frequency-based models simulate the exposure. These models are parametrized based on empirical information that associate the frequency of the events to the condition of the infrastructure systems that are modify by the socio-institutional agents. Socio-political actors such a as resident suffer the exposure that modify their decision based on the level of exposure. The actions of the socio-political agents influence the condition and supply of infrastructure that then should modify the condition of the infrastructure and therefore the risk. The landscape is divided in spatial units, each of them, which confines a unit of risk where the frequency of events are accumulated, and the actions are implemented. Each spatial unit is represented by a set of attributes that represent the condition of the infrastructure systems and the population. Based on the values of the attributes,
+  #                 frequency based models simulate water scarcity, flooding and health hazard."
+  #           )
+  #           )
+  #   )
+
+)
+
+dash <- dashboardSidebar(
+  width = 425, collapsed = TRUE,
+
+  sidebarMenu(
+    # Setting id makes input$tabs give the tabName of currently-selected tab
+    id = "tabs",
+    menuItem("Map Viewer", tabName = "results_tab", icon = icon("dashboard")),
+    menuItem("More Information", icon = icon("th"), tabName = "info_tab")# , badgeLabel = "new", badgeColor = "green")
+
+    ),
+
+
+  #uiOutput("factor_chooser"),
+  paste("This application shows the results of the agent-based model of the MEGADAPT project (adaptation in a megacity). The MEGADAPT model simulates the coupling
+        between biophysical processes and the decisions of residents and the water authority of Mexico City.
+        The aim of the model is to investigate the consequences of this coupling for the spatial distribution of socio-hydrological vulnerability in Mexico City." ),
+  selectInput('selected_language',
+              "Language",
+              choices = list("English" = "en", "Espanol" = "es"))
+)
+
+ui <- dashboardPage(
+  header,
+  dash, #dashboardSidebar(disable = TRUE),
+  body
+)
 
 ####-SERVER-####
 
@@ -88,7 +166,7 @@ server <- function(input, output, session) {
   # Reactive expression for the data subsetted to what the user selected
   plotData <- reactive({
 
-    budgets.tested <<- cache[["index"]][["budget"]]
+    budgets.tested <- cache[["index"]][["budget"]]
 
     #Iterate through each Budget test and get the average value for the parameter selected
     values <- NULL
@@ -124,22 +202,29 @@ server <- function(input, output, session) {
   })
 
 
-  output$map_maker <- renderUI({
-    tagList(
-    leafletOutput("map", height =700, width = 700)
+  output$mapUI <- renderUI({
+    selectInput("select_budget", i18n()$t("Budget Scenarios"), choices = budgetList(),
+    width = 150
     )
   })
 
   output$factor_chooser<- renderUI({
 
     tagList(
-      selectInput("select_factor", i18n()$t("Simulation Factor"), choices = factorList()
-      ),
-      selectInput("select_municipality", i18n()$t("Municipality to Display"), choices = municipalityList()
-      ),
-      selectInput("select_budget", i18n()$t("Budget Scenarios"), choices = budgetList()
-      ),
-      plotOutput("plot")
+      selectInput("select_factor", i18n()$t("Simulation Factor"), choices = factorList(), width = 400
+      )
+      #selectInput("select_municipality", i18n()$t("Municipality to Display"), choices = municipalityList(), width = 400
+      #)
+      #plotOutput("plot", width = 400)
+    )
+  })
+
+  output$plot_view <- renderUI({
+    plotOutput("plot", width = 400)
+  })
+
+  output$municSelector <- renderUI({
+    selectInput("select_municipality", i18n()$t("Municipality to Display"), choices = municipalityList(), width = 200
     )
   })
 
@@ -178,9 +263,9 @@ server <- function(input, output, session) {
 
   factorName <- reactive({
 
-     if(length(input$select_factor) < 1){
-       name.of.factor = i18n()$t("Vulnerability of residents to potable water scarcity")
-     }
+    if(length(input$select_factor) < 1){
+      name.of.factor = i18n()$t("Vulnerability of residents to potable water scarcity")
+    }
     else{
       if (identical(input$select_factor, "potable_water_vulnerability_index")){name.of.factor = i18n()$t("Vulnerability indicator of residents to potable water scarcity")}
       if (identical(input$select_factor, "non_potable_water_vulnerability_index")){name.of.factor = i18n()$t("Vulnerability indicator of residents to flooding")}
@@ -264,14 +349,14 @@ server <- function(input, output, session) {
     all.values <- as.numeric(all.values)
     test = 1:20
     if(length(input$select_factor) < 1){
-    colorBin("YlOrRd", all.values, bins = 5)
+      colorBin("YlOrRd", all.values, bins = 5)
     }
     else{
-          if (input$select_municipality > 1) {
-             colorBin("YlOrRd", as.numeric(input$select_municipality), bins = 2)
-           }else{
-          colorBin("YlOrRd", all.values, bins = 17)
-          }
+      if (input$select_municipality > 1) {
+        colorBin("YlOrRd", as.numeric(input$select_municipality), bins = 2)
+      }else{
+        colorBin("YlOrRd", all.values, bins = 17)
+      }
     }
 
     #add a new column and return it
@@ -356,9 +441,10 @@ server <- function(input, output, session) {
                   fillColor = ~pal(values.4.fill )
                   #highlightOptions = highlightOptions(color = "white", weight = 2, bringToFront = TRUE)
       )%>%
-       addPolygons(data = municipalityData(), color = "#444444", weight = 4, smoothFactor = 1.0,
-                             opacity = 0.1, fillOpacity = 0.1, fillColor = ~pal( munic.values), #municipalityShapeColor()
-                             highlightOptions = highlightOptions(color = "white", weight = 2,bringToFront = FALSE))
+      addPolygons(data = municipalityData(), color = "#444444", weight = 4, smoothFactor = 1.0,
+                  opacity = 0.1, fillOpacity = 0.1, fillColor = ~pal( munic.values), #municipalityShapeColor()
+                  #popup = paste(municipalities@data[["ageb_id"]]),
+                  highlightOptions = highlightOptions(color = "white", weight = 2,bringToFront = FALSE))
 
 
 
