@@ -1,6 +1,6 @@
 update_ponding_index<-function(study_data){
 
- #q100
+ #non_potable_capacity
  #f_prec_v
  #f_esc
  #historic_ponding_freq VF: Logistica invertida
@@ -16,8 +16,8 @@ fv_f_prec_v<-sapply(
    xmin=10590.85,# [mm/km2]
   gama= 0.035)
 
-fv_q100<-sapply(
-  study_data$q100,
+fv_non_potable_capacity<-sapply(
+  study_data$non_potable_capacity,
   FUN= convexa_creciente,
   xmax= 2064.34,
   xmin= 0,
@@ -46,15 +46,15 @@ fv_historic_ponding_freq<-sapply(
 
   w_historic_ponding_freq=1/(study_data$runoff_bin+3)
   w_f_prec_v=1/(study_data$runoff_bin+3)
-  w_q100=1/(study_data$runoff_bin+3)
+  w_non_potable_capacity=1/(study_data$runoff_bin+3)
   w_f_esc=study_data$runoff_bin/(study_data$runoff_bin+3)
 
 
-rowSums(cbind(w_f_prec_v,w_q100,w_f_esc,w_historic_ponding_freq))
+rowSums(cbind(w_f_prec_v,w_non_potable_capacity,w_f_esc,w_historic_ponding_freq))
 
   encharca_index=(w_historic_ponding_freq*fv_historic_ponding_freq) +
                 (w_f_prec_v*fv_f_prec_v) +
-                (w_q100*fv_q100)+
+                (w_non_potable_capacity*fv_non_potable_capacity)+
                 (w_f_esc*fv_f_esc)
 
   tibble::tibble(
