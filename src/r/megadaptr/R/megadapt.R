@@ -4,10 +4,10 @@ create_study_data <- function(megadapt) {
   components <-
     list(
       climate_component,
+      sacmex_component,
       flooding_multicriteria_index_component,
       ponding_multicriteria_index_component,
       resident_component,
-      sacmex_component,
       water_scarcity_index_component
     )
 
@@ -210,7 +210,7 @@ translate_output_colnames <- function(df) {
     days_with_ponding = "prom_en",
     days_with_flooding = "inunda",
     stormwater_entrance_count = "rejillas",
-    non_potable_water_system_capacity = "q100",
+    non_potable_water_system_capacity = "non_potable_capacity",
     potable_percent_lacking = "falta_dist",
     non_potable_percent_lacking = "falta_dren",
     days_no_potable_water = "lambdas",
