@@ -80,7 +80,8 @@ runn <- function(megadapt, oMetricNames) {
 #' @param SAConditions sensivity analysis configuration object
 #' @param SAParams sensitivity analysis input parameter sample space
 #' @param oMetricNames outcomes variable name vector
-VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
+#' @param ABMats scaled sobol matrix for samples of the input space
+VBSA <- function(SAConditions, SAParams, oMetricNames, ABMats) {
   if (SAConditions$onCluster) {
     future::plan(future::multisession)
   } else {
