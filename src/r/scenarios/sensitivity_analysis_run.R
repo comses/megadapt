@@ -39,7 +39,7 @@ SAConditions <- list(
   )
 )
 
-runMod<-F
+runMod<-T
 
 # Input Parameters and their Names
 noParams <- 4 #number of parameters to take into account
