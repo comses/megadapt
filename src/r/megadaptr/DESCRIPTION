@@ -30,6 +30,7 @@ Imports:
     reshape2,
     rgdal,
     rlang,
+    readr,
     tibble,
     tidyr
 Encoding: UTF-8
