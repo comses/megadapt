@@ -93,18 +93,12 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
   k <- length(SAParams)
   noStats <- length(SAConditions$outStats)
   communities <- SAConditions$communities
-  #
-  # #Create matrix
-  # ABMats<-createLinearMatrices(maxN,k)
-
-  # #Names of matrices change according to N
-  # ABname<-paste("ABMats",as.character(maxN),".rds",sep="")
-  # #Assign files to A and B matrices and ABi array
-  # ABMats<-readRDS(paste("VBSAMatrices/",ABname,sep=""))
+  oMetricNames <- SAConditions$oMetricNames
 
 
-  #Create array of results: number of rows corresponds to number of model metrics, columns correspond to rows in ABMats (1<j<N), and 3rd dim corresponds to the matrices (1<i<k+2), where 1=A, 2=B, 3:end=ABi
-  # 2 dim now is 17 (number of mun + total), shifted the rest dims
+
+  #Create array of results: number of rows corresponds to number of outcome variables, columns correspond to rows in ABMats (1<j<N), and 3rd dim corresponds to the matrices (1<i<k+2), where 1=A, 2=B, 3:end=ABi
+
 
   if (runMod) {
     sample_number <- as.character(1:maxN)
@@ -120,7 +114,7 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
 
     if (SAConditions$whichmodel == "custom") {
       if (SAConditions$municip) {
-
+        # 2 dim now is 17 (number of mun + total), shifted the rest dims
         Yi <-
           array(dim = c(length(oMetricNames) * noStats,
                         length(communities),
@@ -183,8 +177,7 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
 
 
   #Calculate sensitivity indices
-  #rows<->parameters, columns<->N, third<->(output metrics)*2: first Si for all metrics, then STi for all metrics
-  #outdated
+  #rows<->parameters, columns<->N, third<->Si or STi, fourth <-> communities, fifth <-> outcome variables
   noStats <- length(SAConditions$outStats)
   param <- NULL
   for (i in 1:length(SAParams)) {
@@ -205,6 +198,7 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
                             "community" = communities,
                             "target_statistic" = dimnames(Y)[[4]]))
   } else {
+    #rows<->parameters, columns<->N, third<->Si or STi, fourth <-> outcome variables
     resultss <-
       array(dim = c(k, (exp.max - exp.min + 1), 2, length(oMetricNames)),
             dimnames = list("input_parameter" = param,
@@ -228,7 +222,7 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
       N <- 2 ^ i
       Sis <- apply(Y, c(3, 4), function(x)
         calc.Si(x, N, k))
-      print(Sis)
+      # print(Sis)
       STis <- apply(Y, c(3, 4), function(x)
         calc.STi(x, N, k))
       resultss[1:k, (i - exp.min + 1), 1, 1:length(communities), 1:length(dimnames(Y)[[4]])] <- Sis
@@ -238,7 +232,7 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
     for (i in exp.min:exp.max) {
       N <- 2 ^ i
       Sis <- apply(Y, c(3), function(x) calc.Si(x, N, k))
-      print(Sis)
+      # print(Sis)
       STis <- apply(Y, c(3), function(x) calc.STi(x, N, k))
       resultss[1:k, (i - exp.min + 1), 1, 1:length(oMetricNames)] <- Sis
       resultss[1:k, (i - exp.min + 1), 2, 1:length(oMetricNames)] <- STis
@@ -481,7 +475,7 @@ longFormThis <- function(outs, SA, SAConditions) {
   longSA <- reshape2::melt(SA)
   longSA <- dplyr::select(longSA, -sample_size)
 
-  apply_margin <- 3:length(dim(Y))
+  apply_margin <- 3:length(dim(outs))
 
   summaryOuts <- apply(outs, apply_margin, appl_summary_statistics)
 
