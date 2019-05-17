@@ -9,14 +9,17 @@ source('../scenarios/util.R')
 
 # SA Conditions
 SAConditions <- list(
-  simyears=5,
+  simyears=2,
   exp.min=1,
   exp.max=1,
   whichmodel="custom",
   onCluster=F,
   municip=F,
   noMunip=16,
-  outStats=c("mean","max","min")
+  outStats=c("mean","max","min"),
+  # Output metrics
+  # oMetricNames <- c("non_potable_percent_lacking","potable_water_system_intervention_count","potable_water_infrastructure_age","potable_water_vulnerability_index")
+  oMetricNames=c("potable_water_vulnerability_index","non_potable_water_vulnerability_index")
 )
 
 runMod<-T
@@ -61,8 +64,7 @@ SAParams <- list(
 SAParams <- SAParams[1:noParams]
 
 
-# Output metrics
-oMetricNames <- c("potable_water_vulnerability_index","non_potable_water_vulnerability_index")
+
 
 
 if (SAConditions$whichmodel=="book"){
@@ -86,7 +88,7 @@ if (SAConditions$whichmodel=="book"){
     )
   SAParams <- SAParams[1:noParams]
   # Output metrics
-  oMetricNames <- c("vulnerability_Ab")
+  SAConditions$oMetricNames <- c("vulnerability_Ab")
 
   SAConditions$municip=FALSE
 }
@@ -96,6 +98,8 @@ if (SAConditions$whichmodel=="book"){
 
 ABMats <- megadaptr:::createLinearMatrices(SAConditions,SAParams)
 
-resultsold <- megadaptr:::VBSA(SAConditions,SAParams,oMetricNames)
+resultsold <- megadaptr:::VBSA(SAConditions,SAParams,oMetricNames,ABMats)
+
+saveRDS(resultsold,"results")
 
 
