@@ -92,6 +92,7 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
   maxN <- 2 ^ exp.max
   k <- length(SAParams)
   noStats <- length(SAConditions$outStats)
+  communities <- SAConditions$communities
   #
   # #Create matrix
   # ABMats<-createLinearMatrices(maxN,k)
@@ -120,29 +121,9 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
     if (SAConditions$whichmodel == "custom") {
       if (SAConditions$municip) {
 
-        communities <- c(
-          "Azcapotzalco",
-          "Coyoacan",
-          "Cuajimalpa_de_Morelos",
-          "Gustavo_A_Madero",
-          "Iztacalco",
-          "Iztapalapa",
-          "La_Magdalena_Contreras",
-          "Milpa_Alta",
-          "Alvaro_Obregon",
-          "Tlahuac",
-          "Tlalpan",
-          "Xochimilco",
-          "Benito_Juarez",
-          "Cuauhtemoc",
-          "Miguel_Hidalgo",
-          "Venustiano_Carranza",
-          "Global"
-        )
-
         Yi <-
           array(dim = c(length(oMetricNames) * noStats,
-                        SAConditions$noMunip + 1,
+                        length(communities),
                         maxN,
                         (dim(ABMats)[3])),
                 dimnames = list(NULL,
@@ -172,7 +153,7 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
     if (SAConditions$municip) {
       Y <- array(unlist(Yi),
               dim = c(
-                SAConditions$noMunip + 1,
+                length(communities),
                 length(oMetricNames) * noStats,
                 maxN,
                 (dim(ABMats)[3])),
@@ -216,7 +197,7 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
       array(dim = c(k,
                     (exp.max - exp.min + 1),
                     2,
-                    (SAConditions$noMunip + 1),
+                    length(communities),
                     length(dimnames(Y)[[4]])),
             dimnames = list("input_parameter" = param,
                             "sample_size" = sample_size,
@@ -250,8 +231,8 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
       print(Sis)
       STis <- apply(Y, c(3, 4), function(x)
         calc.STi(x, N, k))
-      resultss[1:k, (i - exp.min + 1), 1, 1:(SAConditions$noMunip + 1), 1:length(dimnames(Y)[[4]])] <- Sis
-      resultss[1:k, (i - exp.min + 1), 2, 1:(SAConditions$noMunip + 1), 1:length(dimnames(Y)[[4]])] <- STis
+      resultss[1:k, (i - exp.min + 1), 1, 1:length(communities), 1:length(dimnames(Y)[[4]])] <- Sis
+      resultss[1:k, (i - exp.min + 1), 2, 1:length(communities), 1:length(dimnames(Y)[[4]])] <- STis
     }
   } else {
     for (i in exp.min:exp.max) {
@@ -506,8 +487,8 @@ longFormThis <- function(outs, SA, SAConditions) {
 
   if (SAConditions$municip) {
     dimnames(summaryOuts) <- list("outcome_name" = SAConditions$outStats,
-                                  "community" = outs$community,
-                                  "target_statistic" = outs$target_statistic)
+                                  "community" = dimnames(outs)$community,
+                                  "target_statistic" = dimnames(outs)$target_statistic)
   } else {
     dimnames(summaryOuts) <- list("outcome_name" = SAConditions$outStats,
                                   "target_statistic" = oMetricNames)

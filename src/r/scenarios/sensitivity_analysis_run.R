@@ -14,15 +14,32 @@ SAConditions <- list(
   exp.max=1,
   whichmodel="custom",
   onCluster=F,
-  municip=F,
-  noMunip=16,
+  municip=T,
   outStats=c("mean","max","min"),
-  # Output metrics
   # oMetricNames <- c("non_potable_percent_lacking","potable_water_system_intervention_count","potable_water_infrastructure_age","potable_water_vulnerability_index")
-  oMetricNames=c("potable_water_vulnerability_index","non_potable_water_vulnerability_index")
+  oMetricNames=c("potable_water_vulnerability_index","non_potable_water_vulnerability_index"),
+  communities = c(
+    "Azcapotzalco",
+    "Coyoacan",
+    "Cuajimalpa_de_Morelos",
+    "Gustavo_A_Madero",
+    "Iztacalco",
+    "Iztapalapa",
+    "La_Magdalena_Contreras",
+    "Milpa_Alta",
+    "Alvaro_Obregon",
+    "Tlahuac",
+    "Tlalpan",
+    "Xochimilco",
+    "Benito_Juarez",
+    "Cuauhtemoc",
+    "Miguel_Hidalgo",
+    "Venustiano_Carranza",
+    "Global"
+  )
 )
 
-runMod<-T
+runMod<-F
 
 # Input Parameters and their Names
 noParams <- 4 #number of parameters to take into account
