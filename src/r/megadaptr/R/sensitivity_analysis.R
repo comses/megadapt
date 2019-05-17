@@ -498,7 +498,7 @@ longFormThis <- function(outs, SA, SAConditions) {
 
   longOuts$input_parameter <- "All"
 
-  long <- dplyr::full_join(longSA, longOuts, by = c("input_parameter", "outcome_name", "target_statistic", "value"))
+  long <- dplyr::full_join(longSA, longOuts, by = colnames(longSA))
 
 
   return(long)
