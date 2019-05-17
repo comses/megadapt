@@ -177,9 +177,9 @@ describe('a megadapt model', {
   megadapt <- build_megadapt_model(
     data_root_dir = system.file("rawdata", package = 'megadaptr', mustWork = TRUE),
     mental_model_file_names = list(
-      potable_water_operator_limit = 'DF101215_GOV_AP_modificado_PNAS.limit.csv',
-      non_potable_water_operator_limit = 'SACMEX_Drenaje_limit_SESMO.csv',
-      overall_limit = 'I080316_OTR.limit.csv'
+      potable_water_operator_limit = 'potable_water_sacmex_limit.csv',
+      non_potable_water_operator_limit = 'sewer_water_sacmex_limit.csv',
+      overall_limit = 'resident_limit.csv'
     ),
     params = list(n_steps = 2)
   )
@@ -212,7 +212,8 @@ describe('a megadapt model', {
   })
 })
 
-desribe('a file mental model update strategy', {
+describe('a file mental model update strategy', {
+  skip('skipping until implemented')
   mental_model <- file_mental_model_strategy(path, function(year, study_data) year > 2020)
 
   it('should return the first limit matrix if year less than or equal to 2020', {
