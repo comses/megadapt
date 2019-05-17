@@ -49,23 +49,32 @@ create_mental_models <- function(mm_water_operator_d_lim,
 }
 
 read_cluster_matrix <- function(path) {
-  as.matrix(readr::read_csv(path)[, -1])
+  as.matrix(suppressWarnings(readr::read_csv(path)[,-1]))
 }
 
 read_unweighted_matrix <- function(path) {
-  df <- readr::read_tsv(path, skip = 2, col_names = FALSE)
+  df <- suppressWarnings(readr::read_csv(path, skip = 2, col_names = FALSE))
+  if (nrow(df) + 2 != ncol(df)) {
+    stop("Unweighted matrix csv must be square")
+  }
   names <- df[, c(1, 2)]
-  data <- as.matrix(df[, -c(1, 2)])
-  cluster_name_change_indices <- c(which(!is.na(names[,1])), nrow(names) + 1) - 1
+  data <- as.matrix(df[,-c(1, 2)])
+  cluster_name_change_indices <-
+    c(which(!is.na(names[, 1])), nrow(names) + 1) - 1
   cluster_sizes = (cluster_name_change_indices - lag(cluster_name_change_indices))[-1]
-  list(names = names, cluster_sizes = cluster_sizes, data = data)
+  list(names = names,
+       cluster_sizes = cluster_sizes,
+       data = data)
 }
 
-create_weighted_matrix <- function(unweighted_matrix, cluster_sizes, cluster) {
-  inds <- rep(seq(cluster_sizes), cluster_sizes)
-  weighted_element_size <- cluster[inds, inds] * unweighted_matrix
-  t(t(weighted_element_size) / apply(weighted_element_size, 2, sum))
-}
+create_weighted_matrix <-
+  function(unweighted_matrix,
+           cluster_sizes,
+           cluster) {
+    inds <- rep(seq(cluster_sizes), cluster_sizes)
+    weighted_element_size <- cluster[inds, inds] * unweighted_matrix
+    t(t(weighted_element_size) / apply(weighted_element_size, 2, sum))
+  }
 
 create_limit_matrix <- function(weighted_matrix, tolerance = 1e-5) {
   # calculates A^p (matrix multiplied p times with itself)
@@ -73,20 +82,31 @@ create_limit_matrix <- function(weighted_matrix, tolerance = 1e-5) {
   # output:  A^p
   ##add while loop using tolerance
   W_matrix_B = weighted_matrix
-  while(any(abs(W_matrix_B[,1]-W_matrix_B[,2])>tolerance)){
-    W_matrix_B = W_matrix_B%*%weighted_matrix
+  while (any(abs(W_matrix_B[, 1] - W_matrix_B[, 2]) > tolerance)) {
+    W_matrix_B = W_matrix_B %*% weighted_matrix
   }
   W_matrix_B
 }
 
-file_mental_model_strategy <- function(paths, file_set_picker) {
-  unweighted_matrices <- lapply(paths, function(path) {
-    readr::read_tsv(path, skip = 2, col_names = FALSE)[, -c(1, 2)]
-  })
+create_limit_matrix_from_unweighted_matrix_file <-
+  function(path, cluster, tolerance = 1e-8) {
+    unweighted_matrix_meta <- read_unweighted_matrix(path)
+    weighted_matrix <-
+      create_weighted_matrix(
+        unweighted_matrix = unweighted_matrix_meta$data,
+        cluster_sizes = unweighted_matrix_meta$cluster_sizes,
+        cluster = cluster
+      )
+    create_limit_matrix(weighted_matrix = weighted_matrix, tolerance = tolerance)
+  }
+
+file_mental_model_strategy <- function(paths, limit_matrix_picker, cluster) {
+  limit_matrices <-
+    lapply(paths, create_limit_matrix_from_unweighted_matrix_file, cluster = cluster)
 
   structure(
-    list(limit_matrices = unweighted_matrices,
-         file_set_picker = file_set_picker),
+    list(limit_matrices = limit_matrices,
+         limit_matrix_picker = limit_matrix_picker),
     class = c("file_mental_model", "list")
   )
 }
@@ -97,5 +117,5 @@ get_limit_matrix <- function(mental_model, year, study_area) {
 
 get_limit_matrix.file_mental_model <-
   function(mental_model, year, study_area) {
-    print('TODO')
+    mental_model$limit_matrices[[mental_model$limit_matrix_picker(year, study_area)]]
   }
