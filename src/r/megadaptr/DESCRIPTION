@@ -27,6 +27,7 @@ Imports:
     pscl,
     purrr,
     qrng,
+    reshape2,
     rgdal,
     rlang,
     tibble,
