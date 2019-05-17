@@ -211,3 +211,17 @@ describe('a megadapt model', {
     })
   })
 })
+
+desribe('a file mental model update strategy', {
+  mental_model <- file_mental_model_strategy(path, function(year, study_data) year > 2020)
+
+  it('should return the first limit matrix if year less than or equal to 2020', {
+    limit_matrix <- get_limit_matrix(mental_model, year, study_data)
+    expect(limit_matrix == mental_model$limit_matrices[1])
+  })
+
+  it('should return the first limit matrix if year greater than 2020', {
+    limit_matrix <- get_limit_matrix(mental_model, year, study_data)
+    expect(limit_matrix == mental_model$limit_matrices[2])
+  })
+})
