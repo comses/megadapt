@@ -24,7 +24,6 @@ translator$set_translation_language("en")
 #SHAPE FILES FOR MUNICIPALITIES
 municipalities <<- readOGR(dsn = "municipiosDFCenso3", layer = "municipiosDFCenso3")
 
-
 header <- dashboardHeader(
   title = "Megadapt Model"
 )
@@ -33,7 +32,6 @@ body <- dashboardBody(
 
   tabItems(
     tabItem("results_tab",
-
 
 
   fluidRow(
@@ -158,7 +156,7 @@ server <- function(input, output, session) {
     ggplot(data.for.plot, aes(x=data.for.plot[,1],y=data.for.plot[,2], group = 1))  +
       geom_line()+
       geom_point()+
-      labs(title= plot.title, x=i18n()$t("Budget Scenarios"), y = factorName()) +
+      labs(title= plot.title, x=i18n()$t("Budget scenarios"), y = factorName()) +
       scale_x_continuous(breaks = data.for.plot[,1], labels = label.values)
 
   })
@@ -428,8 +426,8 @@ server <- function(input, output, session) {
     else{
       values.4.fill =  studyArea_CVG.4.display@data[[input$select_factor]]
     }
-    m.df <- municipalityData()
-    munic.values = m.df@data[["colors"]]
+#    m.df <- municipalityData()
+    munic.values = municipalityData()@data[["colors"]]
 
     #leafletProxy("map", data = filteredData()) %>%
     leafletProxy("map") %>%
