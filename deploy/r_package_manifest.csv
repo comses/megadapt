@@ -11,9 +11,11 @@ ggplot2,NA
 knitr,NA
 leaflet,NA
 logging,NA
+lubridate,NA
 qrng,NA
 pscl,"1.5.2"
 purrr,NA
+readr,NA
 rgdal,NA
 rgeos,NA
 roxygen2,NA

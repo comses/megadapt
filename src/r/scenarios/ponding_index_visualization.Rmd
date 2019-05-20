@@ -1,0 +1,56 @@
+---
+title: "Ponding Index Visualization"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(leaflet)
+library(megadaptr)
+library(shiny)
+source('../scenarios/util.R')
+```
+
+## Ponding Index
+
+The ponding index is computed based on the capacity, runoff, precipitation and the average number of ponding event reports noted by residents in a year for that census block.
+
+```{r load_censusblocks, echo=FALSE}
+megadapt <- build_megadapt_model(data_root_dir = data_root_dir,
+                                 mental_model_file_names = mental_model_file_names)
+
+sliderInput("capacity", "Non potable infrastructure capacity", min = 0, max = 20, step = 1, value = 5)
+
+sliderInput("ponding", "Average number of ponding reports in a year", min = 0, max = 20, step = 1, value = 5)
+
+sliderInput("precipitation", "Precipiation Volume", min = 0, max = 20, step = 1, value = 5)
+
+sliderInput("runoff", "Runoff Volume", min = 0, max = 20, step = 1, value = 5)
+
+renderLeaflet({
+  weights <-
+    c(
+      capacity = input$capacity,
+      ponding = input$ponding,
+      precipitation = input$precipitation,
+      runoff = input$runoff
+    )
+  ponding_index <-
+    megadaptr:::update_ponding_index(study_data = megadapt$study_area@data, weights = weights)
+  data <-
+    megadaptr:::apply_data_changes(megadapt$study_area@data,
+                                   ponding_index,
+                                   megadaptr:::PK_JOIN)
+  megadapt$study_area@data <- data
+
+  pal <- colorNumeric(palette = "YlOrRd",
+                      domain = megadapt$study_area@data$encharca_index)
+
+  leaflet() %>%
+    addPolygons(data = megadapt$study_area,
+                weight = 1.0,
+                opacity = 1.0,
+                fillOpacity = 1.0,
+                fillColor = ~pal(megadapt$study_area@data$encharca_index))
+})
+```

@@ -4,10 +4,10 @@ create_study_data <- function(megadapt) {
   components <-
     list(
       climate_component,
+      sacmex_component,
       flooding_multicriteria_index_component,
       ponding_multicriteria_index_component,
       resident_component,
-      sacmex_component,
       water_scarcity_index_component
     )
 
@@ -19,7 +19,13 @@ create_study_data <- function(megadapt) {
     study_data <- do.call(component$initialize, args[arg_names])
   }
 
+  mental_model_args <- megadapt$mental_model_strategies
+  mental_model_args$year <- megadapt$params$start_year
+  mental_model_args$study_data <- study_data
+  mental_models <- do.call(create_mental_models, mental_model_args)
+
   megadapt$study_area@data <- study_data
+  megadapt$mental_models <- mental_models
   megadapt
 }
 
@@ -53,6 +59,7 @@ initial_state <- function(study_data) {
 #' infrastructure)
 #' @param half_sensitivity_ab sensitivity to fresh water access
 #' @param half_sensitivity_d sensitivity to ponding and flooding
+#' @param start_year the date of the start of the simulation
 #' @param climate_scenario the climate scenario id used to lookup the climate
 #' scenario
 #' @return a parameter list used to configure a megadapt model
@@ -64,6 +71,7 @@ create_params <-
            budget = 1200,
            half_sensitivity_ab = 10,
            half_sensitivity_d = 10,
+           start_year = lubridate::ymd('2019-01-01'),
            climate_scenario=1) {
     list(
       new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
@@ -73,12 +81,13 @@ create_params <-
       budget = budget,
       half_sensitivity_ab = half_sensitivity_ab,
       half_sensitivity_d = half_sensitivity_d,
+      start_year = start_year,
       climate_scenario = climate_scenario
     )
   }
 
 create_megadapt <- function(climate_scenario,
-                            mental_models,
+                            mental_model_strategies,
                             ponding_models,
                             flooding_models,
                             params,
@@ -86,7 +95,7 @@ create_megadapt <- function(climate_scenario,
                             value_function_config) {
   list(
     climate_scenario = climate_scenario,
-    mental_models = mental_models,
+    mental_model_strategies = mental_model_strategies,
     params = params,
     ponding_models = ponding_models,
     flooding_models = flooding_models,
@@ -177,14 +186,21 @@ update_year_megadapt <- function(megadapt, month_step_counts) {
     next_year_changes,
     join_columns = PK_JOIN
   )
+
+  mental_model_args <- megadapt$mental_model_strategies
+  mental_model_args$year <- month_step_counts$year[1]
+  mental_model_args$study_data <- study_data
+  mental_models <- do.call(create_mental_models, mental_model_args)
+
   megadapt$study_area@data <- next_year_study_data
+  megadapt$mental_models <- mental_models
 
   megadapt
 }
 
-create_time_info <- function(n_steps) {
-  ini_date <- seq.Date(from = as.Date("2019/1/1"),
-                       to = as.Date(sprintf("20%s/1/1", (19 + n_steps))),
+create_time_info <- function(start_year, n_steps) {
+  ini_date <- seq.Date(from = start_year,
+                       to = start_year + lubridate::dyears(n_steps),
                        by = "week")
   year_ts <- format(as.Date(ini_date), "%Y")
   year_change_indices <-
@@ -210,7 +226,7 @@ translate_output_colnames <- function(df) {
     days_with_ponding = "prom_en",
     days_with_flooding = "inunda",
     stormwater_entrance_count = "rejillas",
-    non_potable_water_system_capacity = "q100",
+    non_potable_water_system_capacity = "non_potable_capacity",
     potable_percent_lacking = "falta_dist",
     non_potable_percent_lacking = "falta_dren",
     days_no_potable_water = "lambdas",
@@ -234,7 +250,7 @@ translate_output_colnames <- function(df) {
 #' @param megadapt a megadapt model
 #' @return yearly time series of megadapt model run results
 simulate_megadapt <- function(megadapt) {
-  all_month_step_counts <- create_time_info(megadapt$params$n_steps)
+  all_month_step_counts <- create_time_info(megadapt$params$start_year, megadapt$params$n_steps)
   years <- sort(unique(all_month_step_counts$year))
   results <- initial_state(megadapt$study_area@data)
 
@@ -263,9 +279,9 @@ simulate_megadapt <- function(megadapt) {
 #'
 #' @export
 #' @param data_root_dir The base directory from where to locate all the data and configuration files
-#' @param mental_model_file_names File names for the analytic network process limit matrices
+#' @param mental_model_strategies Components that create limit vectors given a year and study dataset
 #' @param params Parameterization of the megadapt model created from \code{\link{create_params}}
-build_megadapt_model <- function(data_root_dir, mental_model_file_names, params = list()) {
+build_megadapt_model <- function(data_root_dir, mental_model_strategies, params = list()) {
   #
   # Param Setup
   #
@@ -331,46 +347,20 @@ build_megadapt_model <- function(data_root_dir, mental_model_file_names, params 
     )
 
   #
-  # Mental Model Setup
-  #
-  mm_water_operator_s_lim <-
-    data.frame(read.csv(
-      fs::path(data_root_dir, "mental_models", mental_model_file_names$potable_water_operator_limit),
-      skip = 1,
-      header = T
-    ))[,-c(1, 2, 21)]
-  mm_water_operator_d_lim <-
-    data.frame(read.csv(
-      fs::path(data_root_dir, "mental_models", mental_model_file_names$non_potable_water_operator_limit),
-      skip = 1,
-      header = T
-    ))[,-c(1, 2)]
-  mm_iz <-
-    data.frame(read.csv(
-      fs::path(data_root_dir, "mental_models", mental_model_file_names$overall_limit),
-      skip = 1,
-      header = T
-    ))[,-c(1, 2)]
-
-  mental_models <- create_mental_models(
-    mm_water_operator_d_lim = mm_water_operator_d_lim,
-    mm_water_operator_s_lim = mm_water_operator_s_lim,
-    mm_iz = mm_iz
-  )
-
-  #
   # Build Main Model
   #
   megadapt <- create_megadapt(
     climate_scenario = climate_scenario,
-    mental_models = mental_models,
+    mental_model_strategies = mental_model_strategies,
     params = params,
     ponding_models = ponding_models,
     flooding_models = flooding_models,
     study_area = study_area,
     value_function_config = value_function_config
   )
+
   megadapt <- create_study_data(megadapt)
+
   megadapt
 }
 

@@ -1,17 +1,19 @@
-determine_public_infrastructure_investment_suitability <- function(
-  study_data,
-  value_function_config,
-  mental_models) {
+determine_public_infrastructure_investment_suitability <- function(study_data,
+                                                                   value_function_config,
+                                                                   mental_models) {
   shortage_age <- value_function_config$shortage_age
   shortage_failures <- value_function_config$shortage_failures
-  hydraulic_pressure_failure <- value_function_config$hydraulic_pressure_failure
+  hydraulic_pressure_failure <-
+    value_function_config$hydraulic_pressure_failure
 
   ## Common
   # peticiones de delegaciones
-  vf_pet_del_d <- sapply(study_data$pet_del_d, FUN = Peticion_Delegaciones_vf)
+  vf_pet_del_d <-
+    sapply(study_data$pet_del_d, FUN = Peticion_Delegaciones_vf)
 
   # presion de medios
-  vf_pres_medios <- sapply(study_data$pres_med, FUN = pression_medios_vf)
+  vf_pres_medios <-
+    sapply(study_data$pres_med, FUN = pression_medios_vf)
   # flooding #cchange to flooding
   vf_flood <- sapply(study_data$inunda, FUN = ponding_vf)
 
@@ -64,7 +66,8 @@ determine_public_infrastructure_investment_suitability <- function(
   )
 
   # Water quality
-  vf_WQ <- sapply(study_data$cal_agua, FUN = water_quality_residents_vf)
+  vf_WQ <-
+    sapply(study_data$cal_agua, FUN = water_quality_residents_vf)
 
   # e)water scarcity
   #  vf_scarcity_sacmex <- sapply(study_data$days_wn_water_year, FUN = scarcity_sacmex_vf) # scarcity_annual is calculated dynamically
@@ -148,13 +151,13 @@ determine_public_infrastructure_investment_suitability <- function(
   # drainage capacity
   vf_Cap_D <-
     sapply(
-      study_data$q100,
+      study_data$non_potable_capacity,
       FUN = capacity_drainage_vf,
       sat = 1,
-      x_max = max(study_data$q100),
+      x_max = max(study_data$non_potable_capacity),
       x_min = 0
     )
-  #plot(study_data$q100,vf_Cap_D)
+  #plot(study_data$non_potable_capacity,vf_Cap_D)
   # falla D
   #vf_fall_D <- rep(1, length(study_data$falla_dist))
   vf_falla_dren <-
@@ -203,7 +206,8 @@ determine_public_infrastructure_investment_suitability <- function(
   )
   # calculate distance for each census block for action mantainance and build new infrastructure
   sacmcx_criteria_d <- as.vector(mental_models$sacmcx$criteria$d)
-  sacmcx_alternative_weights_d <- mental_models$sacmcx$alternative_weights$d
+  sacmcx_alternative_weights_d <-
+    mental_models$sacmcx$alternative_weights$d
 
   if (dim(all_C_D)[2] != length(sacmcx_criteria_d)) {
     stop(
@@ -242,14 +246,14 @@ determine_public_infrastructure_investment_suitability <- function(
     MARGIN = 2,
     sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
     FUN = ideal_distance,
-    z = sacmcx_alternative_weights_s[4] / sum(sacmcx_alternative_weights_s[c(4, 5)])
+    z = sacmcx_alternative_weights_s['Mantenimiento'] / sum(sacmcx_alternative_weights_s)
   ) # "Mantenimiento"
   distance_ideal_A2_Ab <- sweep(
     as.matrix(all_C_ab),
     MARGIN = 2,
     sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
     FUN = ideal_distance,
-    z = sacmcx_alternative_weights_s[5] / sum(sacmcx_alternative_weights_s[c(4, 5)])
+    z = sacmcx_alternative_weights_s['Nueva_infraestructura'] / sum(sacmcx_alternative_weights_s)
   ) # "Nueva_infraestructura"
 
   tibble::tibble(
@@ -262,18 +266,26 @@ determine_public_infrastructure_investment_suitability <- function(
 }
 #################################################################################################################################
 determine_public_infrastructure_work_plan_separate_budgets <-
-  function(site_suitability, potable_water_budget, non_potable_water_budget) {
+  function(site_suitability,
+           potable_water_budget,
+           non_potable_water_budget) {
     non_potable_water_site_suitability <- site_suitability %>%
-      dplyr::select(ageb_id, non_potable_maintenance, non_potable_new_infrastructure)
+      dplyr::select(ageb_id,
+                    non_potable_maintenance,
+                    non_potable_new_infrastructure)
     n_non_potable_water_census_blocks = min(non_potable_water_budget, nrow(site_suitability))
-    non_potable_infrastructure_plan <- determine_public_infrastructure_work_plan(non_potable_water_site_suitability, non_potable_water_budget)
+    non_potable_infrastructure_plan <-
+      determine_public_infrastructure_work_plan(non_potable_water_site_suitability,
+                                                non_potable_water_budget)
 
     potable_water_site_suitability <- site_suitability %>%
       dplyr::select(ageb_id, potable_maintenance, potable_new_infrastructure)
     n_potable_water_census_blocks = min(potable_water_budget, nrow(site_suitability))
-    potable_infrastructure_plan <- determine_public_infrastructure_work_plan(potable_water_site_suitability, potable_water_budget)
+    potable_infrastructure_plan <-
+      determine_public_infrastructure_work_plan(potable_water_site_suitability, potable_water_budget)
 
-    dplyr::bind_rows(non_potable_infrastructure_plan, potable_infrastructure_plan)
+    dplyr::bind_rows(non_potable_infrastructure_plan,
+                     potable_infrastructure_plan)
   }
 
 determine_public_infrastructure_work_plan <-
@@ -287,36 +299,45 @@ determine_public_infrastructure_work_plan <-
     ordered_best_choices <- site_suitability %>%
       dplyr::select(ageb_id) %>%
       dplyr::mutate(
-        choice_name = !! choice_name,
-        max_choice_value = !! max_choice_value
+        choice_name = !!choice_name,
+        max_choice_value = !!max_choice_value
       ) %>%
       dplyr::arrange(-max_choice_value)
 
-    ordered_best_choices[0:n_census_blocks,]
+    ordered_best_choices[0:n_census_blocks, ]
   }
 
-.site_selection_inds <- function(study_data, site_selection, choice_name) {
-  matching_ids <- site_selection$ageb_id[site_selection$choice_name == choice_name]
-  study_data$ageb_id %in% matching_ids
-}
+.site_selection_inds <-
+  function(study_data, site_selection, choice_name) {
+    matching_ids <-
+      site_selection$ageb_id[site_selection$choice_name == choice_name]
+    study_data$ageb_id %in% matching_ids
+  }
 
 make_public_infrastructure_investments <-
   function(study_data, site_selection, params) {
-    A1 <- .site_selection_inds(study_data, site_selection, "non_potable_maintenance")
-    A2 <- .site_selection_inds(study_data, site_selection, "non_potable_new_infrastructure")
-    A3 <- .site_selection_inds(study_data, site_selection, "potable_maintenance")
-    A4 <- .site_selection_inds(study_data, site_selection, "potable_new_infrastructure")
+    A1 <-
+      .site_selection_inds(study_data, site_selection, "non_potable_maintenance")
+    A2 <-
+      .site_selection_inds(study_data,
+                           site_selection,
+                           "non_potable_new_infrastructure")
+    A3 <-
+      .site_selection_inds(study_data, site_selection, "potable_maintenance")
+    A4 <-
+      .site_selection_inds(study_data, site_selection, "potable_new_infrastructure")
 
     # take actions sacmex
     # change value of atributes in agebs selected for action
     # action 1 mantainance D
-    #The effect of mantainance will not surpass the max. q100 for each ageb!!!
-        if (length(A1) > 0) {
-       #   browser()
+    #The effect of mantainance will not surpass the max. non_potable_capacity for each ageb!!!
+    if (length(A1) > 0) {
       study_data$antiguedad_dren[A1] <-
         study_data$antiguedad_dren[A1] - study_data$antiguedad_dren[A1] * params$maintenance_effectiveness_rate
-      study_data$q100[A1] <-
-        study_data$q100[A1] * (1 + params$maintenance_effectiveness_rate) # capasity of drainage increases with mantainance
+
+      study_data$non_potable_capacity[A1] <-pmin(
+        study_data$non_potable_capacity[A1] * (1 + params$maintenance_effectiveness_rate), # capasity of drainage increases with mantainance
+        study_data$q100)
       study_data$Interventions_D[A1] <-
         study_data$Interventions_D[A1] + 1
     }
@@ -325,8 +346,8 @@ make_public_infrastructure_investments <-
     if (length(A2) > 0) {
       study_data$falta_dren[A2] <-
         study_data$falta_dren[A2] - study_data$falta_dren[A2] * params$new_infrastructure_effectiveness_rate
-      study_data$q100[A2] <-
-        study_data$q100[A2] * (1 + params$new_infrastructure_effectiveness_rate) # capasity of drainage increases with new infrastructure
+      study_data$non_potable_capacity[A2] <-
+        study_data$non_potable_capacity[A2] * (1 + params$new_infrastructure_effectiveness_rate) # capasity of drainage increases with new infrastructure
 
       study_data$Interventions_D[A2] <-
         study_data$Interventions_D[A2] + 1
@@ -363,10 +384,12 @@ create_public_infrastructure_work_plan <-
         mental_models = mental_models
       )
 
-    work_plan <- determine_public_infrastructure_work_plan_separate_budgets(
-      site_suitability = suitability,
-      potable_water_budget = budget,
-      non_potable_water_budget = budget)
+    work_plan <-
+      determine_public_infrastructure_work_plan_separate_budgets(
+        site_suitability = suitability,
+        potable_water_budget = budget,
+        non_potable_water_budget = budget
+      )
 
     work_plan
   }
@@ -377,8 +400,8 @@ depreciate_public_infrastructure <-
     study_data$antiguedad_dist <- study_data$antiguedad_dist + 1
 
     # update_capacity of the system
-    study_data$q100 <-
-      study_data$q100 * (1 - infrastructure_decay_rate)
+    study_data$non_potable_capacity <-
+      study_data$non_potable_capacity * (1 - infrastructure_decay_rate)
     # update capacity index
     # FIDEL
     # The proportion of people without infrastructure increases proportionally to
@@ -415,7 +438,7 @@ update_public_infrastructure <-
         falta_dren,
         Interventions_Ab,
         Interventions_D,
-        q100,
+        non_potable_capacity,
         falta_dist
       )
   }
@@ -427,7 +450,8 @@ sacmex_component <- list(
         antiguedad_dren = antiguedad,
         antiguedad_dist = antiguedad,
         Interventions_Ab = 0,
-        Interventions_D = 0
+        Interventions_D = 0,
+        non_potable_capacity = q100
       )
   },
   transition = update_public_infrastructure

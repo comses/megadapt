@@ -24,7 +24,6 @@ translator$set_translation_language("en")
 #SHAPE FILES FOR MUNICIPALITIES
 municipalities <<- readOGR(dsn = "municipiosDFCenso3", layer = "municipiosDFCenso3")
 
-
 header <- dashboardHeader(
   title = "Megadapt Model"
 )
@@ -33,7 +32,6 @@ body <- dashboardBody(
 
   tabItems(
     tabItem("results_tab",
-
 
 
   fluidRow(
@@ -125,9 +123,9 @@ dash <- dashboardSidebar(
 
 
   #uiOutput("factor_chooser"),
-  paste("This application shows the results of the agent-based model of the MEGADAPT project (adaptation in a megacity). The MEGADAPT model simulates the coupling
+  paste("This application shows the results of the agent-based model of the MEGADAPT project (Adaptation in a Megacity). The MEGADAPT model simulates the coupling
         between biophysical processes and the decisions of residents and the water authority of Mexico City.
-        The aim of the model is to investigate the consequences of this coupling for the spatial distribution of socio-hydrological vulnerability in Mexico City." ),
+        The aim of the model is to investigate with stakeholders the consequences of this coupling for the spatial distribution of socio-hydrological vulnerability in Mexico City." ),
   selectInput('selected_language',
               "Language",
               choices = list("English" = "en", "Espanol" = "es"))
@@ -159,7 +157,7 @@ server <- function(input, output, session) {
     ggplot(data.for.plot, aes(x=data.for.plot[,1],y=data.for.plot[,2], group = 1))  +
       geom_line()+
       geom_point()+
-      labs(title= plot.title, x=i18n()$t("Budget Scenarios"), y = factorName()) +
+      labs(title= plot.title, x=i18n()$t("Budget scenarios"), y = factorName()) +
       scale_x_continuous(breaks = data.for.plot[,1], labels = label.values)
 
   })
@@ -203,12 +201,12 @@ server <- function(input, output, session) {
   })
 
   output$choose_params <- renderText({
-    i18n()$t("Choose from the Parameters Below to See Simulation Results")
+    i18n()$t("Choose from the parameters below to see simulation results")
   })
 
 
   output$mapUI <- renderUI({
-    selectInput("select_budget", i18n()$t("Budget Scenarios"), choices = budgetList(),
+    selectInput("select_budget", i18n()$t("Budget scenarios"), choices = budgetList(),
     width = 150
     )
   })
@@ -216,7 +214,7 @@ server <- function(input, output, session) {
   output$factor_chooser<- renderUI({
 
     tagList(
-      selectInput("select_factor", i18n()$t("Simulation Factor"), choices = factorList(), width = 400
+      selectInput("select_factor", i18n()$t("Indicator"), choices = factorList(), width = 400
       )
     )
   })
@@ -236,7 +234,7 @@ server <- function(input, output, session) {
 
   municipalityList <- reactive({
 
-    places = list(i18n()$t("All Municipalities"), "Azcapotzalco", "Coyoacán", "Cuajimalpa de Morelos", "Gustavo A. Madero", "Iztacalco",
+    places = list(i18n()$t("All municipalities"), "Azcapotzalco", "Coyoacán", "Cuajimalpa de Morelos", "Gustavo A. Madero", "Iztacalco",
                   "Iztapalapa","La Magdalena Contreras","Milpa Alta","Álvaro Obregón","Tláhuac","Tlalpan",
                   "Xochimilco","Benito Juárez","Cuauhtémoc","Miguel Hidalgo","Venustiano Carranza")
     listvalues = (1:17)
@@ -275,10 +273,10 @@ server <- function(input, output, session) {
     else{
       if (identical(input$select_factor, "potable_water_vulnerability_index")){name.of.factor = i18n()$t("Vulnerability indicator of residents to potable water scarcity")}
       if (identical(input$select_factor, "non_potable_water_vulnerability_index")){name.of.factor = i18n()$t("Vulnerability indicator of residents to flooding")}
-      if (identical(input$select_factor, "potable_water_system_intervention_count")){name.of.factor = i18n()$t("Number of Actions on Potable Water Infrastructure")}
-      if (identical(input$select_factor, "non_potable_water_system_intervention_count")){name.of.factor = i18n()$t("Number of Actions on Sewer and Drainage Infrastructure")}
+      if (identical(input$select_factor, "potable_water_system_intervention_count")){name.of.factor = i18n()$t("Number of actions on potable water infrastructure")}
+      if (identical(input$select_factor, "non_potable_water_system_intervention_count")){name.of.factor = i18n()$t("Number of actions on sewer and drainage infrastructure")}
       if (identical(input$select_factor,"potable_water_infrastructure_age")){name.of.factor = i18n()$t("Potable water infrastructure age")}
-      if (identical(input$select_factor, "non_potable_water_infrastructure_age")){name.of.factor = i18n()$t("Non Potable water infrastructure age")}
+      if (identical(input$select_factor, "non_potable_water_infrastructure_age")){name.of.factor = i18n()$t("Non potable water infrastructure age")}
       if (identical(input$select_factor,"days_no_potable_water")){name.of.factor = i18n()$t("Days without potable water")}
     }
     name.of.factor
@@ -287,8 +285,8 @@ server <- function(input, output, session) {
 
   factorList <- reactive({
 
-    factor.names = list(i18n()$t("Vulnerability indicator of residents to potable water scarcity"),i18n()$t("Vulnerability indicator of residents to flooding"),i18n()$t("Number of Actions on Potable Water Infrastructure"),
-                        i18n()$t("Number of Actions on Sewer and Drainage Infrastructure"),i18n()$t("Potable water infrastructure age") ,i18n()$t("Non Potable water infrastructure age"),i18n()$t("Days without potable water"))
+    factor.names = list(i18n()$t("Vulnerability indicator of residents to potable water scarcity"),i18n()$t("Vulnerability indicator of residents to flooding"),i18n()$t("Number of actions on potable water infrastructure"),
+                        i18n()$t("Number of actions on sewer and drainage infrastructure"),i18n()$t("Potable water infrastructure age") ,i18n()$t("Non Potable water infrastructure age"),i18n()$t("Days without potable water"))
     choices = list("potable_water_vulnerability_index","non_potable_water_vulnerability_index", "potable_water_system_intervention_count","non_potable_water_system_intervention_count",
                    "potable_water_infrastructure_age","non_potable_water_infrastructure_age", "days_no_potable_water")
 

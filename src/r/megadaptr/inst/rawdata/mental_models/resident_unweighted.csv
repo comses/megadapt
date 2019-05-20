@@ -1,0 +1,16 @@
+,,Acciones,,,,,,Criterios,,,,,,,Riesgos  socio-hidrológicos
+,,Accion colectiva,Captacion de agua,Compra de agua,Modificacion vivienda,Movilizaciones,Contaminacion de agua,Crecimiento urbano,Desperdicio de agua,Eficacia del servicio,Infraestructura insuficiente,Obstrucción de alcantarillado,Escasez de agua,Inundaciones,Salud
+Acciones,Accion colectiva,0,0,0,0,0,0,0,0,0,0,0,0.118123,0.333069,0
+,Captacion de agua,0,0,0,0,0,0,0,0,0,0,0,0.038317,0,0
+,Compra de agua,0,0,0,0,0,0,0,0,0,0,0,0.469567,0,1
+,Modificacion vivienda,0,0,0,0,0,0,0,0,0,0,0,0.168998,0.569541,0
+,Movilizaciones,0,0,0,0,0,0,0,0,0,0,0,0.204995,0.09739,0
+Criterios,Contaminacion de agua,0,0,0.75,0,0,0,0,0,0,0,0,0,0,0
+,Crecimiento urbano,0,0,0,0.069488,0,0,0,0,0,0,0,0,0,0
+,Desperdicio de agua,0,0,0,0,0.111111,0,0,0,0,0,0,0,0,0
+,Eficacia del servicio,0,1,0.25,0.348363,0.888889,0,0,0,0,0,0,0,0,0
+,Infraestructura insuficiente,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+,Obstrucción de alcantarillado,1,0,0,0.582149,0,0,1,0,0,0,0,0,0,0
+Riesgos  socio-hidrológicos,Escasez de agua,0,0,0,0,0,1,0.5,1,0.75,0,0,0,0,0
+,Inundaciones,0,0,0,0,0,0,0.5,0,0.25,1,1,0,0,0
+,Salud,0,0,0,0,0,0,0,0,0,0,0,1,1,0

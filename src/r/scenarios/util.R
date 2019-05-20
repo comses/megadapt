@@ -10,8 +10,12 @@ output_dir <- function(...) {
 
 data_root_dir <- data_dir()
 
-mental_model_file_names = list(
-  potable_water_operator_limit = 'DF101215_GOV_AP_modificado_PNAS.limit.csv',
-  non_potable_water_operator_limit = 'SACMEX_Drenaje_limit_SESMO.csv',
-  overall_limit = 'I080316_OTR.limit.csv'
+potable_water_cluster <- read_cluster_matrix('inst/rawdata/mental_models/potable_water_cluster_sacmex.csv')
+resident_cluster <- read_cluster_matrix('inst/rawdata/mental_models/resident_cluster.csv')
+
+mental_model_strategies = list(
+  potable_water_sacmex_limit_strategy = file_constant_mental_model_strategy('inst/rawdata/mental_models/potable_water_sacmex_unweighted_stage1.csv', cluster = potable_water_cluster),
+  sewer_water_sacmex_limit_strategy = file_constant_mental_model_strategy('inst/rawdata/mental_models/sewer_water_sacmex_unweighted_stage1.csv', cluster = NULL),
+  resident_limit_strategy = file_constant_mental_model_strategy('inst/rawdata/mental_models/resident_unweighted.csv', cluster = resident_cluster)
 )
+

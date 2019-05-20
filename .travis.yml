@@ -4,6 +4,8 @@ r:
 sudo: required
 latex: false
 pandoc: 1.19.2.1
+env:
+  R_INTEGRATION_TESTS="yes"
 notifications:
   email: comses-dev@googlegroups.com
 before_install:
