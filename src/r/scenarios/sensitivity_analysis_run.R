@@ -12,7 +12,7 @@ SAConditions <- list(
   simyears=2,
   exp.min=1,
   exp.max=2,
-  whichmodel="custom",
+  whichmodel="modelMetrics", # other options are: "toyFunction" and "bookEx"
   onCluster=F,
   municip=T,
   outStats=c("mean","max","min"),
