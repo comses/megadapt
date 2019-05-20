@@ -39,7 +39,8 @@ SAConditions <- list(
   )
 )
 
-runMod<-T
+
+runMod <- T
 
 # Input Parameters and their Names
 noParams <- 4 #number of parameters to take into account
@@ -49,31 +50,31 @@ SAParams <- list(
     name = "effectivity_newInfra",
     min = 0.01,
     max = 0.3,
-    isInteger=F
+    isInteger = F
   ),
   p2 = list(
     name = "effectivity_mantenimiento",
     min = 0.1,
     max = 0.3,
-    isInteger=F
+    isInteger = F
   ),
   p3 = list(
     name = "decay_infra",
     min = 0.001,
     max = 1,
-    isInteger=F
+    isInteger = F
   ),
   p4 = list(
     name = "Budget",
     min = 24,
     max = 2428,
-    isInteger=F
+    isInteger = F
   ),
   p5 = list(
     name = "climate_scenario",
     min = 1,
     max = 12,
-    isInteger=T
+    isInteger = T
   )
 )
 
@@ -84,39 +85,41 @@ SAParams <- SAParams[1:noParams]
 
 
 
-if (SAConditions$whichmodel=="book"){
+if (SAConditions$whichmodel == "book") {
   noParams <- 3 #number of parameters to take into account
   SAParams <- list(
     p1 = list(
       name = "effectivity_newInfra",
       min = 0,
       max = 1,
-      isInteger=F),
+      isInteger = F
+    ),
     p2 = list(
       name = "effectivity_mantenimiento",
       min = 0,
       max = 1,
-      isInteger=F),
+      isInteger = F
+    ),
     p3 = list(
       name = "decay_infra",
       min = 0,
       max = 1,
-      isInteger=F)
+      isInteger = F
     )
+  )
   SAParams <- SAParams[1:noParams]
   # Output metrics
   SAConditions$oMetricNames <- c("vulnerability_Ab")
 
-  SAConditions$municip=FALSE
+  SAConditions$municip = FALSE
 }
 
 ################################################################################################
 ################################################################################################
 
-ABMats <- megadaptr:::createLinearMatrices(SAConditions,SAParams)
+ABMats <- megadaptr:::createLinearMatrices(SAConditions, SAParams)
 
-resultsold <- megadaptr:::VBSA(SAConditions,SAParams,oMetricNames,ABMats)
+resultsold <-
+  megadaptr:::VBSA(SAConditions, SAParams, oMetricNames, ABMats)
 
-saveRDS(resultsold,"results")
-
-
+saveRDS(resultsold, "results")

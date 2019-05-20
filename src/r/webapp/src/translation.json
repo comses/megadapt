@@ -3,16 +3,16 @@
   "languages": ["en", "es"],
   "translation": [
       {
-        "en": "Simulation Factor",
-        "es": "Factor de Simulación"
+        "en": "Indicator",
+        "es": "Indicador"
       },
       {
-        "en": "Choose from the Parameters Below to See Simulation Results",
+        "en": "Choose from the parameters below to see simulation results",
         "es": "Elija entre los siguientes parámetros para ver los resultados de la simulación"
       },
       {
-        "en": "Budget Scenarios",
-        "es": "Escenarios de Presupuesto"
+        "en": "Budget scenarios",
+        "es": "Escenarios de presupuesto"
       },
       {
         "en": "Vulnerability indicator of residents to potable water scarcity",
@@ -23,11 +23,11 @@
         "es": "Indicador de vulnerabilidad de residentes a inundaciones"
       },
             {
-        "en": "Number of Actions on Potable Water Infrastructure",
-        "es": "Número de acciones en infraestructura de agua potable"
+        "en": "Number of actions on potable water infrastructure",
+        "es": "Número de acciones en la infraestructura de agua potable"
       },
       {
-        "en": "Number of Actions on Sewer and Drainage Infrastructure",
+        "en": "Number of actions on sewer and drainage infrastructure",
         "es": "Número de acciones en la infraestructura de alcantarillado y drenaje"
       },
       {
@@ -43,16 +43,16 @@
         "es": "Días sin agua potable"
       },
       {
-        "en": "Municipality to Display",
-        "es": "Municipio para Mostrar"
+        "en": "Municipality",
+        "es": "Delegacion "
       },
       {
         "en": "Budget",
         "es": "Presupuesto"
       },
       {
-        "en": "All Municipalities",
-        "es": "Todos los municipios"
+        "en": "All municipalities",
+        "es": "Todos las delegaciones"
       }
 
     ]

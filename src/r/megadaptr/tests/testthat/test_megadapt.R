@@ -177,9 +177,9 @@ describe('a megadapt model', {
   megadapt <- build_megadapt_model(
     data_root_dir = system.file("rawdata", package = 'megadaptr', mustWork = TRUE),
     mental_model_file_names = list(
-      potable_water_operator_limit = 'DF101215_GOV_AP_modificado_PNAS.limit.csv',
-      non_potable_water_operator_limit = 'SACMEX_Drenaje_limit_SESMO.csv',
-      overall_limit = 'I080316_OTR.limit.csv'
+      potable_water_operator_limit = 'potable_water_sacmex_limit.csv',
+      non_potable_water_operator_limit = 'sewer_water_sacmex_limit.csv',
+      overall_limit = 'resident_limit.csv'
     ),
     params = list(n_steps = 2)
   )
@@ -209,5 +209,28 @@ describe('a megadapt model', {
       expect_between(results$potable_water_sensitivity_index, 0, 1)
       expect_between(results$non_potable_water_sensitivity_index, 0, 1)
     })
+  })
+})
+
+describe('a file mental model update strategy', {
+  paths <- c(system.file("rawdata/mental_models/potable_water_sacmex_unweighted_stage1.csv", package = 'megadaptr', mustWork = TRUE),
+             system.file("rawdata/mental_models/potable_water_sacmex_unweighted_stage2.csv", package = 'megadaptr', mustWork = TRUE))
+  cluster <- read_cluster_matrix(system.file('rawdata/mental_models/potable_water_cluster_sacmex.csv', package = 'megadaptr', mustWork = TRUE))
+  mental_model <- file_mental_model_strategy(paths = paths, cluster = cluster, limit_matrix_picker = function(year, study_data) {
+    if (year <= 2020) {
+      return(1)
+    } else {
+      return(2)
+    }
+    })
+
+  it('should return the first limit matrix if year less than or equal to 2020', {
+    limit_matrix <- get_limit_matrix(mental_model, 1990, NULL)
+    expect(all(limit_matrix == mental_model$limit_matrices[[1]]), "Picked wrong limit matrix")
+  })
+
+  it('should return the first limit matrix if year greater than 2020', {
+    limit_matrix <- get_limit_matrix(mental_model, 2021, NULL)
+    expect(all(limit_matrix == mental_model$limit_matrices[[2]]), "Picked wrong limit matrix")
   })
 })

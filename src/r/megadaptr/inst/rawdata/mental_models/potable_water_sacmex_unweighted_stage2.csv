@@ -1,0 +1,20 @@
+,,Alternatives,,,,,,Infraestructura,,,,,,Presupuesto,,Riesgos_población,,,,Socio-institucional
+,,Distribución_agua,Extracción_agua,Importación_agua,Mantenimiento,Nueva_infraestructura,Antiguedad,Capacidad,Falla,Falta,Presión_hidráulica,Monto $,Calidad_agua,Escasez de agua,Inundaciones,Abastecimiento,Petición de Delegaciones,Presión de medios,Presión social
+Alternatives,Distribución_agua,0,0,0,0,0,0,0,0,0,0.215281,0.270541,0,0.148235,0,0.291289,0.296813,0,0.439528
+,Extracción_agua,0,0,0,0,0,0,0,0,0,0.213746,0.369666,0,0.343536,0,0.138279,0.223215,0,0.153517
+,Importación_agua,0,0,0,0,0,0,0,0,0,0.073895,0.186725,0,0.0817,0,0.071465,0.042584,0,0
+,Mantenimiento,0,0,0,0,0,0,0,0,0,0.401947,0.108139,0,0.310847,0,0.376729,0.313222,0.831461,0.286508
+,Nueva_infraestructura,0,0,0,0,0,0,0,0,0,0.095131,0.064929,0,0.115682,0,0.122238,0.124166,0.168539,0.120446
+Infraestructura,Antiguedad,0,0,0,0.754098,0,0,0,0,0,0,0.551407,0.83146,0.160893,0,0,0,0,0
+,Capacidad,0,0,0,0,0,0,0,0,0,0,0.0823,0,0,0,0,0,0,0
+,Falla,0,0,0,0.245902,0,0,0,0,0,0,0.366292,0.16854,0.488463,1,0,0,0,0
+,Falta,0,0,0,0,1,0,0,0,0,0,0,0,0.22032,0,0,0,0,0
+,Presión_hidráulica,1,1,1,0,0,0,0,1,0,0,0,0,0.130324,0,0,0,0,0
+Presupuesto,Monto $,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1
+Riesgos_población,Calidad_agua,0,0,0,0,0,1,0,0.101124,0,0,0,0,0,0,0,0,0,0
+,Escasez de agua,0,0,0,0,0,0,1,0.898876,1,1,0,0,0,0,0,0,0,0
+,Inundaciones,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+Socio-institucional,Abastecimiento,0,0,0,0,0,0,0,0,0,0,0,0,0.8,0,0,0,0,0
+,Petición de Delegaciones,0,0,0,0,0,0,0,0,0,0,0,0,0.1,0,1,0,0,0
+,Presión de medios,0,0,0,0,0,0,0,0,0,0,0,0,0.05,0,0,0,0,0
+,Presión social,0,0,0,0,0,0,0,0,0,0,0,1,0.05,0,0,0,0,0
