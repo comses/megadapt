@@ -11,13 +11,13 @@ source('../scenarios/util.R')
 SAConditions <- list(
   simyears=2,
   exp.min=1,
-  exp.max=1,
+  exp.max=2,
   whichmodel="custom",
   onCluster=F,
   municip=T,
   outStats=c("mean","max","min"),
-  # oMetricNames <- c("non_potable_percent_lacking","potable_water_system_intervention_count","potable_water_infrastructure_age","potable_water_vulnerability_index")
-  oMetricNames=c("potable_water_vulnerability_index","non_potable_water_vulnerability_index"),
+  oMetricNames = c("non_potable_percent_lacking","potable_water_system_intervention_count","potable_water_infrastructure_age","potable_water_vulnerability_index","non_potable_water_vulnerability_index"),
+  # oMetricNames=c("potable_water_vulnerability_index","non_potable_water_vulnerability_index"),
   communities = c(
     "Azcapotzalco",
     "Coyoacan",
@@ -39,7 +39,7 @@ SAConditions <- list(
   )
 )
 
-runMod<-F
+runMod<-T
 
 # Input Parameters and their Names
 noParams <- 4 #number of parameters to take into account

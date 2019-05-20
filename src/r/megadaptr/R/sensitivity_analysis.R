@@ -183,7 +183,7 @@ VBSA <- function(SAConditions, SAParams, oMetricNames,ABMats) {
   for (i in 1:length(SAParams)) {
     param[i] <- SAParams[[i]]$name
   }
-  sample_size <- as.character(seq(2,maxN,2))
+  sample_size <- as.character(1:exp.max)
 
   if (SAConditions$municip) {
     resultss <-
@@ -284,7 +284,7 @@ modelMetrics <- function(x, megadapt, SAConditions, oMetricNames) {
     metrics <- dplyr::group_by(Vlast, Mun) %>% dplyr::summarise_at(oMetricNames, dplyr::funs(mean,max,min), na.rm=TRUE) %>%
       dplyr::select(-Mun) %>% dplyr::ungroup()
     total<-dplyr::summarise_at(Vlast, oMetricNames, dplyr::funs(mean,max,min), na.rm=TRUE)
-    metrics<-dplyr::full_join(metrics, total)
+    metrics<-rbind(metrics,total)
 
   } else {
     Vlast <- subset(results, time_sim == lastT, select = oMetricNames)
@@ -492,7 +492,7 @@ longFormThis <- function(outs, SA, SAConditions) {
 
   longOuts$input_parameter <- "All"
 
-  long <- dplyr::full_join(longSA, longOuts, by = colnames(longSA))
+  long <- rbind(longSA, longOuts)
 
 
   return(long)
