@@ -97,8 +97,6 @@ create_megadapt <- function(climate_scenario,
     climate_scenario = climate_scenario,
     mental_model_strategies = mental_model_strategies,
     params = params,
-    ponding_models = ponding_models,
-    flooding_models = flooding_models,
     study_area = study_area,
     value_function_config = value_function_config
   )
@@ -288,16 +286,6 @@ build_megadapt_model <- function(data_root_dir, mental_model_strategies, params 
   params <- do.call(create_params, params)
 
   #
-  # Ponding Model Setup
-  #
-  ponding_models <- load_ponding_models(data_root_dir)
-
-  #
-  # Flooding Model Setup
-  #
-  flooding_models <- load_flooding_models(data_root_dir)
-
-  #
   # Climate Scenario Setup
   #
   climate_scenario_index = as.data.frame(read.csv(fs::path(data_root_dir, "climate_landuse_scenarios", "index.csv"), header = T))
@@ -353,8 +341,6 @@ build_megadapt_model <- function(data_root_dir, mental_model_strategies, params 
     climate_scenario = climate_scenario,
     mental_model_strategies = mental_model_strategies,
     params = params,
-    ponding_models = ponding_models,
-    flooding_models = flooding_models,
     study_area = study_area,
     value_function_config = value_function_config
   )
