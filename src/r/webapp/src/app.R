@@ -254,44 +254,24 @@ server <- function(input, output, session) {
       colorBin("YlOrRd", studyArea_CVG.4.display@data[[input$select_factor]] , bins = 7)
     }
 
-
-
-
   })
 
-  municipalityShapeColor <- reactive({
-    all.values <- municipalities@data[["mun_num"]]
-    all.values <- as.numeric(all.values)
-    test = 1:20
+  colorpal2 <- reactive({
+    #Use one parameter for the color
+    #colorNumeric("YlOrRd", studyArea_CVG.4.display@data[[input$select_factor]] )
     if(length(input$select_factor) < 1){
-    colorBin("YlOrRd", all.values, bins = 5)
+      colorBin("Blues", studyArea_CVG.4.display@data[["potable_water_vulnerability_index"]], bins = 7)
     }
     else{
-          if (input$select_municipality > 1) {
-             colorBin("YlOrRd", as.numeric(input$select_municipality), bins = 2)
-           }else{
-          colorBin("YlOrRd", all.values, bins = 17)
-          }
+      colorBin("Blues", studyArea_CVG.4.display@data[[input$select_factor]] , bins = 7)
     }
 
-    #add a new column and return it
-
-
-
-    # mypalette = colorNumeric( palette="viridis", domain=municipalities@data$mun_num, na.color="transparent")
-    # if (input$select_municipality > 1) {
-    #   mypalette = colorNumeric( palette="viridis", domain=input$select_municipality, na.color="transparent")
-    # }
-    # mypalette
-
-
   })
+
 
   municipalityData <- reactive({
     value = 14 #input$select_municipality
     m.df = municipalities
-
-
     spot <- which((m.df@data[["mun_num"]]) == value)
     m.df@data[,"color"] <- NA
     m.df@data[spot,"color"] <- value
@@ -337,6 +317,7 @@ server <- function(input, output, session) {
   # should be managed in its own observer.
   observe({
     pal <- colorpal()
+    pal2 <- colorpal2()
     if(length(input$select_factor) < 1){
       values.4.fill = studyArea_CVG.4.display@data[["potable_water_vulnerability_index"]]
     }
@@ -344,21 +325,22 @@ server <- function(input, output, session) {
       values.4.fill =  studyArea_CVG.4.display@data[[input$select_factor]]
     }
     m.df <- municipalityData()
-    munic.values = m.df@data[["colors"]]
+    munic.values <- m.df@data[["color"]]
 
     #leafletProxy("map", data = filteredData()) %>%
     leafletProxy("map") %>%
       clearShapes() %>%
+      addPolygons(data = municipalityData(), color = "#444444", weight = 1, smoothFactor = 1.0,
+                  opacity = 0.1, fillOpacity = 0.1, fillColor = ~pal2( munic.values), #municipalityShapeColor()
+                  highlightOptions = highlightOptions(color = "white", weight = 2,bringToFront = FALSE))%>%
       addPolygons(data = filteredData(), color = "#444444", weight = 1, smoothFactor = 1.0,
                   opacity = 1.0, fillOpacity = 1.0,
                   #label = studyArea_CVG.4.display@data[["ageb_id"]],
                   #popup = paste(studyArea_CVG.4.display@data[["ageb_id"]]),
                   fillColor = ~pal(values.4.fill )
                   #highlightOptions = highlightOptions(color = "white", weight = 2, bringToFront = TRUE)
-      )%>%
-       addPolygons(data = municipalityData(), color = "#444444", weight = 4, smoothFactor = 1.0,
-                             opacity = 0.1, fillOpacity = 0.1, fillColor = ~pal( munic.values), #municipalityShapeColor()
-                             highlightOptions = highlightOptions(color = "white", weight = 2,bringToFront = FALSE))
+      )
+
 
 
 
