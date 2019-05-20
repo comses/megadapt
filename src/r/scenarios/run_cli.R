@@ -18,6 +18,9 @@ parser$add_argument("--half_sensitivity_d",
 										type="double", required=T, help="?")
 parser$add_argument("--half_sensitivity_ab",
 										type="double", required=T, help="?")
+parser$add_argument("--rep",
+										type="integer", required=T, help="?")
+
 
 args <- parser$parse_args()
 
@@ -38,7 +41,7 @@ library(magrittr)
 
 megadapt <- build_megadapt_model(
   data_root_dir = data_root_dir,
-  mental_model_file_names = mental_model_file_names,
+  mental_model_strategies=mental_model_strategies,
   params = create_params(
     new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
     maintenance_effectiveness_rate = maintenance_effectiveness_rate,
@@ -51,14 +54,15 @@ megadapt <- build_megadapt_model(
 
 results <- simulate_megadapt(megadapt)
 
-sim_id_output=sprintf("sim_%s_%s_%s_%s_%s_%s_%s.rds",
+sim_id_output=sprintf("sim_%s_%s_%s_%s_%s_%s_%s_%s.rds",
 		      new_infrastructure_effectiveness_rate,
 		      maintenance_effectiveness_rate,
 		      n_steps,
 		      infrastructure_decay_rate,
 		      budget,
 		      half_sensitivity_ab,
-		      half_sensitivity_d)
+		      half_sensitivity_d,
+		      repetition)
 
 saveRDS(object=results,
 	file = output_dir(sim_id_output))
