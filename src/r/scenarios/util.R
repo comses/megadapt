@@ -5,7 +5,7 @@ data_dir <- function(...) {
 }
 
 output_dir <- function(...) {
-  fs::path('../../../../../output/', ...)
+  fs::path('../../../output/', ...)
 }
 
 data_root_dir <- data_dir()
