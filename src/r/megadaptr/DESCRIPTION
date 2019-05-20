@@ -23,6 +23,7 @@ Imports:
     glue,
     gbm,
     htmltools,
+    lubridate,
     magrittr,
     pscl,
     purrr,

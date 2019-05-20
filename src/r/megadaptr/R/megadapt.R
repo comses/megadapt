@@ -59,6 +59,7 @@ initial_state <- function(study_data) {
 #' infrastructure)
 #' @param half_sensitivity_ab sensitivity to fresh water access
 #' @param half_sensitivity_d sensitivity to ponding and flooding
+#' @param start_year the date of the start of the simulation
 #' @param climate_scenario the climate scenario id used to lookup the climate
 #' scenario
 #' @return a parameter list used to configure a megadapt model
@@ -278,7 +279,7 @@ simulate_megadapt <- function(megadapt) {
 #'
 #' @export
 #' @param data_root_dir The base directory from where to locate all the data and configuration files
-#' @param mental_model_file_names File names for the analytic network process limit matrices
+#' @param mental_model_strategies Components that create limit vectors given a year and study dataset
 #' @param params Parameterization of the megadapt model created from \code{\link{create_params}}
 build_megadapt_model <- function(data_root_dir, mental_model_strategies, params = list()) {
   #
