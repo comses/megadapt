@@ -246,14 +246,14 @@ determine_public_infrastructure_investment_suitability <- function(study_data,
     MARGIN = 2,
     sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
     FUN = ideal_distance,
-    z = sacmcx_alternative_weights_s[4] / sum(sacmcx_alternative_weights_s[c(4, 5)])
+    z = sacmcx_alternative_weights_s['Mantenimiento'] / sum(sacmcx_alternative_weights_s)
   ) # "Mantenimiento"
   distance_ideal_A2_Ab <- sweep(
     as.matrix(all_C_ab),
     MARGIN = 2,
     sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
     FUN = ideal_distance,
-    z = sacmcx_alternative_weights_s[5] / sum(sacmcx_alternative_weights_s[c(4, 5)])
+    z = sacmcx_alternative_weights_s['Nueva_infraestructura'] / sum(sacmcx_alternative_weights_s)
   ) # "Nueva_infraestructura"
 
   tibble::tibble(
@@ -332,7 +332,6 @@ make_public_infrastructure_investments <-
     # action 1 mantainance D
     #The effect of mantainance will not surpass the max. non_potable_capacity for each ageb!!!
     if (length(A1) > 0) {
-      #   browser()
       study_data$antiguedad_dren[A1] <-
         study_data$antiguedad_dren[A1] - study_data$antiguedad_dren[A1] * params$maintenance_effectiveness_rate
 

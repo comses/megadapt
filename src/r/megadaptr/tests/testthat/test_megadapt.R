@@ -216,7 +216,7 @@ describe('a file mental model update strategy', {
   paths <- c(system.file("rawdata/mental_models/potable_water_sacmex_unweighted_stage1.csv", package = 'megadaptr', mustWork = TRUE),
              system.file("rawdata/mental_models/potable_water_sacmex_unweighted_stage2.csv", package = 'megadaptr', mustWork = TRUE))
   cluster <- read_cluster_matrix(system.file('rawdata/mental_models/potable_water_cluster_sacmex.csv', package = 'megadaptr', mustWork = TRUE))
-  mental_model <- file_mental_model_strategy(paths = paths, cluster = cluster, limit_matrix_picker = function(year, study_data) {
+  mental_model <- file_mental_model_strategy(paths = paths, cluster = cluster, limit_df_picker = function(year, study_data) {
     if (year <= 2020) {
       return(1)
     } else {
@@ -224,13 +224,29 @@ describe('a file mental model update strategy', {
     }
     })
 
-  it('should return the first limit matrix if year less than or equal to 2020', {
-    limit_matrix <- get_limit_matrix(mental_model, 1990, NULL)
-    expect(all(limit_matrix == mental_model$limit_matrices[[1]]), "Picked wrong limit matrix")
+  it('should return the first limit df if year less than or equal to 2020', {
+    limit_df <- get_limit_df(mental_model, 1990, NULL)
+    expect(all(limit_df == mental_model$limit_dfs[[1]]), "Picked wrong limit matrix")
   })
 
-  it('should return the first limit matrix if year greater than 2020', {
-    limit_matrix <- get_limit_matrix(mental_model, 2021, NULL)
-    expect(all(limit_matrix == mental_model$limit_matrices[[2]]), "Picked wrong limit matrix")
+  it('should return the first limit df if year greater than 2020', {
+    limit_df <- get_limit_df(mental_model, 2021, NULL)
+    expect(all(limit_df == mental_model$limit_dfs[[2]]), "Picked wrong limit matrix")
+  })
+})
+
+describe('a file mental model update strategy', {
+  path <- system.file("rawdata/mental_models/potable_water_sacmex_unweighted_stage1.csv", package = 'megadaptr', mustWork = TRUE)
+  cluster <- read_cluster_matrix(system.file('rawdata/mental_models/potable_water_cluster_sacmex.csv', package = 'megadaptr', mustWork = TRUE))
+  mental_model <- file_constant_mental_model_strategy(path = path, cluster = cluster)
+
+  it('should return the only limit df if year less than or equal to 2020', {
+    limit_df <- get_limit_df(mental_model, 1990, NULL)
+    expect(all(limit_df == mental_model$limit_df), "Picked wrong limit matrix")
+  })
+
+  it('should return the only limit df if year greater than 2020', {
+    limit_df <- get_limit_df(mental_model, 2021, NULL)
+    expect(all(limit_df == mental_model$limit_df), "Picked wrong limit matrix")
   })
 })

@@ -8,7 +8,7 @@ source('../scenarios/util.R')
 cache_path <- "../scenarios/budget_experiment_cross_section"
 megadapt <- build_megadapt_model(
   data_root_dir = data_root_dir,
-  mental_model_file_names = mental_model_file_names
+  mental_model_strategies =  mental_model_strategies
 )
 if (fs::dir_exists(cache_path)) {
   cache <- load_scenario_cache(cache_path)
