@@ -32,7 +32,7 @@ update_ponding_index <-
       FUN = convexa_creciente,
       xmax = 2064.34,
       xmin = 0,
-      gama = 0.01975
+      gama = 0.197
     )
 
 
@@ -63,7 +63,7 @@ update_ponding_index <-
     w_non_potable_capacity = weights['capacity']
     w_f_esc = weights['runoff']
 
-    encharca_index = (w_historic_ponding_freq * fv_historic_ponding_freq) +
+    encharca_index = 1 - (w_historic_ponding_freq * fv_historic_ponding_freq) +
       (w_f_prec_v * fv_f_prec_v) +
       (w_non_potable_capacity * fv_non_potable_capacity) +
       (w_f_esc * fv_f_esc)
