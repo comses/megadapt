@@ -205,7 +205,7 @@ create_constant_mental_model_strategies <- function() {
   potable_water_cluster <-
     read_cluster_matrix(mm_file_path('potable_water_cluster_sacmex.csv'))
   resident_cluster <-
-    read_cluster_matrix(mm_file_path('inst/rawdata/mental_models/resident_cluster.csv'))
+    read_cluster_matrix(mm_file_path('resident_cluster.csv'))
 
   mental_model_strategies = list(
     potable_water_sacmex_limit_strategy = file_constant_mental_model_strategy(
