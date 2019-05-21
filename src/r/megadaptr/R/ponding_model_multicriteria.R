@@ -81,3 +81,16 @@ ponding_multicriteria_index_component <- list(
   },
   transition = update_ponding_index
 )
+
+
+ponding_excess_water <- function(study_data,
+                                 weights = c(
+                                   precipitation = 1/3,
+                                   runoff = 1/3,
+                                   capacity = 1/3
+                                 )) {
+  weights <- wieghts / sum(weights)
+
+  study_data$prec_v_average
+
+}
