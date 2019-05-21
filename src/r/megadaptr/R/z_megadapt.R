@@ -1,13 +1,5 @@
 PK_JOIN = c("ageb_id"="ageb_id")
 
-study_area_read <- function(path) {
-  rgdal::readOGR(dsn = path,
-                 layer = 'megadapt_wgs84_v3',
-                 stringsAsFactors = FALSE,
-                 verbose = TRUE,
-                 integer64 = 'warn.loss')
-}
-
 create_study_data <- function(megadapt) {
   components <-
     list(
