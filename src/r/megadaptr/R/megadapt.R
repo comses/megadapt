@@ -8,6 +8,34 @@ study_area_read <- function(path) {
                  integer64 = 'warn.loss')
 }
 
+value_function_config_default <- function() {
+  value_function_root_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor", "csvs", ...), package = 'megadaptr', mustWork = TRUE)
+  fv_antiguedad_drenaje <-
+    load_value_function_config(value_function_root_dir("fv_antiguedad_drenaje.csv"))
+  fv_antiguedad_escasez <-
+    load_value_function_config(value_function_root_dir("fv_antiguedad_escasez.csv"))
+  fv_calidad_agua_sodio_escasez <-
+    load_value_function_config(value_function_root_dir("fv_calidad_agua_sodio_escasez.csv"))
+  fv_falla_escasez <-
+    load_value_function_config(value_function_root_dir("fv_falla_escasez.csv"))
+  fv_horas_servicio_escasez <-
+    load_value_function_config(value_function_root_dir("fv_horas_servicio_escasez.csv"))
+  fv_presion_hidraulica_escasez <-
+    load_value_function_config(value_function_root_dir("fv_presion_hidraulica_escasez.csv"))
+  fv_subsidencia <-
+    load_value_function_config(value_function_root_dir("fv_subsidencia.csv"))
+
+  value_function_config <- create_value_function_config(
+    sewer_age = fv_antiguedad_drenaje,
+    shortage_age = fv_antiguedad_escasez,
+    salt_water_quality = fv_calidad_agua_sodio_escasez,
+    shortage_failures = fv_falla_escasez,
+    hours_of_service_failure = fv_horas_servicio_escasez,
+    hydraulic_pressure_failure = fv_presion_hidraulica_escasez,
+    subsidence = fv_subsidencia
+  )
+}
+
 create_study_data <- function(megadapt) {
   components <-
     list(
