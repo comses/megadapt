@@ -67,7 +67,8 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
                  encharca_index = encharca_index) #crear variable en dataframe
 }
 
-ponding_delta_method_create <- function(
+ponding_delta_method_fnss_create <- function(
+  #' @export
   weights = c(
     capacity = 1,
     precipitation = 1,
