@@ -2,11 +2,15 @@ library(megadaptr)
 library(dplyr)
 
 study_data <- tibble::tibble(
-  ageb_id = 1,
-  f_prec_v = 200000,
-  non_potable_capacity = 25,
-  f_esc = 3,
-  prom_en =  0.12
+  censusblock_id = 1,
+  precipitation_volume = 200000,
+  precipitation_volume_mean = 100000,
+  runoff_volume = 3,
+  runoff_volume_mean = 2,
+  resident_reports_ponding_count =  0.12,
+  resident_reports_ponding_count_mean = 0.15,
+  sewer_system_capacity = 25,
+  sewer_system_capacity_initial = 20
 )
 
 describe('a ponding index fnss', {
@@ -20,22 +24,23 @@ describe('a ponding index fnss', {
 
 describe('a ponding delta method fnss', {
   ponding_fnss <- ponding_delta_method_fnss_create()
+  ponding_fnss_val <- call_fnss(ponding_fnss, study_data)
 
   it('should decrease if capacity increases', {
-    study_data$non_potable_capacity <- 50
+    study_data$sewer_system_capacity <- 2 * study_data$sewer_system_capacity
     ponding_fnss_high_cap <- call_fnss(ponding_fnss, study_data)
-    expect_lt(ponding_fnss, ponding_fnss_high_cap)
+    expect_gt(ponding_fnss_val, ponding_fnss_high_cap)
   })
 
   it('should increase if precipitation increases', {
-    study_data$f_prec_v <- 300000
+    study_data$precipitation_volume <- study_data$precipitation_volume + 50
     ponding_fnss_high_precip <- call_fnss(ponding_fnss, study_data)
-    expect_gt(ponding_fnss, ponding_fnss_high_precip)
+    expect_lt(ponding_fnss_val, ponding_fnss_high_precip)
   })
 
   it('should increase if runoff increases', {
-    study_data$f_esc <- 0.5
+    study_data$runoff_volume <- study_data$runoff_volume + 1
     ponding_fnss_high_runoff <- call_fnss(ponding_fnss, study_data)
-    expect_gt(ponding_fnss, ponding_fnss_high_runoff)
+    expect_lt(ponding_fnss_val, ponding_fnss_high_runoff)
   })
 })

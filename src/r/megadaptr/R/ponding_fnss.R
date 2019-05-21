@@ -12,7 +12,7 @@ ponding_index_fnss_create <-
 
 call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   fv_f_prec_v <- sapply(
-    study_data$f_prec_v,
+    study_data$precipitation_volume,
     FUN = convexa_decreciente,
     xmax =  8930363.15853,
     # [mm/km2]==  1202 mm/year
@@ -22,7 +22,7 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   )
 
   fv_non_potable_capacity <- sapply(
-    study_data$non_potable_capacity,
+    study_data$sewer_system_capacity,
     FUN = convexa_creciente,
     xmax = 2064.34,
     xmin = 0,
@@ -31,7 +31,7 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
 
 
   fv_f_esc <- sapply(
-    study_data$f_esc,
+    study_data$runoff_volume,
     FUN = convexa_decreciente,
     xmax = 504,
     xmin = 0,
@@ -39,7 +39,7 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   )
 
   fv_historic_ponding_freq <- sapply(
-    study_data$prom_en,
+    study_data$resident_reports_ponding_count,
     FUN = logistic_invertida,
     xmax = 10,
     xmin = 0,
@@ -58,13 +58,13 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   w_non_potable_capacity = weights['capacity']
   w_f_esc = weights['runoff']
 
-  encharca_index = 1 - (w_historic_ponding_freq * fv_historic_ponding_freq) +
+  ponding_index = 1 - (w_historic_ponding_freq * fv_historic_ponding_freq) +
     (w_f_prec_v * fv_f_prec_v) +
     (w_non_potable_capacity * fv_non_potable_capacity) +
     (w_f_esc * fv_f_esc)
 
-  tibble::tibble(ageb_id = study_data$ageb_id,
-                 encharca_index = encharca_index) #crear variable en dataframe
+  tibble::tibble(censusblock_id = study_data$censusblock_id,
+                 ponding_index = ponding_index) #crear variable en dataframe
 }
 
 ponding_delta_method_fnss_create <- function(
@@ -80,12 +80,20 @@ ponding_delta_method_fnss_create <- function(
 
 call_fnss.ponding_delta_method_fnss <- function(ponding_delta_method_fnss, study_data) {
   w <- ponding_delta_method_fnss
-  change_capacity <- study_data$sewer_system_capacity
-  change_precipitation <- study_data$f_prec_v - study_data$precipitation_volume_mean
-  change_runoff <- study_data$f_esc - study_data$runoff_volume_mean
-  ponding_mean <- study_data$resident_reports_ponding_per_year_mean
-  ponding_mean +
+  cap_init <- study_data$sewer_system_capacity_initial
+  precip_mean <- study_data$precipitation_volume_mean
+  runoff_mean <- study_data$runoff_volume_mean
+
+  change_capacity <- (study_data$sewer_system_capacity - cap_init)/cap_init
+  change_precipitation <- (study_data$precipitation_volume - precip_mean)/precip_mean
+  change_runoff <- (study_data$runoff_volume - runoff_mean)/runoff_mean
+  ponding_mean <- study_data$resident_reports_ponding_count_mean
+  ponding_index = ponding_mean -
     w['capacity']*change_capacity +
     w['precipitation']*change_precipitation +
     w['runoff']*change_runoff
+  tibble::tibble(
+    censusblock_id = study_data$censusblock_id,
+    ponding_index = ponding_index
+  )
 }

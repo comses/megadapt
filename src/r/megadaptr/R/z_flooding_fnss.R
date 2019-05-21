@@ -70,5 +70,3 @@ flooding_multicriteria_index_component <- list(
   },
   transition = update_flooding_index
 )
-
-

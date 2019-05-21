@@ -66,15 +66,27 @@ call_fnss.flooding_index_fnss <-
                    flooding_index = flooding_index) #crear variable en dataframe
   }
 
-flooding_excess_fnss_create <-
+flooding_delta_method_fnss_create <-
   function(weights = c(capacity = 1,
                        precipitation = 1,
                        runoff = 1)) {
     weights <- weights / sum(weights)
-    prepend_class(weights, 'flooding_excess_fnss')
+    prepend_class(weights, 'flooding_delta_method_fnss')
   }
 
-call_fnss.flooding_excess_fnss <-
+call_fnss.flooding_delta_method_fnss <-
   function(flooding_fnss, study_data) {
+    w <- flooding_fnss
+    cap_init <- study_data$sewer_system_capacity_initial
+    precip_mean <- study_data$precipitation_volume_mean
+    runoff_mean <- study_data$runoff_volume_mean
 
+    change_capacity <- (study_data$sewer_system_capacity - cap_init)/cap_init
+    change_precipitation <- (study_data$precipitation_volume - precip_mean)/precip_mean
+    change_runoff <- (study_data$runoff_volume - runoff_mean)/runoff_mean
+    flooding_mean <- study_data$resident_reports_flooding_count_mean
+    flooding_mean -
+      w['capacity']*change_capacity +
+      w['precipitation']*change_precipitation +
+      w['runoff']*change_runoff
   }
