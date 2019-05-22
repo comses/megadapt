@@ -2,6 +2,7 @@ library(megadaptr)
 
 study_data <- tibble::tibble(
   censusblock_id = 1,
+  area = 250000,
   criticalzone = 0.04,
   resident_count = 3000,
   household_potable_system_lacking_percent = 30,

@@ -4,6 +4,7 @@
 water_scarcity_index_fnss_create <- function(value_function_config) {
   #' calculate scarcity index from a set of landscape attributes from the study area value functions
   #'
+  #' @export
   #' @param value_function_config List of functions determining the impact of population
   #' density, potable water accessibility and potable water critical zone status on the
   #' water scarcity index
@@ -11,6 +12,10 @@ water_scarcity_index_fnss_create <- function(value_function_config) {
 }
 
 call_fnss.water_scarcity_index_fnss <- function(water_scarcity_index_fnss, study_data) {
+  #' Water scarcity index calculation
+  #'
+  #' @export
+  #' @method call_fnss water_scarcity_index_fnss
   value_function_config <- water_scarcity_index_fnss
   sewer_age <- value_function_config$sewer_age
   shortage_age <- value_function_config$shortage_age
