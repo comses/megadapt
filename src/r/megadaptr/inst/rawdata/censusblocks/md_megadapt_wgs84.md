@@ -1,16 +1,15 @@
 # Metadatos de la capa megadapt_wgs84
-## Ruta 
-C:/Dropbox (LANCIS)/SIG/desarrollo/sig_megadapt/procesamiento/capas_megadapt_modelo/procesado/union_capas_wgs84/megadapt_wgs84.shp
+## Path 
+https://github.com/comses/megadapt/tree/master/src/r/megadaptr/inst/rawdata/censusblocks
 
 ## Contact
 
 Laboratorio Nacional de Ciencias de la Sostenibilidad
+School of Sustainability, Arizona State University
 
-## Sistema de coordendas 
+## Coordinate system 
 EPSG:WGS 84 / UTM zone 14N (EPSG:32614)
 
-## Total de elementos 
-2428
 
 ## Extensión geográfica 
 Norte = 19.5927572802
@@ -18,15 +17,19 @@ Sur = 19.1240921744
 Este = -98.9466436802
 Oeste = -99.3430557324
 
-## Lista de campos 
+## Number of polygons 
+2428
 
-### Total de campos
+
+### Number of fields
 36
+
+### List of fields 
 
 <div class="foo">
 
-Campo | Tipo | Descripción | Rango | Unidades
---- | --- | --------------- | --- | --- | 
+Field | Type | Description | Range | Units
+----- | ---- | --------------- | --- | --- | 
 ageb_id | Integer |  | 5959 - 8390 | 
 cvgeo | String | An universal identifier of each census block that includes the municipality, and the state  |  |
 area | Real |  | 10876.65738 - 7928687.466 | 
