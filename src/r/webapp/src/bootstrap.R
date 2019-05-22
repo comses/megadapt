@@ -1,11 +1,7 @@
 library(megadaptr)
 
 initialize_model_cache <- function() {
-  mental_model_file_names = list(
-    potable_water_operator_limit = 'potable_water_sacmex_limit.csv',
-    non_potable_water_operator_limit = 'sewer_water_sacmex_limit.csv',
-    overall_limit = 'resident_limit.csv'
-  )
+
 
   if (fs::file_exists('/in_docker')) {
     data_root_dir <- '/srv/data'
@@ -17,7 +13,7 @@ initialize_model_cache <- function() {
 
   budget <- 1:6 * 400
   megadapt <- build_megadapt_model(data_root_dir = data_root_dir,
-                                   mental_model_file_names = mental_model_file_names)
+                                   mental_model_strategies = megadaptr:::create_constant_mental_model_strategies())
   if (fs::dir_exists(cache_path)) {
     cache <- load_scenario_cache(cache_path)
   } else {
