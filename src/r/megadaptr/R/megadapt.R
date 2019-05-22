@@ -77,28 +77,28 @@ initial_state <- function(study_data) {
 #' Create a parameter set for the megadapt model
 #'
 #' @export
-#' @param new_infrastructure_effectiveness_rate the percent increase in
+#' @param new_infrastructure_effectiveness_rate The percent increase in
 #' drainage capacity for a census block if a new non potable infrastructure
-#' investment is taken. The percent decrease in potable water reports about
-#' pipe leakage and infrastructure failure if potable water investment is
+#' investment is taken. The percent in potable water reports about
+#' pipe leakage and infrastructure failure decreases if potable water investment is
 #' undertaken in a census block
-#' @param maintenance_effectiveness_rate the percent increase in drainage
-#' capacity for a census block if non potable infrastructure maintenance is
-#' is undertaken. The percent decrease in potable water infrastructure age
-#' if potable water infrastructure maintenance is undertaken
-#' @param n_steps the number of years to run the model for
-#' @param infrastructure_decay_rate the percent decrease in non potable water
+#' @param maintenance_effectiveness_rate The percent increase in drainage
+#' capacity for a census block if potable infrastructure maintenance is
+#' is undertaken. The potable water infrastructure age
+#' decreases if potable water infrastructure maintenance is undertaken
+#' @param n_steps The number of years to run the model for
+#' @param infrastructure_decay_rate The percent decrease in non potable water
 #' infrastructure capacity from infrastructure breakdown in a year
-#' @param budget the number of census blocks that can be invested in a year.
+#' @param budget The number of spatial units that can be invested in a year.
 #' The budget value is identical for potable and non potable infrastructure
-#' (if the budget is 200 then it is 200 for potable and 200 for non potable
+#' (if the budget is 200, then it is 200 for potable and 200 for non potable
 #' infrastructure)
-#' @param half_sensitivity_ab sensitivity to fresh water access
-#' @param half_sensitivity_d sensitivity to ponding and flooding
-#' @param start_year the date of the start of the simulation
-#' @param climate_scenario the climate scenario id used to lookup the climate
+#' @param half_sensitivity_ab Number of actions from residents to reduce sensitivity to fresh water scarcity in half.
+#' @param half_sensitivity_d Number of actions from residents to reduce sensitivity to flooding in half.
+#' @param start_year The date at the start of the simulation.
+#' @param climate_scenario The climate scenario id used to lookup the climate
 #' scenario
-#' @return a parameter list used to configure a megadapt model
+#' @return A parameter list used to configure a megadapt model
 create_params <-
   function(new_infrastructure_effectiveness_rate = 0.07,
            maintenance_effectiveness_rate = 0.07,
