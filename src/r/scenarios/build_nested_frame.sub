@@ -1,0 +1,7 @@
+executable = build_nested_frame.R
+
+Error = log/build_nested_frame.err
+Log = log/build_nested_frame.log
+arguments = --path /srv/home/fidel/megadapt/output/trial/
+
+queue

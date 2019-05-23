@@ -5,6 +5,7 @@ output-*.csv
 # History files
 .Rhistory
 .Rapp.history
+._*
 
 # Session Data files
 .RData
