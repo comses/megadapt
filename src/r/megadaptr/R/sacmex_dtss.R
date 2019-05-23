@@ -14,9 +14,9 @@ sacmex_determine_investment_suitability <-
 
     # presion de medios
     vf_pres_medios <-
-      sapply(study_data$pres_med, FUN = pression_medios_vf)
+      sapply(study_data$media_social_pressure, FUN = pression_medios_vf)
     # flooding #cchange to flooding
-    vf_flood <- sapply(study_data$inunda, FUN = ponding_vf)
+    vf_flood <- sapply(study_data$resident_reports_flooding_per_year, FUN = ponding_vf)
 
     # Ponding
     vf_pond <- study_data$encharca_index
@@ -24,7 +24,7 @@ sacmex_determine_investment_suitability <-
     ## Fresh Water Specific
     # age infrastructure Abastecimiento
     vf_A_Ab <- sapply(
-      study_data$antiguedad_dist,
+      study_data$potable_water_infrastructure_age,
       FUN = campana_invertida,
       center = shortage_age$center,
       a = shortage_age$a,
@@ -33,11 +33,11 @@ sacmex_determine_investment_suitability <-
     )
 
     # potable water system capacity
-    vf_Cap_Ab <- rep(1, length(study_data$falta_dist))
+    vf_Cap_Ab <- rep(1, length(study_data$household_potable_system_lacking_percent))
 
     # d) falla Ab
     vf_falla_dist <- 1 - sapply(
-      study_data$falla_dist,
+      study_data$household_potable_system_supply_problem_percent,
       FUN = convexa_creciente,
       gama = shortage_failures$gama,
       xmax = shortage_failures$max,
@@ -47,18 +47,18 @@ sacmex_determine_investment_suitability <-
     # falta
     vf_falta_dist <-
       sapply(
-        100 * study_data$falta_dist,
+        100 * study_data$household_potable_system_lacking_percent,
         FUN = lack_of_infrastructure_vf,
         saturation = 1,
         x_max = 100
       )
-    #  plot(study_data$falta_dist,vf_falta_Ab)
+    #  plot(study_data$household_potable_system_lacking_percent,vf_falta_Ab)
     # monto ##!!!#no information about this variable
-    vf_monto <- rep(1, length(study_data$ageb_id))
+    vf_monto <- rep(1, length(study_data$censusblock_id))
 
     # hydraulic pressure
     vf_hid_pressure <- sapply(
-      study_data$pres_hid,
+      study_data$potable_system_pressure,
       FUN = logistic_vf,
       k = hydraulic_pressure_failure$k,
       center = hydraulic_pressure_failure$center,
@@ -68,7 +68,7 @@ sacmex_determine_investment_suitability <-
 
     # Water quality
     vf_WQ <-
-      sapply(study_data$cal_agua, FUN = water_quality_residents_vf)
+      sapply(study_data$waterquality_index, FUN = water_quality_residents_vf)
 
     # e)water scarcity
     #  vf_scarcity_sacmex <- sapply(study_data$days_wn_water_year, FUN = scarcity_sacmex_vf) # scarcity_annual is calculated dynamically
@@ -76,20 +76,20 @@ sacmex_determine_investment_suitability <-
     # abastecimiento
     vf_Abaste <-
       sapply(
-        study_data$abastecimi,
+        study_data$resident_potable_water_lacking_count,
         FUN = Value_Function_cut_offs,
-        xmax = max(study_data$abastecimi, na.rm = T)
+        xmax = max(study_data$resident_potable_water_lacking_count, na.rm = T)
       )
 
     # social_pressure
     #vf_SP <- sapply(study_data$social_pressure, FUN = social_pressure_vf)
 
     fv_fail_claim <- sapply(
-      study_data$fail_claim,
+      study_data$resident_reports_potable_water_failure_count,
       FUN = convexa_creciente,
       gama = .2,
-      xmax = max(study_data$fail_claim),
-      xmin = min(study_data$fail_claim)
+      xmax = max(study_data$resident_reports_potable_water_failure_count),
+      xmin = min(study_data$resident_reports_potable_water_failure_count)
     )
 
     vf_SP <- fv_fail_claim * (1 - study_data$scarcity_index)
@@ -117,10 +117,10 @@ sacmex_determine_investment_suitability <-
 
     # garbage
     vf_garbage <- sapply(
-      study_data$basura,
+      study_data$garbage_index,
       FUN = drainages_clogged_vf,
       amplitude = 500000,
-      Valor_minimo_Y_en_X = max(study_data$basura)
+      Valor_minimo_Y_en_X = max(study_data$garbage_index)
     )
 
     # run-off/escurrimiento
@@ -128,7 +128,7 @@ sacmex_determine_investment_suitability <-
 
     # subsidance
     vf_subside <- sapply(
-      study_data$subsidenci,
+      study_data$subsidence_rate_per_year,
       FUN = logistic_invertida,
       k = subsidence$k,
       xmin = subsidence$min,
@@ -141,7 +141,7 @@ sacmex_determine_investment_suitability <-
 
     # age infrastructure drainage
     vf_A_D <- sapply(
-      study_data$antiguedad_dren,
+      study_data$sewer_infrastructure_age,
       FUN = logistic_invertida,
       center = sewer_age$center,
       k = sewer_age$k,
@@ -160,25 +160,25 @@ sacmex_determine_investment_suitability <-
       )
     #plot(study_data$non_potable_capacity,vf_Cap_D)
     # falla D
-    #vf_fall_D <- rep(1, length(study_data$falla_dist))
+    #vf_fall_D <- rep(1, length(study_data$household_potable_system_supply_problem_percent))
     vf_falla_dren <-
       1 - sapply(
-        study_data$falla_dren,
+        study_data$resident_reports_sewer_failure_count_per_year,
         FUN = capacity_drainage_vf,
         sat = 1,
-        x_max = max(study_data$falla_dist),
+        x_max = max(study_data$household_potable_system_supply_problem_percent),
         x_min = 0
       )
-    #  plot(study_data$falla_dist,vf_fall_D)
+    #  plot(study_data$household_potable_system_supply_problem_percent,vf_fall_D)
     #falta dren
     vf_falta_dren <-
       sapply(
-        100 * study_data$falta_dren,
+        100 * study_data$household_sewer_system_lacking_percent,
         FUN = lack_of_infrastructure_vf,
         x_max = 100,
         saturation = 1
       )
-    #  plot(study_data$falta_dren,vf_falta_D)
+    #  plot(study_data$household_sewer_system_lacking_percent,vf_falta_D)
     # peticiones de usuarions delegacionales
     vf_pet_us_d <-
       sapply(
@@ -258,7 +258,7 @@ sacmex_determine_investment_suitability <-
     ) # "Nueva_infraestructura"
 
     tibble::tibble(
-      ageb_id = study_data$ageb_id,
+      censusblock_id = study_data$censusblock_id,
       non_potable_maintenance = distance_ideal_A1_D,
       non_potable_new_infrastructure = distance_ideal_A2_D,
       potable_maintenance = distance_ideal_A1_Ab,
@@ -268,14 +268,14 @@ sacmex_determine_investment_suitability <-
 
 sacmex_work_plan_max_chooser <-
   function(site_suitability, budget) {
-    r <- site_suitability %>% dplyr::select(-ageb_id)
+    r <- site_suitability %>% dplyr::select(-censusblock_id)
     choice_names <- colnames(r)
     n_census_blocks <- min(budget, nrow(r))
     choice_name <- choice_names[max.col(as.matrix(r))]
     max_choice_value <- apply(as.matrix(r), 1, max)
 
     ordered_best_choices <- site_suitability %>%
-      dplyr::select(ageb_id) %>%
+      dplyr::select(censusblock_id) %>%
       dplyr::mutate(
         choice_name = !!choice_name,
         max_choice_value = !!max_choice_value
@@ -290,7 +290,7 @@ sacmex_work_plan_sewer_potable_split <-
            potable_water_budget,
            non_potable_water_budget) {
     non_potable_water_site_suitability <- site_suitability %>%
-      dplyr::select(ageb_id,
+      dplyr::select(censusblock_id,
                     non_potable_maintenance,
                     non_potable_new_infrastructure)
     n_non_potable_water_census_blocks = min(non_potable_water_budget, nrow(site_suitability))
@@ -299,7 +299,7 @@ sacmex_work_plan_sewer_potable_split <-
                                                 non_potable_water_budget)
 
     potable_water_site_suitability <- site_suitability %>%
-      dplyr::select(ageb_id, potable_maintenance, potable_new_infrastructure)
+      dplyr::select(censusblock_id, potable_maintenance, potable_new_infrastructure)
     n_potable_water_census_blocks = min(potable_water_budget, nrow(site_suitability))
     potable_infrastructure_plan <-
       sacmex_work_plan(potable_water_site_suitability, potable_water_budget)
@@ -327,7 +327,7 @@ sacmex_work_plan_separate_action_budgets <-
     top_vals <- function(df, col_name, budget) {
       df <- df %>%
         dplyr::rename(max_choice_value = !!col_name) %>%
-        dplyr::select(ageb_id, max_choice_value) %>%
+        dplyr::select(censusblock_id, max_choice_value) %>%
         dplyr::arrange(-max_choice_value) %>%
         .[0:budget, ]
       if (nrow(df) > 0) {
@@ -382,52 +382,52 @@ sacmex_implement_work_plan <-
     # action 1 mantainance D
     #The effect of mantainance will not surpass the max. non_potable_capacity for each ageb!!!
     if (length(A1) > 0) {
-      study_data$antiguedad_dren[A1] <-
-        study_data$antiguedad_dren[A1] - study_data$antiguedad_dren[A1] * params$maintenance_effectiveness_rate
+      study_data$sewer_infrastructure_age[A1] <-
+        study_data$sewer_infrastructure_age[A1] - study_data$sewer_infrastructure_age[A1] * params$maintenance_effectiveness_rate
 
       study_data$non_potable_capacity[A1] <- pmin(
         study_data$non_potable_capacity[A1] * (1 + params$maintenance_effectiveness_rate),
         # capasity of drainage increases with mantainance
-        study_data$q100
+        study_data$sewer_system_capacity_max
       )
-      study_data$Interventions_D[A1] <-
-        study_data$Interventions_D[A1] + 1
+      study_data$sacmex_sewer_intervention_count[A1] <-
+        study_data$sacmex_sewer_intervention_count[A1] + 1
     }
 
     # action 2 New infra D
     if (length(A2) > 0) {
-      study_data$falta_dren[A2] <-
-        study_data$falta_dren[A2] - study_data$falta_dren[A2] * params$new_infrastructure_effectiveness_rate
+      study_data$household_sewer_system_lacking_percent[A2] <-
+        study_data$household_sewer_system_lacking_percent[A2] - study_data$household_sewer_system_lacking_percent[A2] * params$new_infrastructure_effectiveness_rate
       study_data$non_potable_capacity[A2] <-
         study_data$non_potable_capacity[A2] * (1 + params$new_infrastructure_effectiveness_rate) # capasity of drainage increases with new infrastructure
 
-      study_data$Interventions_D[A2] <-
-        study_data$Interventions_D[A2] + 1
+      study_data$sacmex_sewer_intervention_count[A2] <-
+        study_data$sacmex_sewer_intervention_count[A2] + 1
     }
 
     #
     # action 3 mantainance Ab.
     if (length(A3) > 0) {
-      study_data$antiguedad_dist[A3] <-
-        study_data$antiguedad_dist[A3] * (1 - params$maintenance_effectiveness_rate)
-      study_data$Interventions_Ab[A3] <-
-        study_data$Interventions_Ab[A3] + 1
+      study_data$potable_water_infrastructure_age[A3] <-
+        study_data$potable_water_infrastructure_age[A3] * (1 - params$maintenance_effectiveness_rate)
+      study_data$sacmex_potable_intervention_count[A3] <-
+        study_data$sacmex_potable_intervention_count[A3] + 1
     }
 
     # action 4 New infra Ab.
     if (length(A4) > 0) {
-      study_data$falta_dist[A4] <-
-        study_data$falta_dist[A4] * (1 - params$new_infrastructure_effectiveness_rate)
-      study_data$Interventions_Ab[A4] <-
-        study_data$Interventions_Ab[A4] + 1
+      study_data$household_potable_system_lacking_percent[A4] <-
+        study_data$household_potable_system_lacking_percent[A4] * (1 - params$new_infrastructure_effectiveness_rate)
+      study_data$sacmex_potable_intervention_count[A4] <-
+        study_data$sacmex_potable_intervention_count[A4] + 1
     }
     study_data
   }
 
 sacmex_depreciate_infrastructure <-
   function(study_data, infrastructure_decay_rate) {
-    study_data$antiguedad_dren <- study_data$antiguedad_dren + 1
-    study_data$antiguedad_dist <- study_data$antiguedad_dist + 1
+    study_data$sewer_infrastructure_age <- study_data$sewer_infrastructure_age + 1
+    study_data$potable_water_infrastructure_age <- study_data$potable_water_infrastructure_age + 1
 
     # update_capacity of the system
     study_data$non_potable_capacity <-
@@ -436,8 +436,8 @@ sacmex_depreciate_infrastructure <-
     # FIDEL
     # The proportion of people without infrastructure increases proportionally to
     # the growthof the population in each delegation
-    #study_data$falta_dist <- study_data$falta_dist * (1 + (1 - study_data$falta_dist)*pop_growth)
-    #study_data$falta_dren <- study_data$falta_dren * (1 + (1 - study_data$falta_dren)*pop_growth)
+    #study_data$household_potable_system_lacking_percent <- study_data$household_potable_system_lacking_percent * (1 + (1 - study_data$household_potable_system_lacking_percent)*pop_growth)
+    #study_data$household_sewer_system_lacking_percent <- study_data$household_sewer_system_lacking_percent * (1 + (1 - study_data$household_sewer_system_lacking_percent)*pop_growth)
 
     study_data
   }
@@ -492,13 +492,13 @@ call_fnss.sacmex_separate_action_budgets_fnss <-
         infrastructure_decay_rate = params$infrastructure_decay_rate
       ) %>%
       dplyr::select(
-        ageb_id,
-        antiguedad_dist,
-        antiguedad_dren,
-        falta_dren,
-        Interventions_Ab,
-        Interventions_D,
+        censusblock_id,
+        potable_water_infrastructure_age,
+        sewer_infrastructure_age,
+        household_sewer_system_lacking_percent,
+        sacmex_potable_intervention_count,
+        sacmex_sewer_intervention_count,
         non_potable_capacity,
-        falta_dist
+        household_potable_system_lacking_percent
       )
   }
