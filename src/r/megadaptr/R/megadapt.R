@@ -108,6 +108,25 @@ data_dir <- function(...) {
   system.file(fs::path('rawdata', ...), package = 'megadaptr', mustWork = TRUE)
 }
 
+megadapt_initialize <- function(megadapt, study_data) {
+  study_data <- megadapt$study_area@data
+  components <-
+    list(
+      megadapt$climate_fnss,
+      megadapt$sacmex_fnss,
+      megadapt$flooding_fnss,
+      megadapt$ponding_fnss,
+      megadapt$resident_fnss,
+      megadapt$water_scarcity_fnss
+    )
+
+  for (component in components) {
+    study_data <- call_fnss(component, study_data)
+  }
+  megadapt$study_area@data <- study_data
+  megadapt
+}
+
 megadapt_single_coupled_with_action_weights_create <- function(params) {
   value_function_config <- value_function_config_default()
   mental_models <- mental_model_constant_strategies()
@@ -129,14 +148,15 @@ megadapt_single_coupled_with_split_budget_create <- function() {
 
 }
 
-simulate <- function(model) {
-  study_data <- output_dtss(model)
-  results <- save_TS(study_data = study_data, year = model$year)
-  model <- transition_dtss(model)
-  for (i in seq(model$n_steps)) {
-    df <- output_dtss(model)
-    results <- save_results(study_data = study_data, result_prev_time = results, year = model$year)
-    model <- transition_dtss(model)
+simulate <- function(megadapt) {
+  megadapt <- initialize_megadapt(megadapt)
+  study_data <- output_dtss(megadapt)
+  results <- save_results(study_data = study_data, year = megadapt$year)
+  megadapt <- transition_dtss(megadapt)
+  for (i in seq(megadapt$n_steps)) {
+    df <- output_dtss(megadapt)
+    results <- save_results(study_data = study_data, result_prev_time = results, year = megadapt$year)
+    megadapt <- transition_dtss(megadapt)
   }
   results
 }

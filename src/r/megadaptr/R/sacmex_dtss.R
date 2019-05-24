@@ -124,7 +124,7 @@ sacmex_determine_investment_suitability <-
     )
 
     # run-off/escurrimiento
-    vf_run_off <- sapply(study_data$f_esc, FUN = run_off_vf)
+    vf_run_off <- sapply(study_data$runoff_volume, FUN = run_off_vf)
 
     # subsidance
     vf_subside <- sapply(
@@ -137,7 +137,7 @@ sacmex_determine_investment_suitability <-
     )
 
     # rainfall
-    vf_rain <- sapply(study_data$f_prec_v, FUN = rainfall_vf)
+    vf_rain <- sapply(study_data$precipitation_volume, FUN = rainfall_vf)
 
     # age infrastructure drainage
     vf_A_D <- sapply(
@@ -515,3 +515,14 @@ call_fnss.sacmex_separate_action_budgets_fnss <-
         household_potable_system_lacking_percent
       )
   }
+
+sacmex_initialize <- function(study_data) {
+  study_data %>%
+    dplyr::mutate(
+      sewer_infrastructure_age = infrastructure_age,
+      potable_water_infrastructure_age = infrastructure_age,
+      sacmex_potable_intervention_count = 0,
+      sacmex_sewer_intervention_count = 0,
+      non_potable_capacity = sewer_system_capacity_max
+    )
+}
