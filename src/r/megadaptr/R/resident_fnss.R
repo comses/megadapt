@@ -19,7 +19,7 @@ resident_determine_infrastructure_suitability <- function(study_data, value_func
   # "Desperdicio de agua"
   vf_Desp_A <- sapply(study_data$resident_potable_water_waste_perception, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$resident_potable_water_waste_perception, na.rm = T))
   # fugas
-  fv_fugas <- sapply(study_data$falla_dist, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$falla_dist, na.rm = T))
+  fv_fugas <- sapply(study_data$household_potable_system_supply_problem_percent, FUN = Value_Function_cut_offs, xcuts = c(0.5, 0.75, 0.875, 0.937), ycuts = c(1, 0.8, 0.6, 0.4, 0.2), xmax = max(study_data$household_potable_system_supply_problem_percent, na.rm = T))
 
   # falta infrastructura drenaje
   fv_falta <- sapply(100 * study_data$household_sewer_system_lacking_percent,
@@ -92,8 +92,15 @@ resident_fnss_create <- function(value_function_config, mental_model_strategy, h
   prepend_class(config, 'resident_fnss')
 }
 
-call_fnss.resident_fnss <- function(study_data) {
-  mental_models <- mental_model_resident_create()
+call_fnss.resident_fnss <- function(resident_fnss, study_data) {
+  mental_models <- mental_model_resident_create(
+    resident_limit_strategy = resident_fnss$mental_model_strategy,
+    study_data = study_data,
+    year = year
+  )
+  update_residential_infrastructure_investments(study_data = study_data,
+                                                value_function_config = resident_fnss$value_function_config,
+                                                params = resident_fnss$params)
 }
 update_residential_infrastructure_investments <- function(study_data, value_function_config, mental_models, params) {
   suitability <- determine_residential_infrastructure_suitability(
@@ -109,50 +116,50 @@ update_residential_infrastructure_investments <- function(study_data, value_func
 
   study_data %>%
     dplyr::mutate(
-      house_modifications_D := {
-        house_modifications_D[HM_LL] <- house_modifications_D[HM_LL] + 1
-        house_modifications_D
+      household_sewer_intervention_count := {
+        household_sewer_intervention_count[HM_LL] <- household_sewer_intervention_count[HM_LL] + 1
+        household_sewer_intervention_count
       },
-      sensitivity_D := {
-        sensitivity_D[HM_LL] <- 1 - (house_modifications_D[HM_LL] / (params$half_sensitivity_d + house_modifications_D[HM_LL]))
-        sensitivity_D
+      household_sewer_sensitivity := {
+        household_sewer_sensitivity[HM_LL] <- 1 - (household_sewer_intervention_count[HM_LL] / (params$half_sensitivity_d + household_sewer_intervention_count[HM_LL]))
+        household_sewer_sensitivity
       },
-      house_modifications_Ab := {
-        house_modifications_Ab[HM_Agua] <- house_modifications_Ab[HM_Agua] + 1
-        house_modifications_Ab
+      household_potable_water_invention_count := {
+        household_potable_water_invention_count[HM_Agua] <- household_potable_water_invention_count[HM_Agua] + 1
+        household_potable_water_invention_count
       },
-      sensitivity_Ab := {
-        sensitivity_Ab[HM_Agua] <- 1 - (house_modifications_Ab[HM_Agua] / (params$half_sensitivity_ab + house_modifications_Ab[HM_Agua]))
-        sensitivity_Ab
+      household_potable_water_sensitivity := {
+        household_potable_water_sensitivity[HM_Agua] <- 1 - (household_potable_water_invention_count[HM_Agua] / (params$half_sensitivity_ab + household_potable_water_invention_count[HM_Agua]))
+        household_potable_water_sensitivity
       },
-      tanks := {
-        tanks[HM_Agua] <- tanks[HM_Agua] + 1 / params$half_sensitivity_ab
-        tanks
+      household_water_storage_tank_available_percent := {
+        household_water_storage_tank_available_percent[HM_Agua] <- household_water_storage_tank_available_percent[HM_Agua] + 1 / params$half_sensitivity_ab
+        household_water_storage_tank_available_percent
       },
-      vulnerability_Ab = (sensitivity_Ab * scarcity_index) / (1 + ingreso),
-      vulnerability_D = (sensitivity_D * encharca_index) / (1 + ingreso)
+      household_potable_water_vulnerability = (household_potable_water_sensitivity * scarcity_index) / (1 + resident_asset_index),
+      household_sewer_vulnerability = (household_sewer_sensitivity * encharca_index) / (1 + resident_asset_index)
     ) %>%
     dplyr::select(
-      ageb_id,
-      house_modifications_D,
-      sensitivity_D,
-      house_modifications_Ab,
-      sensitivity_Ab,
-      tanks,
-      vulnerability_Ab,
-      vulnerability_D
+      censusblock_id,
+      household_sewer_intervention_count,
+      household_sewer_sensitivity,
+      household_potable_water_invention_count,
+      household_potable_water_sensitivity,
+      household_water_storage_tank_available_percent,
+      household_potable_water_vulnerability,
+      household_sewer_vulnerability
     )
 }
 
 resident_component <- list(
   initialize = function(study_data) {
     study_data %>%
-      dplyr::mutate(house_modifications_Ab=0L,
-                    house_modifications_D=0L,
-                    sensitivity_Ab = 1,
-                    sensitivity_D = 1,
-                    vulnerability_Ab = 1,
-                    vulnerability_D = 1)
+      dplyr::mutate(household_potable_water_invention_count=0L,
+                    household_sewer_intervention_count=0L,
+                    household_potable_water_sensitivity = 1,
+                    household_sewer_sensitivity = 1,
+                    household_potable_water_vulnerability = 1,
+                    household_sewer_vulnerability = 1)
   },
   transition = update_residential_infrastructure_investments
 )
