@@ -53,7 +53,7 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
 
   fv_historic_ponding_freq <- sapply(
     study_data$resident_reports_ponding_count,
-    FUN = logistic_invertida,
+    FUN = logistica_invertida,
     xmax = 10,
     xmin = 0,
     k = 0.108,

@@ -33,7 +33,7 @@ fv_f_esc<-sapply(
 
 fv_historic_flooding_freq<-sapply(
   study_data$inunda,
-  FUN= logistic_invertida,
+  FUN= logistica_invertida,
   xmax= 8.0266,
   xmin= 0,
   k=0.083,

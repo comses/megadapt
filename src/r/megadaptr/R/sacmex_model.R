@@ -128,7 +128,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data,
   # subsidance
   vf_subside <- sapply(
     study_data$subsidenci,
-    FUN = logistic_invertida,
+    FUN = logistica_invertida,
     k = subsidence$k,
     xmin = subsidence$min,
     xmax = subsidence$max,
@@ -141,7 +141,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data,
   # age infrastructure drainage
   vf_A_D <- sapply(
     study_data$antiguedad_dren,
-    FUN = logistic_invertida,
+    FUN = logistica_invertida,
     center = sewer_age$center,
     k = sewer_age$k,
     xmax = sewer_age$max,
