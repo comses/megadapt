@@ -1,4 +1,4 @@
-determine_residential_infrastructure_suitability <- function(study_data, value_function_config, mental_models, week_of_year) {
+resident_determine_infrastructure_suitability <- function(study_data, value_function_config, mental_models, week_of_year) {
   alternative_weights_iz <- mental_models$residents$alternative_weights$iz
   criteria_iz <- as.vector(mental_models$residents$criteria$iz)
 
@@ -80,6 +80,21 @@ determine_residential_infrastructure_suitability <- function(study_data, value_f
   )
 }
 
+resident_fnss_create <- function(value_function_config, mental_model_strategy, half_sensitivity_ab, half_sensitivity_d) {
+  config <- list(
+    value_function_config = value_function_config,
+    mental_model_strategy = mental_model_strategy,
+    params = list(
+      half_sensitivity_ab = half_sensitivity_ab,
+      half_sensitivity_d = half_sensitivity_d
+    )
+  )
+  prepend_class(config, 'resident_fnss')
+}
+
+call_fnss.resident_fnss <- function(study_data) {
+  mental_models <- mental_model_resident_create()
+}
 update_residential_infrastructure_investments <- function(study_data, value_function_config, mental_models, params) {
   suitability <- determine_residential_infrastructure_suitability(
     study_data = study_data,

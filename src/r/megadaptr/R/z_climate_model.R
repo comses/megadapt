@@ -1,11 +1,3 @@
-#' Load a climate scenario csv given at a particular path
-#'
-#' @param path Path to the file
-#' @return climate scenario data.frame
-load_climate_scenario <- function(path) {
-  read.csv(path, stringsAsFactors = FALSE, header = FALSE)
-}
-
 #' Generates yearly precipitation and runoff (in millimeters) by census block
 #'
 #' @param study_data A data frame of study area data
