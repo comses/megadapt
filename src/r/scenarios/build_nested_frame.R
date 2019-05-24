@@ -67,3 +67,5 @@ for(i in 1:length(file.names)){
 #tibbble <- tibbble %>% mutate(results = purrr::map(tibbble$path, function(x) results=tibble::tibble(readRDS(x))))
 
 #gg <- get_parameter_values("/Users/fidel/patung/megadapt/output/trial/sim_0.1_0.1_40_0.1_120_5_5_0.rds", 1)
+
+
