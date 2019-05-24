@@ -115,60 +115,6 @@ describe('sacmex infrastructure allocation (mutually exclusive)', {
   })
 })
 
-describe('sacmex infracstructure allocation with separate potable, non potable budgets', {
-  site_suitability <- tibble::tribble(
-    ~ageb_id,
-    ~non_potable_maintenance,
-    ~non_potable_new_infrastructure,
-    ~potable_maintenance,
-    ~potable_new_infrastructure,
-    1, 1, 0, 6, 0,
-    2, 0, 3, 0, 0,
-    3, 0, 0, 5, 0,
-    4, 0, 5, 0, 7
-  )
-
-  it('is empty when both budgets are zero', {
-    allocation <- determine_public_infrastructure_work_plan_separate_budgets(
-      site_suitability = site_suitability,
-      potable_water_budget = 0,
-      non_potable_water_budget = 0)
-    expect_equal(nrow(allocation), 0)
-  })
-
-  it('includes the census blocks that in most need of non potable work if non potable budget greater than zero', {
-    allocation <- determine_public_infrastructure_work_plan_separate_budgets(
-      site_suitability = site_suitability,
-      potable_water_budget = 0,
-      non_potable_water_budget = 3)
-    expect_equal(allocation$ageb_id, c(4, 2, 1))
-    expect_equal(
-      as.character(allocation$choice_name),
-      c("non_potable_new_infrastructure", "non_potable_new_infrastructure", "non_potable_maintenance"))
-    expect_equal(allocation$max_choice_value, c(5, 3, 1))
-  })
-
-  it('includes the census blocks that in most need of potable work if potable budget greater than zero', {
-    allocation <- determine_public_infrastructure_work_plan_separate_budgets(
-      site_suitability = site_suitability,
-      potable_water_budget = 3,
-      non_potable_water_budget = 0)
-    expect_equal(allocation$ageb_id, c(4, 1, 3))
-    expect_equal(
-      as.character(allocation$choice_name),
-      c("potable_new_infrastructure", "potable_maintenance", "potable_maintenance"))
-    expect_equal(allocation$max_choice_value, c(7, 6, 5))
-  })
-
-  it('includes all census blocks with a large enough budget', {
-    allocation <- determine_public_infrastructure_work_plan_separate_budgets(
-      site_suitability = site_suitability,
-      potable_water_budget = 4,
-      non_potable_water_budget = 4)
-    expect_equal(nrow(allocation), 8)
-  })
-})
-
 mm_file_path <- function(path) system.file(fs::path('rawdata', 'mental_models', path), package = 'megadaptr', mustWork = TRUE)
 
 describe('a megadapt model', {
@@ -255,7 +201,7 @@ describe('a file mental model update strategy', {
 describe('a file mental model update strategy', {
   path <- system.file("rawdata/mental_models/potable_water_sacmex_unweighted_stage1.csv", package = 'megadaptr', mustWork = TRUE)
   cluster <- read_cluster_matrix(system.file('rawdata/mental_models/potable_water_cluster_sacmex.csv', package = 'megadaptr', mustWork = TRUE))
-  mental_model <- file_constant_mental_model_strategy(path = path, cluster = cluster)
+  mental_model <- mental_model_file_constant_strategy(path = path, cluster = cluster)
 
   it('should return the only limit df if year less than or equal to 2020', {
     limit_df <- get_limit_df(mental_model, 1990, NULL)

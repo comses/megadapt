@@ -54,6 +54,12 @@ describe('sacmex infracstructure allocation with separate potable, non potable b
   })
 })
 
+describe('a site suitability determination', {
+  it('foo', {
+
+  })
+})
+
 describe('a split infrastructure allocation', {
   it('should invest in all census blocks if budget if large enough', {
     allocation <- megadaptr:::determine_public_infrastructure_work_plan_split_budgets(
