@@ -282,12 +282,12 @@ calculate_new_weights_double_coupling<-function(study_data){
 
 
 #' create a function thAt takes as arguments the
-#'@param path_td a path to the data
+#' @param path_td a path to the data
 #' @param unweighted_supermatrix  and unweighted supermatrix
 #' @param block the block of the unweighted supermatrix to by modified
-#' @col_to_modify the col in the block there the values will be changed
+#' @param col_to_modify the col in the block there the values will be changed
 #' @param values the new values that will replace the old weights.
-#' @report A modified unweigted supermatrix
+#' @return  A modified unweigted supermatrix
 
 modify_block_row=function(path_td, unweighted_supermatrix, block, col_to_modify, values){
   if(sum(values)!=1)stop("values must sum to 1")
