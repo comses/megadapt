@@ -217,18 +217,18 @@ determine_public_infrastructure_investment_suitability <-
     }
 
     distance_ideal_A1_D <- sweep(
-      as.matrix(all_C_D),
+      x=as.matrix(all_C_D),
       MARGIN = 2,
       sacmcx_criteria_d / sum(sacmcx_criteria_d),
       FUN = ideal_distance,
-      z = sacmcx_alternative_weights_d[1] / sum(sacmcx_alternative_weights_d)
+      alternative_weights = sacmcx_alternative_weights_d[1] / sum(sacmcx_alternative_weights_d)
     ) # "Mantenimiento"
     distance_ideal_A2_D <- sweep(
-      as.matrix(all_C_D),
+      x=as.matrix(all_C_D),
       MARGIN = 2,
       sacmcx_criteria_d / sum(sacmcx_criteria_d),
       FUN = ideal_distance,
-      z = sacmcx_alternative_weights_d[2] / sum(sacmcx_alternative_weights_d)
+      alternative_weights = sacmcx_alternative_weights_d[2] / sum(sacmcx_alternative_weights_d)
     ) # "Nueva_infraestructura"
 
     sacmcx_criteria_ab <-
@@ -243,18 +243,18 @@ determine_public_infrastructure_investment_suitability <-
     }
 
     distance_ideal_A1_Ab <- sweep(
-      as.matrix(all_C_ab),
+      x=as.matrix(all_C_ab),
       MARGIN = 2,
       sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
       FUN = ideal_distance,
-      z = sacmcx_alternative_weights_s['Mantenimiento'] / sum(sacmcx_alternative_weights_s)
+      alternative_weights = sacmcx_alternative_weights_s['Mantenimiento'] / sum(sacmcx_alternative_weights_s)
     ) # "Mantenimiento"
     distance_ideal_A2_Ab <- sweep(
-      as.matrix(all_C_ab),
+      x=as.matrix(all_C_ab),
       MARGIN = 2,
       sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
       FUN = ideal_distance,
-      z = sacmcx_alternative_weights_s['Nueva_infraestructura'] / sum(sacmcx_alternative_weights_s)
+      alternative_weights = sacmcx_alternative_weights_s['Nueva_infraestructura'] / sum(sacmcx_alternative_weights_s)
     ) # "Nueva_infraestructura"
 
     tibble::tibble(
