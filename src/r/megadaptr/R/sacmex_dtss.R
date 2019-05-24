@@ -217,18 +217,18 @@ sacmex_determine_investment_suitability <-
     }
 
     distance_ideal_A1_D <- sweep(
-      as.matrix(all_C_D),
+      X=as.matrix(all_C_D),
       MARGIN = 2,
-      sacmcx_criteria_d / sum(sacmcx_criteria_d),
+      criteria_weights=sacmcx_criteria_d / sum(sacmcx_criteria_d),
       FUN = ideal_distance,
-      z = sacmcx_alternative_weights_d[1] / sum(sacmcx_alternative_weights_d)
+      alternative_weights = sacmcx_alternative_weights_d[1] / sum(sacmcx_alternative_weights_d)
     ) # "Mantenimiento"
     distance_ideal_A2_D <- sweep(
-      as.matrix(all_C_D),
+      X=as.matrix(all_C_D),
       MARGIN = 2,
-      sacmcx_criteria_d / sum(sacmcx_criteria_d),
+      criteria_weights=sacmcx_criteria_d / sum(sacmcx_criteria_d),
       FUN = ideal_distance,
-      z = sacmcx_alternative_weights_d[2] / sum(sacmcx_alternative_weights_d)
+      alternative_weights = sacmcx_alternative_weights_d[2] / sum(sacmcx_alternative_weights_d)
     ) # "Nueva_infraestructura"
 
     sacmcx_criteria_ab <-
@@ -243,18 +243,18 @@ sacmex_determine_investment_suitability <-
     }
 
     distance_ideal_A1_Ab <- sweep(
-      as.matrix(all_C_ab),
+      X=as.matrix(all_C_ab),
       MARGIN = 2,
-      sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
+      criteria_weights=sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
       FUN = ideal_distance,
-      z = sacmcx_alternative_weights_s['Mantenimiento'] / sum(sacmcx_alternative_weights_s)
+      alternative_weights = sacmcx_alternative_weights_s['Mantenimiento'] / sum(sacmcx_alternative_weights_s)
     ) # "Mantenimiento"
     distance_ideal_A2_Ab <- sweep(
-      as.matrix(all_C_ab),
+      X=as.matrix(all_C_ab),
       MARGIN = 2,
-      sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
+      criteria_weights=sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
       FUN = ideal_distance,
-      z = sacmcx_alternative_weights_s['Nueva_infraestructura'] / sum(sacmcx_alternative_weights_s)
+      alternative_weights = sacmcx_alternative_weights_s['Nueva_infraestructura'] / sum(sacmcx_alternative_weights_s)
     ) # "Nueva_infraestructura"
 
     tibble::tibble(
@@ -268,14 +268,14 @@ sacmex_determine_investment_suitability <-
 
 #######################################################################################
 
-#' This function calcualte a distance to ideal point using compromized programing metric
-#'@param y a vector of attributes converted to 0-1 scale using value functions
-#'@param x a list of weights from the mental model
-#'@param alaternative weight
-#'@param exponent: to control the type of distance h_Cp=2 euclidian# h_Cp=1 manhattan
-
-ideal_distance <- function(x, y, exponent = 1, z) {
-  return(((z ^ exponent) * rowSums((y^exponent) * ((1 - x)^exponent), na.rm = T))^(1 / exponent))
+#' Calculate the distance to an ideal point using a "compromized programing" metric
+#'@param criteria_weights a vector of weights from the criteria part in a limit vector
+#'@param X a matrix value functions outcomes associated to the criteria part of the limit vector
+#'@param alternative_weights a vector of alternative weight associated to the alternatives part of the limit vector
+#'@param exponent A value to define the type of distance exponent=2: Euclidean, exponent=1: Manhattan
+#'@return A vector of distances to the ideal point.
+ideal_distance <- function(X, criteria_weights, alternative_weights, exponent = 1) {
+  return(((alternative_weights ^ exponent) * rowSums((criteria_weights^exponent) * ((1 - X)^exponent), na.rm = T))^(1 / exponent))
 }
 
 
