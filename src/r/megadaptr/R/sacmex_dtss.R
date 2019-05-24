@@ -266,6 +266,19 @@ sacmex_determine_investment_suitability <-
     )
   }
 
+#######################################################################################
+
+#' This function calcualte a distance to ideal point using compromized programing metric
+#'@param y a vector of attributes converted to 0-1 scale using value functions
+#'@param x a list of weights from the mental model
+#'@param alaternative weight
+#'@param exponent: to control the type of distance h_Cp=2 euclidian# h_Cp=1 manhattan
+
+ideal_distance <- function(x, y, exponent = 1, z) {
+  return(((z ^ exponent) * rowSums((y^exponent) * ((1 - x)^exponent), na.rm = T))^(1 / exponent))
+}
+
+
 sacmex_work_plan_max_chooser <-
   function(site_suitability, budget) {
     r <- site_suitability %>% dplyr::select(-censusblock_id)
