@@ -9,43 +9,61 @@
 # Adaptations F
 # Vulneability Index
 COLUMNS_TO_SAVE <- c(
-  "censusblock_id",
-  "geographic_id",
-  "sewer_infrastructure_age",
-  "potable_water_infrastructure_age",
-  "resident_reports_ponding_per_year",
-  "resident_reports_flooding_per_year",
-  "sewer_system_storm_drain_count",
+  "ageb_id",
+  "cvgeo",
+  "antiguedad_dren",
+  "antiguedad_dist",
+  "prom_en",
+  "inunda",
+  "rejillas",
   "non_potable_capacity",
-  "household_potable_system_lacking_percent",
-  "household_sewer_system_lacking_percent",
-  "household_days_no_potable_water_per_week_mean",
-  "resident_income_per_capita",
+  "falta_dist",
+  "falta_dren",
+  "lambdas",
+  "income_pc",
   "encharca_index",
   "scarcity_index",
-  "household_potable_water_sensitivity",
-  "household_water_storage_tank_available_percent",
-  "household_sewer_sensitivity",
-  "household_potable_water_vulnerability",
-  "household_sewer_vulnerability",
-  "sacmex_potable_intervention_count",
-  "sacmex_sewer_intervention_count"
+  "sensitivity_Ab",
+  "tanks",
+  "sensitivity_D",
+  "vulnerability_Ab",
+  "vulnerability_D",
+  "Interventions_Ab",
+  "Interventions_D"
 )
 
 # save results
 save_TS <- function(study_data,
-                    result_prev_time = NULL,
+                    TR,
+                    result_prev_time,
+                    month,
                     year) {
-  df <- study_data %>%
+  study_data %>%
     dplyr::select(!!! COLUMNS_TO_SAVE) %>%
     dplyr::mutate(
       time_sim = TR,
       month_sim = (!! month),
       year_sim = (!! year)
-    )
-  if (!is.null(result_prev_time)) {
-    return(dplyr::union_all(df, result_prev_time))
-  } else {
-    return(df)
+    ) %>%
+    dplyr::union_all(result_prev_time)
+}
+
+compare_results <- function(new_results, old_results, base_cols) {
+  colnames_new_results <- setdiff(colnames(new_results), base_cols)
+  colnames_old_results <- setdiff(colnames(old_results), base_cols)
+  common_colnames <- intersect(colnames_new_results, colnames_old_results)
+
+  comparison <- tibble::as_tibble(new_results[base_cols])
+  for (colname in common_colnames) {
+    col_same <- new_results[[colname]] == old_results[[colname]] | (is.na(new_results[[colname]]) & is.na(old_results[[colname]]))
+    if (!(all(col_same))) {
+      comparison[[paste0("new_", colname)]] <- new_results[[colname]]
+      comparison[[paste0("old_", colname)]] <- old_results[[colname]]
+      comparison[[paste0("same_", colname)]] <- col_same
+    }
   }
+
+  list(comparison = comparison,
+       missing_new_columns = setdiff(colnames_new_results, colnames_old_results),
+       missing_old_columns = setdiff(colnames_old_results, colnames_new_results))
 }

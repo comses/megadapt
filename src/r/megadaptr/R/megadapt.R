@@ -135,7 +135,7 @@ simulate <- function(model) {
   model <- transition_dtss(model)
   for (i in seq(model$n_steps)) {
     df <- output_dtss(model)
-    results <- save_TS(study_data = study_data, result_prev_time = results, year = model$year)
+    results <- save_results(study_data = study_data, result_prev_time = results, year = model$year)
     model <- transition_dtss(model)
   }
   results
