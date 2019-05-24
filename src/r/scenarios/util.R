@@ -10,5 +10,5 @@ output_dir <- function(...) {
 
 data_root_dir <- data_dir()
 
-mental_model_strategies <- megadaptr:::create_constant_mental_model_strategies()
+mental_model_strategies <- megadaptr:::mental_model_constant_strategies()
 

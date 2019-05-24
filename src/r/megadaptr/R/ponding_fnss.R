@@ -4,6 +4,7 @@
 #'@return An object of class 'ponding_index_fnss' to be used as arguments into the ponding index with value functions.
 
 ponding_index_fnss_create <-
+  #' @export
   function(weights = c(
              precipitation = 0.25,
              runoff = 0.25,
@@ -21,6 +22,8 @@ ponding_index_fnss_create <-
 #'@param study_data data.frame with variables "precipitation_volume", "runoff_volume", "resident_reports_ponding_count" and "sewer_system_capacity".
 #'@return A data.frame with variables "censusblock_id" and "ponding_index". The ponding index will have values between 0 and 1.
 call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
+  #' @export
+  #' @method call_fnss ponding_index_fnss
   fv_f_prec_v <- sapply(
     study_data$precipitation_volume,
     FUN = convexa_decreciente,
@@ -97,6 +100,8 @@ ponding_delta_method_fnss_create <- function(
 #'@param study_data data.frame with variables "precipitation_volume", "runoff_volume", "resident_reports_ponding_count" and "sewer_system_capacity".
 #'@return A data.frame with variables "censusblock_id" and "ponding_index". The ponding index will have values between 0 and 1.
 call_fnss.ponding_delta_method_fnss <- function(ponding_delta_method_fnss, study_data) {
+  #' @export
+  #' @method call_fnss ponding_delta_method_fnss
   w <- ponding_delta_method_fnss
   cap_init <- study_data$sewer_system_capacity_initial
   precip_mean <- study_data$precipitation_volume_mean

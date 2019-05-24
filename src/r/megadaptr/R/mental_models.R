@@ -1,75 +1,95 @@
-create_mental_models <- function(potable_water_sacmex_limit_strategy,
-                                 sewer_water_sacmex_limit_strategy,
-                                 resident_limit_strategy,
-                                 year,
-                                 study_data) {
-  # alternatives
-  # criteria
-  # by system (potable, sewer) for sacmex
+mental_model_sacmex_create <-
+  function(potable_water_sacmex_limit_strategy,
+           sewer_water_sacmex_limit_strategy,
+           year,
+           study_data) {
+    potable_water_sacmex_limit <-
+      get_limit_df(potable_water_sacmex_limit_strategy,
+                   year = year,
+                   study_data = study_data)
 
-  potable_water_sacmex_limit <-
-    get_limit_df(potable_water_sacmex_limit_strategy,
-                 year = year,
-                 study_data = study_data)
-  sewer_water_sacmex_limit <-
-    get_limit_df(sewer_water_sacmex_limit_strategy,
-                 year = year,
-                 study_data = study_data)
+    potable_alternatives_sacmex <- potable_water_sacmex_limit %>%
+      dplyr::filter(cluster_name == 'Alternatives') %>%
+      dplyr::filter(node %in% c('Mantenimiento', 'Nueva_infraestructura'))
+    alternative_weights_s <- potable_alternatives_sacmex$value
+    names(alternative_weights_s) <- potable_alternatives_sacmex$node
+
+    potable_criteria_sacmex <- potable_water_sacmex_limit %>%
+      dplyr::filter(cluster_name != 'Alternatives')
+    criteria_sacmcx_ab <- potable_criteria_sacmex$value
+    names(criteria_sacmcx_ab) <- potable_criteria_sacmex$node
+
+    sewer_water_sacmex_limit <-
+      get_limit_df(sewer_water_sacmex_limit_strategy,
+                   year = year,
+                   study_data = study_data)
+
+    sewer_alternatives_sacmex <- sewer_water_sacmex_limit %>%
+      dplyr::filter(cluster_name == 'Alternatives')
+    alternative_weights_d <- sewer_alternatives_sacmex$value
+    names(alternative_weights_d) <- sewer_alternatives_sacmex$node
+
+    sewer_criteria_sacmex <- sewer_water_sacmex_limit %>%
+      dplyr::filter(cluster_name != 'Alternatives')
+    criteria_sacmcx_d <- sewer_criteria_sacmex$value
+    names(criteria_sacmcx_d) <- sewer_criteria_sacmex$node
+
+    list(
+      criteria = list(ab = criteria_sacmcx_ab,
+                      d = criteria_sacmcx_d),
+      alternative_weights = list(d = alternative_weights_d,
+                                 s = alternative_weights_s)
+    )
+  }
+
+mental_model_resident_create <- function(resident_limit_strategy,
+                                         year = year,
+                                         study_data = study_data) {
   resident_limit <-
     get_limit_df(resident_limit_strategy,
                  year = year,
                  study_data = study_data)
 
-  potable_alternatives_sacmex <- potable_water_sacmex_limit %>%
-    dplyr::filter(cluster_name == 'Alternatives') %>%
-    dplyr::filter(node %in% c('Mantenimiento', 'Nueva_infraestructura'))
-
-  sewer_alternatives_sacmex <- sewer_water_sacmex_limit %>%
-    dplyr::filter(cluster_name == 'Alternatives')
-
-  potable_criteria_sacmex <- potable_water_sacmex_limit %>%
-    dplyr::filter(cluster_name != 'Alternatives')
-  sewer_criteria_sacmex <- sewer_water_sacmex_limit %>%
-    dplyr::filter(cluster_name != 'Alternatives')
-
-  # alternatives
-  # criteria
-  # for residents
-
   resident_alternatives <- resident_limit %>%
     dplyr::filter(cluster_name == 'Acciones')
-  resident_criteria <- resident_limit %>%
-    dplyr::filter(cluster_name != 'Acciones')
-
-  # criteria values
-  criteria_sacmcx_ab <- potable_criteria_sacmex$value
-  names(criteria_sacmcx_ab) <- potable_criteria_sacmex$node
-  criteria_sacmcx_d <- sewer_criteria_sacmex$value
-  names(criteria_sacmcx_d) <- sewer_criteria_sacmex$node
-
-  alternative_weights_s <- potable_alternatives_sacmex$value
-  names(alternative_weights_s) <- potable_alternatives_sacmex$node
-  alternative_weights_d <- sewer_alternatives_sacmex$value
-  names(alternative_weights_d) <- sewer_alternatives_sacmex$node
-
-  criteria_residents_iz <- resident_criteria$value
-  names(criteria_residents_iz) <- resident_criteria$node
   alternative_weights_iz <- resident_alternatives$value
   names(alternative_weights_iz) <- resident_alternatives$node
 
+  resident_criteria <- resident_limit %>%
+    dplyr::filter(cluster_name != 'Acciones')
+  criteria_residents_iz <- resident_criteria$value
+  names(criteria_residents_iz) <- resident_criteria$node
+
   list(
-    sacmcx = list(
-      criteria = list(ab = criteria_sacmcx_ab,
-                      d = criteria_sacmcx_d),
-      alternative_weights = list(d = alternative_weights_d,
-                                 s = alternative_weights_s)
-    ),
-    residents = list(
-      criteria = list(iz = criteria_residents_iz),
-      alternative_weights = list(iz = alternative_weights_iz)
-    )
+    criteria = list(iz = criteria_residents_iz),
+    alternative_weights = list(iz = alternative_weights_iz)
   )
 }
+
+create_mental_models <-
+  function(potable_water_sacmex_limit_strategy,
+           sewer_water_sacmex_limit_strategy,
+           resident_limit_strategy,
+           year,
+           study_data) {
+
+    sacmex_mental_model <- mental_model_sacmex_create(
+      potable_water_sacmex_limit_strategy = potable_water_sacmex_limit_strategy,
+      sewer_water_sacmex_limit_strategy = sewer_water_sacmex_limit_strategy,
+      year = year,
+      study_data = study_data
+    )
+
+    resident_mental_model <- mental_model_resident_create(
+      resident_limit_strategy = resident_limit_strategy,
+      year = year,
+      study_data = study_data
+    )
+    list(
+      sacmcx = sacmex_mental_model,
+      residents = resident_mental_model
+    )
+  }
 
 read_cluster_matrix <- function(path) {
   #' Read a cluster matrix located at a path
@@ -175,7 +195,7 @@ get_limit_df.file_mental_model <-
     mental_model$limit_dfs[[mental_model$limit_df_picker(year, study_area)]]
   }
 
-file_constant_mental_model_strategy <- function(path, cluster) {
+mental_model_file_constant_strategy_create <- function(path, cluster) {
   #' Use a single constant mental model for the simulation
   #'
   #' @export
@@ -193,7 +213,7 @@ get_limit_df.file_constant_mental_model <-
     mental_model$limit_df
   }
 
-create_constant_mental_model_strategies <- function() {
+mental_model_constant_strategies <- function() {
   mm_file_path <-
     function(path)
       system.file(
@@ -208,15 +228,15 @@ create_constant_mental_model_strategies <- function() {
     read_cluster_matrix(mm_file_path('resident_cluster.csv'))
 
   mental_model_strategies = list(
-    potable_water_sacmex_limit_strategy = file_constant_mental_model_strategy(
+    potable_water_sacmex_limit_strategy = mental_model_file_constant_strategy_create(
       mm_file_path('potable_water_sacmex_unweighted_stage1.csv'),
       cluster = potable_water_cluster
     ),
-    sewer_water_sacmex_limit_strategy = file_constant_mental_model_strategy(
+    sewer_water_sacmex_limit_strategy = mental_model_file_constant_strategy_create(
       mm_file_path('sewer_water_sacmex_unweighted_stage1.csv'),
       cluster = NULL
     ),
-    resident_limit_strategy = file_constant_mental_model_strategy(mm_file_path('resident_unweighted.csv'), cluster = resident_cluster)
+    resident_limit_strategy = mental_model_file_constant_strategy_create(mm_file_path('resident_unweighted.csv'), cluster = resident_cluster)
   )
 }
 
