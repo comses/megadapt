@@ -276,10 +276,7 @@ calculate_new_weights_double_coupling<-function(study_data){
        "weight_flooding_precipitation"=weight_flooding_precipitation,
        "weight_ponding_runoff"=weight_ponding_runoff,
        "weight_flooding_runoff"=weight_flooding_runoff)
-
-
 }
-
 
 #' A function to modify the values in a block in an unweighted supermatrix.
 #'@param path_td a path to the data
@@ -287,8 +284,7 @@ calculate_new_weights_double_coupling<-function(study_data){
 #' @param block the block of the unweighted supermatrix to by modified
 #' @param col_to_modify the column in the block where the values will be changed
 #' @param values the new values that will replace the old weights.
-#' @return A modified unweigted supermatrix
-
+#' @return  A modified unweigted supermatrix
 modify_block_row=function(path_td, unweighted_supermatrix, block, col_to_modify, values){
   if(sum(values)!=1)stop("values must sum to 1")
   UWM=read.csv(paste(path_td),sep=",",skip = 1,header = T)
