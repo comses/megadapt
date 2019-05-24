@@ -40,3 +40,8 @@ call_fnss.climate_fnss <- function(climate_scenario, study_data) {
     runoff_volume=sampled_rain_runoff_scenario$runoff[match_values]
   )
 }
+
+climate_scenario <- function(climate_fnss, study_data) {
+  study_data %>%
+    dplyr::inner_join(call_fnss(climate_fnss, study_data), by = PK_JOIN)
+}

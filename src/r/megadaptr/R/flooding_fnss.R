@@ -90,3 +90,8 @@ call_fnss.flooding_delta_method_fnss <-
       w['precipitation']*change_precipitation +
       w['runoff']*change_runoff
   }
+
+flooding_initialize <- function(flooding_fnss, study_data) {
+  study_data %>%
+    dplyr::inner_join(call_fnss(flooding_fnss, study_data = study_data), by = PK_JOIN)
+}

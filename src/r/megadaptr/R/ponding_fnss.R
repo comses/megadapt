@@ -120,3 +120,8 @@ call_fnss.ponding_delta_method_fnss <- function(ponding_delta_method_fnss, study
     ponding_index = ponding_index
   )
 }
+
+ponding_initialize <- function(ponding_fnss, study_data) {
+  study_data %>%
+    dplyr::inner_join(call_fnss(ponding_fnss, study_data = study_data), by = PK_JOIN)
+}
