@@ -18,7 +18,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data,
   vf_flood <- sapply(study_data$inunda, FUN = ponding_vf)
 
   # Ponding
-  vf_pond <- study_data$encharca_index
+  vf_pond <- 1 - study_data$encharca_index
 
   ## Fresh Water Specific
   # age infrastructure Abastecimiento
@@ -102,14 +102,14 @@ determine_public_infrastructure_investment_suitability <- function(study_data,
     vf_hid_pressure,
     vf_WQ,
     vf_scarcity_sacmex,
-    vf_pond,
+    vf_flood,
     vf_Abaste,
     vf_pet_del_d,
     vf_pres_medios,
     vf_SP
   )
 
-  ## Storm Water Specific
+  ## Sewer system Specific
 
   subsidence <- value_function_config$subsidence
   sewer_age <- value_function_config$sewer_age
@@ -187,7 +187,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data,
     )
 
   # flooding #cchange to flooding
-  vf_flood <- study_data$flooding_index
+  vf_flood <- 1 - study_data$flooding_index
 
   all_C_D <- cbind(
     vf_garbage,
