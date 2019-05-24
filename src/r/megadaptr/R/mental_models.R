@@ -219,3 +219,80 @@ create_constant_mental_model_strategies <- function() {
     resident_limit_strategy = file_constant_mental_model_strategy(mm_file_path('resident_unweighted.csv'), cluster = resident_cluster)
   )
 }
+
+
+#' A function to calculate a new set of weights to modify the supermatrix in the block "socio-hydrological risk and Environtment, specifically in the "sewer_system_sacmex_unweighted" matrix
+#'@param study_data A data frame that includes precipitation volume, runoff, and the mean precipitation and the mean runoff
+#'@return A list of weights to change the block "socio-hydrological risk and Environtment" in the unweighted supermatrix
+calculate_new_weights_double_coupling<-function(study_data){
+
+  ponding_historic_sum_for_precipitation <- sum(study_data$resident_reports_ponding_count_mean,na.rm=T)
+  flooding_historic_sum_for_precipitation<-sum(study_data$resident_reports_flooding_count_mean,na.rm=T)
+
+  ponding_historic_sum_for_runnof <- sum(study_data$resident_reports_ponding_count_mean[which(study_data$runoff_bin==1)],na.rm=T)
+  flooding_historic_sum_for_runnof<-sum(study_data$resident_reports_flooding_count_mean[which(study_data$runoff_bin==1)],na.rm=T)
+
+
+  ponding_current_sum_for_precipitation <- sum(study_data$ponding_index,na.rm=T)
+  flooding_current_sum_for_precipitation<-sum(study_data$flooding_index,na.rm=T)
+
+  ponding_current_sum_for_runnof <- sum(study_data$ponding_index[which(study_data$runoff_bin==1)],na.rm=T)
+  flooding_current_sum_for_runnof<-sum(study_data$flooding_index[which(study_data$runoff_bin==1)],na.rm=T)
+
+
+  delta_ponding_precipitation=(ponding_current_sum_for_precipitation-ponding_historic_sum_for_precipitation)/ponding_historic_sum_for_precipitation
+  delta_flooding_precipitation=(flooding_current_sum_for_precipitation-flooding_historic_sum_for_precipitation)/flooding_historic_sum_for_precipitation
+
+  delta_ponding_runoff=(ponding_current_sum_for_runnof-ponding_historic_sum_for_runoff)/ponding_historic_sum_for_runoff
+  delta_flooding_runoff=(flooding_current_sum_for_runoff-flooding_historic_sum_for_runoff)/flooding_historic_sum_for_runoff
+
+  weight_ponding_precipitation=delta_ponding_precipitation/(delta_ponding_precipitation+delta_flooding_precipitation)
+  weight_flooding_precipitation=1-weight_ponding_precipitation
+
+  weight_ponding_runoff=delta_ponding_runoff/(delta_ponding_runoff+delta_flooding_runoff)
+  weight_flooding_runoff=1-weight_ponding_runoff
+
+  list("weight_ponding_precipitation"=weight_ponding_precipitation,
+       "weight_flooding_precipitation"=weight_flooding_precipitation,
+       "weight_ponding_runoff"=weight_ponding_runoff,
+       "weight_flooding_runoff"=weight_flooding_runoff)
+
+
+}
+
+
+#' create a function thAt takes as arguments the
+#'@param path_td a path to the data
+#' @param unweighted_supermatrix  and unweighted supermatrix
+#' @param block the block of the unweighted supermatrix to by modified
+#' @col_to_modify the col in the block there the values will be changed
+#' @param values the new values that will replace the old weights.
+#' @report A modified unweigted supermatrix
+
+modify_block_row=function(path_td, unweighted_supermatrix, block, col_to_modify, values){
+  if(sum(values)!=1)stop("values must sum to 1")
+  UWM=read.csv(paste(path_td),sep=",",skip = 1,header = T)
+  y_cors=which(UWM$X!="")
+  x_cors=2+y_cors
+  index = 1
+  category_coors <- list()
+  for(i in y_cors){
+    index <- index + 1
+    if (is.na(y_cors[index])){
+      category_coors[[paste(index-1)]] <- c(i,nrow(UWM))
+    }else{
+      category_coors[[paste(index-1)]] <- c(i,y_cors[index]-1)
+    }
+  }
+  a <- category_coors[[paste(block[1])]][1]
+  b <- category_coors[[paste(block[1])]][2]
+  cc <- category_coors[[paste(block[2])]][1] + col_to_modify - 1
+  browser()
+  if(length(values)!=length(a:b))stop("number of rows to change must be the same length as the length of the col_to_modify column in block")
+
+  unwaited_supermatrix[a:b, cc] <- values
+  return(unwaited_supermatrix)
+  vec_cluster=rep(MM_WaterOperator_C$V2,  diff(c(y_cors,(length(UWM$X)+1))))
+  weighted_supermatrix=sweep(unwaited_supermatrix,MARGIN = 2,vec_cluster,FUN = '*')
+
+}
