@@ -6,7 +6,7 @@ logistic_vf <- function(x, k, center, xmax, xmin) {
   return(1 / (1.0 + exp(-k * ((100 * (x - xmin) / (xmax - xmin)) - (100 * (center - xmin) / (xmax - xmin))))))
 }
 #######################################################################################################
-logistic_invertida <- function(x, k, center, xmax, xmin) {
+logistica_invertida <- function(x, k, center, xmax, xmin) {
   x <- max(c(x, xmin))
   x <- min(c(x, xmax))
   return(1.0 - logistic_vf(x, k, center, xmax, xmin))

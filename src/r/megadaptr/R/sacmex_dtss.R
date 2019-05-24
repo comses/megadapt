@@ -129,7 +129,7 @@ sacmex_determine_investment_suitability <-
     # subsidance
     vf_subside <- sapply(
       study_data$subsidence_rate_per_year,
-      FUN = logistic_invertida,
+      FUN = logistica_invertida,
       k = subsidence$k,
       xmin = subsidence$min,
       xmax = subsidence$max,
@@ -142,7 +142,7 @@ sacmex_determine_investment_suitability <-
     # age infrastructure drainage
     vf_A_D <- sapply(
       study_data$sewer_infrastructure_age,
-      FUN = logistic_invertida,
+      FUN = logistica_invertida,
       center = sewer_age$center,
       k = sewer_age$k,
       xmax = sewer_age$max,

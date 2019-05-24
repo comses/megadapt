@@ -46,7 +46,7 @@ update_ponding_index <-
 
     fv_historic_ponding_freq <- sapply(
       study_data$prom_en,
-      FUN = logistic_invertida,
+      FUN = logistica_invertida,
       xmax = 10,
       xmin = 0,
       k = 0.108,
