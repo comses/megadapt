@@ -41,8 +41,8 @@ megadapt_dtss_create <- function(
   climate_fnss,
   flooding_fnss,
   ponding_fnss,
-  resident_dtss,
-  sacmex_dtss,
+  resident_fnss,
+  sacmex_fnss,
   water_scarcity_fnss
 ) {
   config <- list(
@@ -127,20 +127,42 @@ megadapt_initialize <- function(megadapt, study_data) {
   megadapt
 }
 
+#' Create a megadapt model with no feedback and using action weights
+#'
+#' @export
+#' @param params a list of params to initalize model components with
 megadapt_single_coupled_with_action_weights_create <- function(params) {
   value_function_config <- value_function_config_default()
   mental_models <- mental_model_constant_strategies()
   study_area = study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v3.gpkg'))
   climate_fnss <- climate_fnss_create(
-    data_dir('climate_landuse_scenarios', 'df_prec_escorrentias_0_ff45.csv'))
+    data_dir('climate_landuse_scenarios', 'df_prec_escorrentias_excl_0_ff45.csv'))
   flooding_fnss = flooding_index_fnss_create()
   ponding_fnss = ponding_index_fnss_create()
-  resident_fnss = resident_fnss_create()
-  sacmex_fnss = sacmex_seperate_action_budgets_fnss_create()
+  resident_fnss = resident_fnss_create(
+    value_function_config = value_function_config,
+    mental_model_strategy = mental_models$resident_limit_strategy,
+    half_sensitivity_ab = params$half_sensitivity_ab,
+    half_sensitivity_d = params$half_sensitivity_d
+  )
+  sacmex_fnss = sacmex_seperate_action_budgets_fnss_create(
+    value_function_config = value_function_config,
+    sewer_mental_model_strategy = mental_models$sewer_water_sacmex_limit_strategy,
+    potable_water_mental_model_strategy = mental_models$potable_water_sacmex_limit_strategy,
+    params = params,
+    potable_water_budget = 600,
+    sewer_budget = 600
+  )
   water_scarcity_fnss = water_scarcity_index_fnss_create(value_function_config)
   megadapt_dtss_create(
     year = params$start_year,
-    climate_fnss = climate_fnss
+    study_area = study_area,
+    climate_fnss = climate_fnss,
+    flooding_fnss = flooding_fnss,
+    ponding_fnss = ponding_fnss,
+    resident_fnss = resident_fnss,
+    sacmex_fnss = sacmex_fnss,
+    water_scarcity_fnss = water_scarcity_fnss
   )
 }
 

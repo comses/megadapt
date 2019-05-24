@@ -276,11 +276,7 @@ calculate_new_weights_double_coupling<-function(study_data){
        "weight_flooding_precipitation"=weight_flooding_precipitation,
        "weight_ponding_runoff"=weight_ponding_runoff,
        "weight_flooding_runoff"=weight_flooding_runoff)
-
-
 }
-
-
 
 #' A function to modify the values in a block in an unweighted supermatrix.
 #'

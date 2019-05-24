@@ -445,16 +445,40 @@ sacmex_depreciate_infrastructure <-
     study_data
   }
 
+## Action Budget Specific
+
+sacmex_get_budget_from_mental_model <- function(mental_models, sewer_budget, potable_water_budget) {
+  sewer_weights <- mental_models$alternative_weights$d
+  sewer_weights <- sewer_weights / sum(sewer_weights)
+
+  potable_weights <- mental_models$alternative_weights$ab
+  potable_weights <- potable_weights / sum(potable_weights)
+
+  sewer_split_budget <- sewer_budget * sewer_weights
+  potable_split_budget <- potable_water_budget * potable_weights
+
+  list(
+    potable_water_new_infrastructure = potable_split_budget[['Nueva_infraestructura']],
+    potable_water_maintenance = potable_split_budget[['Mantenimiento']],
+    sewer_water_new_infrastructure = sewer_split_budget[['Nueva_infraestructura']],
+    sewer_water_maintenance = sewer_split_budget[['Mantenimiento']]
+  )
+}
+
 sacmex_seperate_action_budgets_fnss_create <-
   function(value_function_config,
            sewer_mental_model_strategy,
            potable_water_mental_model_strategy,
+           sewer_budget,
+           potable_water_budget,
            params = list(
              maintenance_effectiveness_rate = 0.07,
              new_infrastructure_effectiveness_rate = 0.07
            )) {
     config <- list(
       params = params,
+      sewer_budget = sewer_budget,
+      potable_water_budget = potable_water_budget,
       value_function_config = value_function_config,
       sewer_mental_model_strategy = sewer_mental_model_strategy,
       potable_water_mental_model_strategy = potable_water_mental_model_strategy
@@ -463,7 +487,8 @@ sacmex_seperate_action_budgets_fnss_create <-
   }
 
 call_fnss.sacmex_separate_action_budgets_fnss <-
-  function(sacmex, year, study_data, budget) {
+  function(sacmex, year, study_data) {
+
     mental_models <- list(
       sacmcx =
         mental_model_sacmex_create(
@@ -473,6 +498,12 @@ call_fnss.sacmex_separate_action_budgets_fnss <-
           study_data = study_data
         )
     )
+    budget <- sacmex_get_budget_from_mental_model(
+      mental_models = mental_models,
+      sewer_budget = sacmex$sewer_budget,
+      potable_water_budget = potable_water_budget
+    )
+
     params <- sacmex$params
     site_suitability <- sacmex_determine_investment_suitability(
       study_data = study_data,
@@ -505,6 +536,8 @@ call_fnss.sacmex_separate_action_budgets_fnss <-
         household_potable_system_lacking_percent
       )
   }
+
+## Initialization Specific
 
 sacmex_initialize <- function(study_data) {
   study_data %>%
