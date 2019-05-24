@@ -1,3 +1,8 @@
+#' Create an object of class "ponding_index_fnss".
+#'
+#'@param weights A vector of weigth parameters of length=4.
+#'@return An object of class 'ponding_index_fnss' to be used as arguments into the ponding index with value functions.
+
 ponding_index_fnss_create <-
   #' @export
   function(weights = c(
@@ -11,6 +16,11 @@ ponding_index_fnss_create <-
   prepend_class(weights, 'ponding_index_fnss')
   }
 
+#' A function to calculate a ponding index using value functions
+#'
+#'@param ponding_index_fnss An object with weights parameters created with \code{\link{ponding_index_fnss_create}}
+#'@param study_data data.frame with variables "precipitation_volume", "runoff_volume", "resident_reports_ponding_count" and "sewer_system_capacity".
+#'@return A data.frame with variables "censusblock_id" and "ponding_index". The ponding index will have values between 0 and 1.
 call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   #' @export
   #' @method call_fnss ponding_index_fnss
@@ -51,10 +61,6 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   )# min+(max-min)/2 ==49
 
 
-  #calculate weights for each factor
-  #For now, weights are equal for all the factors: 1/3 for areas without runoff and
-  #1/4 for areas with runoff
-
   weights <- ponding_index_fnss
   w_historic_ponding_freq = weights['ponding']
   w_f_prec_v = weights['precipitation']
@@ -70,6 +76,12 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
                  ponding_index = ponding_index) #crear variable en dataframe
 }
 
+################################################
+
+#' Create an object of class "ponding_delta_method_fnss".
+#'
+#'@param weights A vector of weigth parameters of length=3
+#'@return An object of class 'ponding_delta_method_fnss' to be used as arguments into the ponding index using "call_fnss.ponding_delta_method_fnss".
 ponding_delta_method_fnss_create <- function(
   #' @export
   weights = c(
@@ -81,6 +93,12 @@ ponding_delta_method_fnss_create <- function(
   prepend_class(weights, 'ponding_delta_method_fnss')
 }
 
+
+#' A function to calculate a ponding index using relative change in runoff, precipitation, and sewer system capacity.
+#'
+#'@param ponding_delta_method_fnss An object with weights parameters created with \code{\link{ponding_delta_method_fnss_create}}
+#'@param study_data data.frame with variables "precipitation_volume", "runoff_volume", "resident_reports_ponding_count" and "sewer_system_capacity".
+#'@return A data.frame with variables "censusblock_id" and "ponding_index". The ponding index will have values between 0 and 1.
 call_fnss.ponding_delta_method_fnss <- function(ponding_delta_method_fnss, study_data) {
   #' @export
   #' @method call_fnss ponding_delta_method_fnss
