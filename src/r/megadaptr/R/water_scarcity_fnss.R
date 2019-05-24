@@ -91,3 +91,8 @@ call_fnss.water_scarcity_index_fnss <- function(water_scarcity_index_fnss, study
     ageb_id = study_data$censusblock_id,
     scarcity_index = scarcity_index)
 }
+
+water_scarcity_initialize <- function(water_scarcity_fnss, study_data) {
+  study_data %>%
+    dplyr::inner_join(call_fnss(water_scarcity_fnss, study_data = study_data), by = PK_JOIN)
+}
