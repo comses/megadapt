@@ -1,13 +1,13 @@
-id,path,urban_scenario,cc_scenario
-1,df_prec_escorrentias_excl_0_ff85.csv,e04_s6_flores_v2_noairport_no11_excl_0,8.5 far future 
-2,df_prec_escorrentias_excl_0_nf85.csv,e04_s6_flores_v2_noairport_no11_excl_0,8.5 near future
-3,df_prec_escorrentias_excl_0_ff45.csv,e04_s6_flores_v2_noairport_no11_excl_0,4.5 far future
-4,df_prec_escorrentias_excl_0_nf45.csv,e04_s6_flores_v2_noairport_no11_excl_0,4.5 near future
-5,df_prec_escorrentias_excl_total_ff85_c.csv,e04_s6_flores_v2_noairport_no11_excl_total,8.5 far future 
-6,df_prec_escorrentias_excl_total_nf85_c.csv,e04_s6_flores_v2_noairport_no11_excl_total,8.5 near future
-7,df_prec_escorrentias_excl_total_ff45_c.csv,e04_s6_flores_v2_noairport_no11_excl_total,4.5 far future
-8,df_prec_escorrentias_excl_total_nf45_c.csv,e04_s6_flores_v2_noairport_no11_excl_total,4.5 near future
-9,df_prec_escorrentias_noairport_no11_ff85.csv,e04_s6_flores_v2_noairport_no11,8.5 far future 
-10,df_prec_escorrentias_noairport_no11_nf85.csv,e04_s6_flores_v2_noairport_no11,8.5 near future
-11,df_prec_escorrentias_noairport_no11_ff45.csv,e04_s6_flores_v2_noairport_no11,4.5 far future
-12,df_prec_escorrentias_noairport_no11_nf45_c.csv,e04_s6_flores_v2_noairport_no11,4.5 near future
+"id","path","urban_scenario","cc_scenario"
+1,"df_prec_escorrentias_excl_0_ff85.csv","e04_s6_flores_v2_noairport_no11_excl_0","8.5 far future "
+2,"df_prec_precvolm3_escorrentias_excl_0_nf85.csv","e04_s6_flores_v2_noairport_no11_excl_0","8.5 near future"
+3,"df_prec_precvolm3_escorrentias_excl_0_ff45.csv","e04_s6_flores_v2_noairport_no11_excl_0","4.5 far future"
+4,"df_prec_precvolm3_escorrentias_excl_0_nf45.csv","e04_s6_flores_v2_noairport_no11_excl_0","4.5 near future"
+5,"df_prec_precvolm3_escorrentias_excl_total_ff85_c.csv","e04_s6_flores_v2_noairport_no11_excl_total","8.5 far future "
+6,"df_prec_precvolm3_escorrentias_excl_total_nf85_c.csv","e04_s6_flores_v2_noairport_no11_excl_total","8.5 near future"
+7,"df_prec_precvolm3_escorrentias_excl_total_ff45_c.csv","e04_s6_flores_v2_noairport_no11_excl_total","4.5 far future"
+8,"df_prec_precvolm3_escorrentias_excl_total_nf45_c.csv","e04_s6_flores_v2_noairport_no11_excl_total","4.5 near future"
+9,"df_prec_precvolm3_escorrentias_noairport_no11_ff85.csv","e04_s6_flores_v2_noairport_no11","8.5 far future "
+10,"df_prec_precvolm3_escorrentias_noairport_no11_nf85.csv","e04_s6_flores_v2_noairport_no11","8.5 near future"
+11,"df_prec_precvolm3_escorrentias_noairport_no11_ff45.csv","e04_s6_flores_v2_noairport_no11","4.5 far future"
+12,"df_prec_precvolm3_escorrentias_noairport_no11_nf45_c.csv","e04_s6_flores_v2_noairport_no11","4.5 near future"
