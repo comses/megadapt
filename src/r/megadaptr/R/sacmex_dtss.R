@@ -217,16 +217,16 @@ sacmex_determine_investment_suitability <-
     }
 
     distance_ideal_A1_D <- sweep(
-      X=as.matrix(all_C_D),
+      x=as.matrix(all_C_D),
       MARGIN = 2,
-      criteria_weights=sacmcx_criteria_d / sum(sacmcx_criteria_d),
+      sacmcx_criteria_d / sum(sacmcx_criteria_d),
       FUN = ideal_distance,
       alternative_weights = sacmcx_alternative_weights_d[1] / sum(sacmcx_alternative_weights_d)
     ) # "Mantenimiento"
     distance_ideal_A2_D <- sweep(
-      X=as.matrix(all_C_D),
+      x=as.matrix(all_C_D),
       MARGIN = 2,
-      criteria_weights=sacmcx_criteria_d / sum(sacmcx_criteria_d),
+      sacmcx_criteria_d / sum(sacmcx_criteria_d),
       FUN = ideal_distance,
       alternative_weights = sacmcx_alternative_weights_d[2] / sum(sacmcx_alternative_weights_d)
     ) # "Nueva_infraestructura"
@@ -243,16 +243,16 @@ sacmex_determine_investment_suitability <-
     }
 
     distance_ideal_A1_Ab <- sweep(
-      X=as.matrix(all_C_ab),
+      x=as.matrix(all_C_ab),
       MARGIN = 2,
-      criteria_weights=sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
+      sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
       FUN = ideal_distance,
       alternative_weights = sacmcx_alternative_weights_s['Mantenimiento'] / sum(sacmcx_alternative_weights_s)
     ) # "Mantenimiento"
     distance_ideal_A2_Ab <- sweep(
-      X=as.matrix(all_C_ab),
+      x=as.matrix(all_C_ab),
       MARGIN = 2,
-      criteria_weights=sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
+      sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
       FUN = ideal_distance,
       alternative_weights = sacmcx_alternative_weights_s['Nueva_infraestructura'] / sum(sacmcx_alternative_weights_s)
     ) # "Nueva_infraestructura"
@@ -267,16 +267,6 @@ sacmex_determine_investment_suitability <-
   }
 
 #######################################################################################
-
-#' Calculate the distance to an ideal point using a "compromized programing" metric
-#'@param criteria_weights a vector of weights from the criteria part in a limit vector
-#'@param X a matrix value functions outcomes associated to the criteria part of the limit vector
-#'@param alternative_weights a vector of alternative weight associated to the alternatives part of the limit vector
-#'@param exponent A value to define the type of distance exponent=2: Euclidean, exponent=1: Manhattan
-#'@return A vector of distances to the ideal point.
-ideal_distance <- function(X, criteria_weights, alternative_weights, exponent = 1) {
-  return(((alternative_weights ^ exponent) * rowSums((criteria_weights^exponent) * ((1 - X)^exponent), na.rm = T))^(1 / exponent))
-}
 
 
 sacmex_work_plan_max_chooser <-

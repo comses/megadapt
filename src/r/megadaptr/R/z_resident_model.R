@@ -57,16 +57,16 @@ determine_residential_infrastructure_suitability <- function(study_data, value_f
     vf_H
   )
 
-  distance_ideal_House_mod_lluvia <- sweep(as.matrix(C_R_D[, -c(3, 4, 7)]),
+  distance_ideal_House_mod_lluvia <- sweep(x=as.matrix(C_R_D[, -c(3, 4, 7)]),
                                            MARGIN = 2,
                                            criteria_iz[-c(3, 4, 7)] / sum(criteria_iz[-c(3, 4, 7)]),
                                            FUN = ideal_distance,
-                                           z = alternative_weights_iz[4] / sum(alternative_weights_iz[c(4, 5)])) # "House modification"
-  distance_ideal_House_mod_agua <- sweep(as.matrix(C_R_HM[, -c(6, 8)]),
+                                           alternative_weights = alternative_weights_iz[4] / sum(alternative_weights_iz[c(4, 5)])) # "House modification"
+  distance_ideal_House_mod_agua <- sweep(x=as.matrix(C_R_HM[, -c(6, 8)]),
                                          MARGIN = 2,
                                          criteria_iz[-c(6, 8)] / sum(criteria_iz[-c(6, 8)]),
                                          FUN = ideal_distance,
-                                         z = alternative_weights_iz[4] / sum(alternative_weights_iz[c(4, 5)])) # "House modification"
+                                         alternative_weights = alternative_weights_iz[4] / sum(alternative_weights_iz[c(4, 5)])) # "House modification"
 
   list(
     distance_ideal_House_mod_lluvia = distance_ideal_House_mod_lluvia,

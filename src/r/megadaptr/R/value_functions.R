@@ -246,3 +246,17 @@ create_value_function_config <- function(sewer_age,
     subsidence = subsidence
   )
 }
+
+#####################################################################
+#' Calculate the distance to an ideal point using a "compromized programing" metric
+#'@param criteria_weights a vector of weights from the criteria part in a limit vector
+#'@param X_vf a matrix of value functions outcomes associated to the criteria part of the limit vector
+#'@param alternative_weights a vector of alternative weight associated to the alternatives part of the limit vector
+#'@param exponent A value to define the type of distance exponent=2: Euclidean, exponent=1: Manhattan
+#'@return A vector of distances to the ideal point.
+ideal_distance <- function(X_vf, criteria_weights, alternative_weights, exponent = 1) {
+  return(((alternative_weights ^ exponent) * rowSums((criteria_weights^exponent) * ((1 - X_vf)^exponent), na.rm = T))^(1 / exponent))
+}
+
+
+
