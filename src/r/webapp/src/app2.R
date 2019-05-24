@@ -35,22 +35,22 @@ body <- dashboardBody(
 
 
   fluidRow(
-    column(width = 7,
+    column(width = 8,
             box(width = NULL, status = "warning",
                 uiOutput("factor_chooser")
             ),
-           box(width = 910,height = 875, solidHeader = TRUE,
+           box(width = 910,height = 900, solidHeader = TRUE,
                leafletOutput("map", height =870, width = 900)
            ),
             box(width = 100,
                 uiOutput("mapUI")
             )
     ),
-    column(width = 3,
+    column(width = 4,
            box(width = NULL, status = "warning",
                uiOutput("municSelector")
            ),
-           box(width = 450, status = "warning",
+           box(width = 475, status = "warning",
                uiOutput("plot_view")
           #     selectInput('selected_language',
            #                "Language",
@@ -73,7 +73,8 @@ body <- dashboardBody(
            #     ),
            #     actionButton("zoomButton", "Zoom to fit buses")
             ),
-            box(width = NULL, status = "warning"
+            box(width = NULL, status = "warning",
+                uiOutput("more_info")
            #     selectInput("interval", "Refresh interval",
            #                 choices = c(
            #                   "30 seconds" = 30,
@@ -194,6 +195,10 @@ server <- function(input, output, session) {
 
   })
 
+  moreInfo <- reactive({
+
+    paste("More Information about the municipality or the census block selected can be displayed here.")
+  })
 
   output$choose_params <- renderText({
     i18n()$t("Choose from the parameters below to see simulation results")
@@ -211,9 +216,6 @@ server <- function(input, output, session) {
     tagList(
       selectInput("select_factor", i18n()$t("Indicator"), choices = factorList(), width = 400
       )
-      #selectInput("select_municipality", i18n()$t("Municipality to Display"), choices = municipalityList(), width = 400
-      #)
-      #plotOutput("plot", width = 400)
     )
   })
 
@@ -224,6 +226,10 @@ server <- function(input, output, session) {
   output$municSelector <- renderUI({
     selectInput("select_municipality", i18n()$t("Municipality"), choices = municipalityList(), width = 200
     )
+  })
+
+  output$more_info <- renderUI({
+    #textOutput(paste(moreInfo))
   })
 
   municipalityList <- reactive({
@@ -371,14 +377,19 @@ server <- function(input, output, session) {
   })
 
   municipalityData <- reactive({
-    value = 14 #input$select_municipality
-    m.df = municipalities
-
-
-    spot <- which((m.df@data[["mun_num"]]) == value)
-    m.df@data[,"color"] <- NA
-    m.df@data[spot,"color"] <- value
-
+    # value = 14 #input$select_municipality
+    # m.df = municipalities
+    #
+    #
+    # spot <- which((m.df@data[["mun_num"]]) == value)
+    # m.df@data[,"color"] <- NA
+    # m.df@data[spot,"color"] <- value
+    m.df <- municipalities
+    if (length(input$select_factor)) {
+      if (input$select_municipality > 1) {
+        m.df <- municipalities[municipalities$mun_num==input$select_municipality, ]
+      }
+    }
     m.df
   })
 
@@ -426,8 +437,6 @@ server <- function(input, output, session) {
     else{
       values.4.fill =  studyArea_CVG.4.display@data[[input$select_factor]]
     }
-#    m.df <- municipalityData()
-    munic.values = municipalityData()@data[["colors"]]
 
     #leafletProxy("map", data = filteredData()) %>%
     leafletProxy("map") %>%
@@ -439,10 +448,10 @@ server <- function(input, output, session) {
                   fillColor = ~pal(values.4.fill )
                   #highlightOptions = highlightOptions(color = "white", weight = 2, bringToFront = TRUE)
       )%>%
-      addPolygons(data = municipalityData(), color = "#444444", weight = 4, smoothFactor = 1.0,
-                  opacity = 0.1, fillOpacity = 0.1, fillColor = ~pal( munic.values), #municipalityShapeColor()
+      addPolygons(data = municipalityData(), color = "#444444", weight = 3, smoothFactor = 1.0,
+                  opacity = 0.1, fillOpacity = 0.01, fillColor = municipalities@data[["mun_num"]],#~pal( munic.values), #municipalityShapeColor()
                   #popup = paste(municipalities@data[["ageb_id"]]),
-                  highlightOptions = highlightOptions(color = "white", weight = 2,bringToFront = FALSE))
+                  highlightOptions = highlightOptions(color = "white", weight = 2,bringToFront = TRUE))
 
 
 

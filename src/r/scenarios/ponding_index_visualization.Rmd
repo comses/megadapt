@@ -1,8 +1,19 @@
 ---
 title: "Ponding Index Visualization"
-output: html_document
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    social: menu
+    source_code: embed
 runtime: shiny
 ---
+
+Column {.sidebar}
+-------------------------------------
+
+### Ponding Index
+
+The ponding index is computed based on the capacity, runoff, precipitation and the average number of ponding event reports noted by residents in a year for that census block.
 
 ```{r setup, include=FALSE}
 library(leaflet)
@@ -11,13 +22,9 @@ library(shiny)
 source('../scenarios/util.R')
 ```
 
-## Ponding Index
-
-The ponding index is computed based on the capacity, runoff, precipitation and the average number of ponding event reports noted by residents in a year for that census block.
-
 ```{r load_censusblocks, echo=FALSE}
 megadapt <- build_megadapt_model(data_root_dir = data_root_dir,
-                                 mental_model_file_names = mental_model_file_names)
+                                 mental_model_strategies =  mental_model_strategies)
 
 sliderInput("capacity", "Non potable infrastructure capacity", min = 0, max = 20, step = 1, value = 5)
 
@@ -27,6 +34,16 @@ sliderInput("precipitation", "Precipiation Volume", min = 0, max = 20, step = 1,
 
 sliderInput("runoff", "Runoff Volume", min = 0, max = 20, step = 1, value = 5)
 
+# capacity_d <- input$capacity # %>% debounce(600)
+# ponding_d <- input$ponding # %>% debounce(600)
+# precipitation <- input$precipitation # %>% debounce(600)
+# runoff <- input$runoff # %>% debounce(600)
+```
+
+Column
+-------------------------------------
+
+```{r}
 renderLeaflet({
   weights <-
     c(

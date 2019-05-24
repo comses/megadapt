@@ -32,7 +32,7 @@ determine_public_infrastructure_investment_suitability <- function(study_data,
   )
 
   # potable water system capacity
-  vf_Cap_Ab <- rep(1, length(study_data$falta_dist))
+  vf_Cap_Ab <- 1 - study_data$falta_dist
 
   # d) falla Ab
   vf_falla_dist <- 1 - sapply(
@@ -51,8 +51,6 @@ determine_public_infrastructure_investment_suitability <- function(study_data,
       saturation = 1,
       x_max = 100
     )
-  #  plot(study_data$falta_dist,vf_falta_Ab)
-  # monto ##!!!#no information about this variable
   vf_monto <- rep(1, length(study_data$ageb_id))
 
   # hydraulic pressure
@@ -109,6 +107,8 @@ determine_public_infrastructure_investment_suitability <- function(study_data,
     vf_SP
   )
 
+  #################################################################################
+  ###############################################################################
   ## Storm Water Specific
 
   subsidence <- value_function_config$subsidence

@@ -3,6 +3,7 @@ argparse,NA
 assertr,NA
 bindrcpp,NA
 dplyr,"0.8.0.1"
+flexdashboard,NA
 fs,NA
 future.apply,NA
 future.batchtools,NA
