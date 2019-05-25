@@ -200,7 +200,9 @@ megadapt_initialize <- function(megadapt) {
 #'
 #' @export
 #' @param params a list of params to initalize model components with
-megadapt_single_coupled_with_action_weights_create <- function(params) {
+megadapt_single_coupled_with_action_weights_create <- function(
+  params, sacmex_fnss_creator = sacmex_seperate_action_budgets_fnss_create) {
+
   value_function_config <- value_function_config_default()
   mental_models <- mental_model_constant_strategies()
   study_area = study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v5.gpkg'))
@@ -214,7 +216,7 @@ megadapt_single_coupled_with_action_weights_create <- function(params) {
     half_sensitivity_ab = params$half_sensitivity_ab,
     half_sensitivity_d = params$half_sensitivity_d
   )
-  sacmex_fnss = sacmex_seperate_action_budgets_fnss_create(
+  sacmex_fnss = sacmex_fnss_creator(
     value_function_config = value_function_config,
     sewer_mental_model_strategy = mental_models$sewer_water_sacmex_limit_strategy,
     potable_water_mental_model_strategy = mental_models$potable_water_sacmex_limit_strategy,
