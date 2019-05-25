@@ -43,6 +43,7 @@ megadapt <- build_megadapt_model(
     new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
     maintenance_effectiveness_rate = maintenance_effectiveness_rate,
     n_steps = n_steps,
+    budget=budget,
     infrastructure_decay_rate = infrastructure_decay_rate,
     half_sensitivity_ab = half_sensitivity_ab,
     half_sensitivity_d = half_sensitivity_d
