@@ -27,9 +27,9 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   fv_f_prec_v <- sapply(
     study_data$precipitation_volume,
     FUN = convexa_decreciente,
-    xmax =  8930363.15853,
+    xmax =  2000,
     # [mm/km2]==  1202 mm/year
-    xmin = 10590.85,
+    xmin = 400,
     # [mm/km2]
     gama = 0.035
   )
@@ -67,10 +67,10 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   w_non_potable_capacity = weights['capacity']
   w_f_esc = weights['runoff']
 
-  ponding_index = 1 - (w_historic_ponding_freq * fv_historic_ponding_freq) +
+  ponding_index = 1 - ((w_historic_ponding_freq * fv_historic_ponding_freq) +
     (w_f_prec_v * fv_f_prec_v) +
     (w_non_potable_capacity * fv_non_potable_capacity) +
-    (w_f_esc * fv_f_esc)
+    (w_f_esc * fv_f_esc))
 
   tibble::tibble(censusblock_id = study_data$censusblock_id,
                  ponding_index = ponding_index) #crear variable en dataframe
