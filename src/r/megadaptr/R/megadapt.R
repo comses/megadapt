@@ -221,8 +221,8 @@ megadapt_single_coupled_with_action_weights_create <- function(
     sewer_mental_model_strategy = mental_models$sewer_water_sacmex_limit_strategy,
     potable_water_mental_model_strategy = mental_models$potable_water_sacmex_limit_strategy,
     params = params,
-    potable_water_budget = 600,
-    sewer_budget = 600
+    potable_water_budget = params$budget,
+    sewer_budget = params$budget
   )
   water_scarcity_fnss = water_scarcity_index_fnss_create(value_function_config)
   megadapt_dtss_create(
