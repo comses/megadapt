@@ -1,9 +1,32 @@
+PK_JOIN_EXPR = c("censusblock_id" = "censusblock_id")
+
 study_area_read <- function(path) {
-  rgdal::readOGR(dsn = path,
-                 layer = 'megadapt_wgs84_v3',
+  sdf <- rgdal::readOGR(dsn = path,
+                 layer = 'megadapt_wgs84_v5',
                  stringsAsFactors = FALSE,
                  verbose = TRUE,
                  integer64 = 'warn.loss')
+  df <- sdf@data %>%
+    dplyr::rename(
+      household_potable_system_lacking_percent=household_potable_system_percent_lacking,
+      resident_reports_flooding_per_year=resident_reports_flooding_per_year,
+      sewer_system_capacity_max=sewer_system_max_capacity,
+      household_sewer_system_lacking_percent = household_sewer_system_percent_lacking,
+      resident_potable_water_lacking_count = resident_potable_water_count_lacking
+    )
+  sdf@data <- df
+  sdf
+}
+
+apply_data_changes <- function(data, changes, join_columns) {
+  change_colnames = setdiff(colnames(changes), names(join_columns))
+
+  data %>%
+    dplyr::select(-change_colnames) %>%
+    dplyr::inner_join(
+      changes,
+      by = join_columns
+    )
 }
 
 value_function_config_default <- function() {
@@ -34,9 +57,58 @@ value_function_config_default <- function() {
   )
 }
 
+#' Create a parameter set for the megadapt model
+#'
+#' @export
+#' @param new_infrastructure_effectiveness_rate the percent increase in
+#' drainage capacity for a census block if a new non potable infrastructure
+#' investment is taken. The percent decrease in potable water reports about
+#' pipe leakage and infrastructure failure if potable water investment is
+#' undertaken in a census block
+#' @param maintenance_effectiveness_rate the percent increase in drainage
+#' capacity for a census block if non potable infrastructure maintenance is
+#' is undertaken. The percent decrease in potable water infrastructure age
+#' if potable water infrastructure maintenance is undertaken
+#' @param n_steps the number of years to run the model for
+#' @param infrastructure_decay_rate the percent decrease in non potable water
+#' infrastructure capacity from infrastructure breakdown in a year
+#' @param budget the number of census blocks that can be invested in a year.
+#' The budget value is identical for potable and non potable infrastructure
+#' (if the budget is 200 then it is 200 for potable and 200 for non potable
+#' infrastructure)
+#' @param half_sensitivity_ab sensitivity to fresh water access
+#' @param half_sensitivity_d sensitivity to ponding and flooding
+#' @param start_year the date of the start of the simulation
+#' @param climate_scenario the climate scenario id used to lookup the climate
+#' scenario
+#' @return a parameter list used to configure a megadapt model
+create_params <-
+  function(new_infrastructure_effectiveness_rate = 0.07,
+           maintenance_effectiveness_rate = 0.07,
+           n_steps = 5,
+           infrastructure_decay_rate = 0.01,
+           budget = 1200,
+           half_sensitivity_ab = 10,
+           half_sensitivity_d = 10,
+           start_year = lubridate::ymd('2019-01-01'),
+           climate_scenario=1) {
+    list(
+      new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
+      maintenance_effectiveness_rate = maintenance_effectiveness_rate,
+      n_steps = n_steps,
+      infrastructure_decay_rate = infrastructure_decay_rate,
+      budget = budget,
+      half_sensitivity_ab = half_sensitivity_ab,
+      half_sensitivity_d = half_sensitivity_d,
+      start_year = start_year,
+      climate_scenario = climate_scenario
+    )
+  }
+
 
 megadapt_dtss_create <- function(
   year,
+  n_steps,
   study_area,
   climate_fnss,
   flooding_fnss,
@@ -47,6 +119,7 @@ megadapt_dtss_create <- function(
 ) {
   config <- list(
     year = year,
+    n_steps = n_steps,
     study_area = study_area,
     climate_fnss = climate_fnss,
     flooding_fnss = flooding_fnss,
@@ -72,12 +145,12 @@ transition_dtss.megadapt_dtss <- function(megadapt_dtss) {
   water_scarcity_fnss <- megadapt_dtss$water_scarcity_fnss
   year <- megadapt_dtss$year
 
-  climate_changes <- call_fnss(climate_fnss, year)
-  climate_augmented_data <- apply_data_changes(study_data, climate_changes)
+  climate_changes <- call_fnss(climate_fnss, study_data)
+  climate_augmented_data <- apply_data_changes(study_data, climate_changes, join_columns = PK_JOIN_EXPR)
   flooding_changes <- call_fnss(flooding_fnss, climate_augmented_data)
   ponding_changes <- call_fnss(ponding_fnss, climate_augmented_data)
 
-  resident_changes <- call_fnss(resident_fnss, year, study_data)
+  resident_changes <- call_fnss(resident_fnss, study_data)
   sacmex_changes <- call_fnss(sacmex_fnss, year, study_data)
   water_scarcity_index_changes <- call_fnss(water_scarcity_fnss, study_data)
 
@@ -85,12 +158,12 @@ transition_dtss.megadapt_dtss <- function(megadapt_dtss) {
     climate_changes,
     flooding_changes,
     ponding_changes,
-    residential_changes,
+    resident_changes,
     sacmex_changes,
-    water_scarcity_changes
+    water_scarcity_index_changes
   ) %>%
-    purrr::reduce(dplyr::left_join, by = PK_JOIN)
-  new_study_data <- aapply_data_changes(study_data, next_year_changes)
+    purrr::reduce(dplyr::left_join, by = PK_JOIN_EXPR)
+  new_study_data <- apply_data_changes(study_data, next_year_changes, join_columns = PK_JOIN_EXPR)
 
   megadapt_dtss$year <- year + 1
   megadapt_dtss$study_area@data <- new_study_data
@@ -108,21 +181,17 @@ data_dir <- function(...) {
   system.file(fs::path('rawdata', ...), package = 'megadaptr', mustWork = TRUE)
 }
 
-megadapt_initialize <- function(megadapt, study_data) {
+megadapt_initialize <- function(megadapt) {
   study_data <- megadapt$study_area@data
-  components <-
-    list(
-      megadapt$climate_fnss,
-      megadapt$sacmex_fnss,
-      megadapt$flooding_fnss,
-      megadapt$ponding_fnss,
-      megadapt$resident_fnss,
-      megadapt$water_scarcity_fnss
-    )
+  year <- megadapt$year
 
-  for (component in components) {
-    study_data <- call_fnss(component, study_data)
-  }
+  study_data <- climate_initialize(megadapt$climate_fnss, study_data = study_data) %>%
+    sacmex_initialize(study_data = .) %>%
+    flooding_initialize(megadapt$flooding_fnss, study_data = .) %>%
+    ponding_initialize(megadapt$ponding_fnss, study_data = .) %>%
+    resident_initialize(megadapt$resident_fnss, study_data = .) %>%
+    water_scarcity_initialize(megadapt$water_scarcity_fnss, study_data = .)
+
   megadapt$study_area@data <- study_data
   megadapt
 }
@@ -134,9 +203,9 @@ megadapt_initialize <- function(megadapt, study_data) {
 megadapt_single_coupled_with_action_weights_create <- function(params) {
   value_function_config <- value_function_config_default()
   mental_models <- mental_model_constant_strategies()
-  study_area = study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v3.gpkg'))
+  study_area = study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v5.gpkg'))
   climate_fnss <- climate_fnss_create(
-    data_dir('climate_landuse_scenarios', 'df_prec_escorrentias_excl_0_ff45.csv'))
+    data_dir('climate_landuse_scenarios', 'df_prec_precvolm3_escorrentias_excl_0_ff45.csv'))
   flooding_fnss = flooding_index_fnss_create()
   ponding_fnss = ponding_index_fnss_create()
   resident_fnss = resident_fnss_create(
@@ -155,7 +224,8 @@ megadapt_single_coupled_with_action_weights_create <- function(params) {
   )
   water_scarcity_fnss = water_scarcity_index_fnss_create(value_function_config)
   megadapt_dtss_create(
-    year = params$start_year,
+    year = 2020,
+    n_steps = params$n_steps,
     study_area = study_area,
     climate_fnss = climate_fnss,
     flooding_fnss = flooding_fnss,
@@ -170,13 +240,17 @@ megadapt_single_coupled_with_split_budget_create <- function() {
 
 }
 
+#' Run the megadapt model
+#'
+#' @export
+#' @param megadapt a megadapt model instance
 simulate <- function(megadapt) {
-  megadapt <- initialize_megadapt(megadapt)
-  study_data <- output_dtss(megadapt)
+  megadapt <- megadapt_initialize(megadapt)
+  study_data <- output_dtss(megadapt)$study_area@data
   results <- save_results(study_data = study_data, year = megadapt$year)
   megadapt <- transition_dtss(megadapt)
   for (i in seq(megadapt$n_steps)) {
-    df <- output_dtss(megadapt)
+    study_data <- output_dtss(megadapt)$study_area@data
     results <- save_results(study_data = study_data, result_prev_time = results, year = megadapt$year)
     megadapt <- transition_dtss(megadapt)
   }

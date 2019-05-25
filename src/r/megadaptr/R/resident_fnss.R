@@ -1,11 +1,10 @@
 resident_determine_infrastructure_suitability <-
   function(study_data,
            value_function_config,
-           mental_models,
-           week_of_year) {
+           mental_models) {
     alternative_weights_iz <-
-      mental_models$residents$alternative_weights$iz
-    criteria_iz <- as.vector(mental_models$residents$criteria$iz)
+      mental_models$alternative_weights$iz
+    criteria_iz <- as.vector(mental_models$criteria$iz)
 
     # Water quality
     #vf_WQ <- sapply(study_data$waterquality_index, FUN = water_quality_residents_vf)
@@ -21,9 +20,9 @@ resident_determine_infrastructure_suitability <-
       )
     # agua insuficiente
     vf_Agua_insu <- sapply(
-      study_data$study_data$scarcity_index,
+      study_data$scarcity_index,
       FUN = convexa_decreciente,
-      xmax = max(study_data$study_data$scarcity_index),
+      xmax = max(study_data$scarcity_index),
       xmin = 0,
       gama = 0.01975
     )
@@ -43,12 +42,12 @@ resident_determine_infrastructure_suitability <-
     # fugas
     fv_fugas <-
       sapply(
-        study_data$household_potable_system_supply_problem_percent,
+        study_data$household_potable_system_lacking_percent,
         FUN = Value_Function_cut_offs,
         xcuts = c(0.5, 0.75, 0.875, 0.937),
         ycuts = c(1, 0.8, 0.6, 0.4, 0.2),
         xmax = max(
-          study_data$household_potable_system_supply_problem_percent,
+          study_data$household_potable_system_lacking_percent,
           na.rm = T
         )
       )
@@ -156,15 +155,17 @@ call_fnss.resident_fnss <- function(resident_fnss, study_data) {
   resident_infrastructure_invest(
     study_data = study_data,
     value_function_config = resident_fnss$value_function_config,
+    mental_models = mental_models,
     params = resident_fnss$params
   )
 }
-resident_invest_infrastructure <-
+
+resident_infrastructure_invest <-
   function(study_data,
            value_function_config,
            mental_models,
            params) {
-    suitability <- determine_residential_infrastructure_suitability(
+    suitability <- resident_determine_infrastructure_suitability(
       study_data = study_data,
       value_function_config = value_function_config,
       mental_models = mental_models
@@ -211,10 +212,10 @@ resident_invest_infrastructure <-
             )
           household_potable_water_sensitivity
         },
-        household_water_storage_tank_available_percent := {
-          household_water_storage_tank_available_percent[HM_Agua] <-
-            household_water_storage_tank_available_percent[HM_Agua] + 1 / params$half_sensitivity_ab
-          household_water_storage_tank_available_percent
+        household_water_storage_tank_percent := {
+          household_water_storage_tank_percent[HM_Agua] <-
+            household_water_storage_tank_percent[HM_Agua] + 1 / params$half_sensitivity_ab
+          household_water_storage_tank_percent
         },
         household_potable_water_vulnerability = (household_potable_water_sensitivity * scarcity_index) / (1 + resident_asset_index),
         household_sewer_vulnerability = (household_sewer_sensitivity * ponding_index) / (1 + resident_asset_index)
@@ -225,7 +226,7 @@ resident_invest_infrastructure <-
         household_sewer_sensitivity,
         household_potable_water_invention_count,
         household_potable_water_sensitivity,
-        household_water_storage_tank_available_percent,
+        household_water_storage_tank_percent,
         household_potable_water_vulnerability,
         household_sewer_vulnerability
       )

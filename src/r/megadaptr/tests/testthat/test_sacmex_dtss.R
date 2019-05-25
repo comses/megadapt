@@ -144,7 +144,7 @@ describe('a split budget', {
     names(x) <- c('Mantenimiento', 'Nueva_infraestructura')
     x
   }
-  mental_models = list(alternative_weights = list(ab = make_weight_vec(c(0.2, 0.8)),
+  mental_models = list(alternative_weights = list(s = make_weight_vec(c(0.2, 0.8)),
                                                   d = make_weight_vec(c(0.1, 0.9))))
   sewer_budget <- 500
   potable_water_budget <- 1000

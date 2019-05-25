@@ -11,7 +11,7 @@ flooding_index_fnss_create <- function(weights = c(
 call_fnss.flooding_index_fnss <-
   function(flooding_index_fnss, study_data) {
     fv_f_prec_v <- sapply(
-      study_data$f_prec_v,
+      study_data$precipitation_volume,
       FUN = convexa_decreciente,
       xmax =  8930363.15853,
       # [mm/km2]==  1202 mm/year
@@ -30,7 +30,7 @@ call_fnss.flooding_index_fnss <-
 
 
     fv_f_esc <- sapply(
-      study_data$f_esc,
+      study_data$runoff_volume,
       FUN = convexa_decreciente,
       xmax = 504,
       xmin = 0,
@@ -38,7 +38,7 @@ call_fnss.flooding_index_fnss <-
     )
 
     fv_historic_flooding_freq <- sapply(
-      study_data$inunda,
+      study_data$resident_reports_flooding_per_year,
       FUN = logistica_invertida,
       xmax = 8.0266,
       xmin = 0,
@@ -62,7 +62,7 @@ call_fnss.flooding_index_fnss <-
       (w_fv_non_potable_capacity * fv_non_potable_capacity) +
       (w_f_esc * fv_f_esc)
 
-    tibble::tibble(ageb_id = study_data$ageb_id,
+    tibble::tibble(censusblock_id = study_data$censusblock_id,
                    flooding_index = flooding_index) #crear variable en dataframe
   }
 
@@ -93,5 +93,5 @@ call_fnss.flooding_delta_method_fnss <-
 
 flooding_initialize <- function(flooding_fnss, study_data) {
   study_data %>%
-    dplyr::inner_join(call_fnss(flooding_fnss, study_data = study_data), by = PK_JOIN)
+    dplyr::inner_join(call_fnss(flooding_fnss, study_data = study_data), by = PK_JOIN_EXPR)
 }

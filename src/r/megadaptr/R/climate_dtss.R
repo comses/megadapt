@@ -3,7 +3,7 @@
 #' @param path Path to the file
 #' @return climate scenario data.frame
 load_climate_scenario <- function(path) {
-  read.csv(path, stringsAsFactors = FALSE, header = FALSE)
+  readr::read_csv(path)
 }
 
 
@@ -41,7 +41,7 @@ call_fnss.climate_fnss <- function(climate_scenario, study_data) {
   )
 }
 
-climate_scenario <- function(climate_fnss, study_data) {
+climate_initialize <- function(climate_fnss, study_data) {
   study_data %>%
-    dplyr::inner_join(call_fnss(climate_fnss, study_data), by = PK_JOIN)
+    dplyr::inner_join(call_fnss(climate_fnss, study_data), by = PK_JOIN_EXPR)
 }

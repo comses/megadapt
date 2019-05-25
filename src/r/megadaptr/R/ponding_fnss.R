@@ -52,7 +52,7 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   )
 
   fv_historic_ponding_freq <- sapply(
-    study_data$resident_reports_ponding_count,
+    study_data$resident_reports_ponding_per_year,
     FUN = logistica_invertida,
     xmax = 10,
     xmin = 0,
@@ -123,5 +123,5 @@ call_fnss.ponding_delta_method_fnss <- function(ponding_delta_method_fnss, study
 
 ponding_initialize <- function(ponding_fnss, study_data) {
   study_data %>%
-    dplyr::inner_join(call_fnss(ponding_fnss, study_data = study_data), by = PK_JOIN)
+    dplyr::inner_join(call_fnss(ponding_fnss, study_data = study_data), by = PK_JOIN_EXPR)
 }

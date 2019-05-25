@@ -17,20 +17,20 @@ save_results <- function(study_data,
     "ponding_index",
     "scarcity_index",
     "household_potable_water_sensitivity",
-    "household_water_storage_tank_available_percent",
+    "household_water_storage_tank_percent",
     "household_sewer_sensitivity",
     "household_potable_water_vulnerability",
     "household_sewer_vulnerability",
-    "sacmex_potable_intervention_count",
-    "sacmex_sewer_intervention_count"
+    "sacmex_potable_maintenance_intervention_count",
+    "sacmex_sewer_maintenance_intervention_count",
+    "sacmex_potable_new_infrastructure_intervention_count",
+    "sacmex_sewer_new_infrastructure_intervention_count"
   )
 
   df <- study_data %>%
     dplyr::select(!!! COLUMNS_TO_SAVE) %>%
     dplyr::mutate(
-      time_sim = TR,
-      month_sim = (!! month),
-      year_sim = (!! year)
+      year = (!! year)
     )
   if (!is.null(result_prev_time)) {
     return(dplyr::union_all(df, result_prev_time))
