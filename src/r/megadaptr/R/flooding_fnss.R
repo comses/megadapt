@@ -85,10 +85,15 @@ call_fnss.flooding_delta_method_fnss <-
     change_precipitation <- (study_data$precipitation_volume - precip_mean)/precip_mean
     change_runoff <- (study_data$runoff_volume - runoff_mean)/runoff_mean
     flooding_mean <- study_data$resident_reports_flooding_count_mean
-    flooding_mean -
+    flooding_index <- flooding_mean -
       w['capacity']*change_capacity +
       w['precipitation']*change_precipitation +
       w['runoff']*change_runoff
+
+    tibble::tibble(
+      censusblock_id = study_data$censusblock_id,
+      flooding_index = flooding_index
+    )
   }
 
 flooding_initialize <- function(flooding_fnss, study_data) {

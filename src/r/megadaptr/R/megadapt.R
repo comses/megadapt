@@ -12,7 +12,9 @@ study_area_read <- function(path) {
       resident_reports_flooding_per_year=resident_reports_flooding_per_year,
       sewer_system_capacity_max=sewer_system_max_capacity,
       household_sewer_system_lacking_percent = household_sewer_system_percent_lacking,
-      resident_potable_water_lacking_count = resident_potable_water_count_lacking
+      resident_potable_water_lacking_count = resident_potable_water_count_lacking,
+      precipitation_volume_mean = prec_mean,
+      runoff_volume_mean = runoff_mean
     )
   sdf@data <- df
   sdf
@@ -200,27 +202,37 @@ megadapt_initialize <- function(megadapt) {
 #'
 #' @export
 #' @param params a list of params to initalize model components with
-megadapt_single_coupled_with_action_weights_create <- function(params) {
+megadapt_single_coupled_with_action_weights_create <- function(
+  params, sacmex_fnss_creator = sacmex_seperate_action_budgets_fnss_create,
+  flooding_fnss=NULL,
+  ponding_fnss=NULL) {
+
+  if (is.null(flooding_fnss)) {
+    flooding_fnss = flooding_index_fnss_create()
+  }
+
+  if (is.null(ponding_fnss)) {
+    ponding_fnss = ponding_index_fnss_create()
+  }
+
   value_function_config <- value_function_config_default()
   mental_models <- mental_model_constant_strategies()
   study_area = study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v5.gpkg'))
   climate_fnss <- climate_fnss_create(
     data_dir('climate_landuse_scenarios', 'df_prec_precvolm3_escorrentias_excl_0_ff45.csv'))
-  flooding_fnss = flooding_index_fnss_create()
-  ponding_fnss = ponding_index_fnss_create()
   resident_fnss = resident_fnss_create(
     value_function_config = value_function_config,
     mental_model_strategy = mental_models$resident_limit_strategy,
     half_sensitivity_ab = params$half_sensitivity_ab,
     half_sensitivity_d = params$half_sensitivity_d
   )
-  sacmex_fnss = sacmex_seperate_action_budgets_fnss_create(
+  sacmex_fnss = sacmex_fnss_creator(
     value_function_config = value_function_config,
     sewer_mental_model_strategy = mental_models$sewer_water_sacmex_limit_strategy,
     potable_water_mental_model_strategy = mental_models$potable_water_sacmex_limit_strategy,
     params = params,
-    potable_water_budget = 600,
-    sewer_budget = 600
+    potable_water_budget = params$budget,
+    sewer_budget = params$budget
   )
   water_scarcity_fnss = water_scarcity_index_fnss_create(value_function_config)
   megadapt_dtss_create(
