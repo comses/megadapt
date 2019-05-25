@@ -38,54 +38,6 @@ initial_state <- function(study_data) {
   )
 }
 
-#' Create a parameter set for the megadapt model
-#'
-#' @export
-#' @param new_infrastructure_effectiveness_rate the percent increase in
-#' drainage capacity for a census block if a new non potable infrastructure
-#' investment is taken. The percent decrease in potable water reports about
-#' pipe leakage and infrastructure failure if potable water investment is
-#' undertaken in a census block
-#' @param maintenance_effectiveness_rate the percent increase in drainage
-#' capacity for a census block if non potable infrastructure maintenance is
-#' is undertaken. The percent decrease in potable water infrastructure age
-#' if potable water infrastructure maintenance is undertaken
-#' @param n_steps the number of years to run the model for
-#' @param infrastructure_decay_rate the percent decrease in non potable water
-#' infrastructure capacity from infrastructure breakdown in a year
-#' @param budget the number of census blocks that can be invested in a year.
-#' The budget value is identical for potable and non potable infrastructure
-#' (if the budget is 200 then it is 200 for potable and 200 for non potable
-#' infrastructure)
-#' @param half_sensitivity_ab sensitivity to fresh water access
-#' @param half_sensitivity_d sensitivity to ponding and flooding
-#' @param start_year the date of the start of the simulation
-#' @param climate_scenario the climate scenario id used to lookup the climate
-#' scenario
-#' @return a parameter list used to configure a megadapt model
-create_params <-
-  function(new_infrastructure_effectiveness_rate = 0.07,
-           maintenance_effectiveness_rate = 0.07,
-           n_steps = 5,
-           infrastructure_decay_rate = 0.01,
-           budget = 1200,
-           half_sensitivity_ab = 10,
-           half_sensitivity_d = 10,
-           start_year = lubridate::ymd('2019-01-01'),
-           climate_scenario=1) {
-    list(
-      new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
-      maintenance_effectiveness_rate = maintenance_effectiveness_rate,
-      n_steps = n_steps,
-      infrastructure_decay_rate = infrastructure_decay_rate,
-      budget = budget,
-      half_sensitivity_ab = half_sensitivity_ab,
-      half_sensitivity_d = half_sensitivity_d,
-      start_year = start_year,
-      climate_scenario = climate_scenario
-    )
-  }
-
 create_megadapt <- function(climate_scenario,
                             mental_model_strategies,
                             ponding_models,
@@ -100,17 +52,6 @@ create_megadapt <- function(climate_scenario,
     study_area = study_area,
     value_function_config = value_function_config
   )
-}
-
-apply_data_changes <- function(data, changes, join_columns) {
-  change_colnames = setdiff(colnames(changes), names(join_columns))
-
-  data %>%
-    dplyr::select(-change_colnames) %>%
-    dplyr::inner_join(
-      changes,
-      by = join_columns
-    )
 }
 
 #' Run the megadapt model one year

@@ -57,14 +57,14 @@ call_fnss.water_scarcity_index_fnss <- function(water_scarcity_index_fnss, study
 
 
   0#  zonas criticas no estan en el dataframe
-  fv_num_cisternas = 0  #  study_data$tanks   add cisternas
+  fv_num_cisternas = 0  #  study_data$household_water_storage_tank_percent   add cisternas
 
   fv_num_cisternas <- sapply(
-    study_data$household_water_storage_tank_available_percent,
+    study_data$household_water_storage_tank_percent,
     FUN = convexa_creciente,
     gama = .05,
-    xmax = max(study_data$household_water_storage_tank_available_percent, na.rm = T),
-    xmin = min(study_data$household_water_storage_tank_available_percent, na.rm = T)
+    xmax = max(study_data$household_water_storage_tank_percent, na.rm = T),
+    xmin = min(study_data$household_water_storage_tank_percent, na.rm = T)
   )
 
   fv_dias_sagua = sapply(
@@ -88,11 +88,11 @@ call_fnss.water_scarcity_index_fnss <- function(water_scarcity_index_fnss, study
   scarcity_index = 1/6*(fv_pob_ageb + fv_zonas_crit + fv_num_cisternas + fv_ingreso +  fv_dias_sagua  +  fv_viviendas_sagua)
 
   tibble::tibble(
-    ageb_id = study_data$censusblock_id,
+    censusblock_id = study_data$censusblock_id,
     scarcity_index = scarcity_index)
 }
 
 water_scarcity_initialize <- function(water_scarcity_fnss, study_data) {
   study_data %>%
-    dplyr::inner_join(call_fnss(water_scarcity_fnss, study_data = study_data), by = PK_JOIN)
+    dplyr::inner_join(call_fnss(water_scarcity_fnss, study_data = study_data), by = PK_JOIN_EXPR)
 }

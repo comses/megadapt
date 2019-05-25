@@ -1,3 +1,4 @@
+PK_JOIN	PK_JOIN_EXPR
 house_modifications_Ab	household_potable_water_invention_count
 house_modifications_D	household_sewer_intervention_count
 sensitivity_Ab	household_potable_water_sensitivity
@@ -8,6 +9,7 @@ antiguedad_dren	sewer_infrastructure_age
 antiguedad_dist	potable_water_infrastructure_age
 Interventions_Ab	sacmex_potable_intervention_count
 Interventions_D	sacmex_sewer_intervention_count
+encharca_index	ponding_index
 f_prec_v	precipitation_volume
 f_esc	runoff_volume
 abastecimi	resident_potable_water_lacking_count
@@ -33,7 +35,7 @@ ingreso	resident_asset_index
 inunda	resident_reports_flooding_per_year
 lambdas	household_days_no_potable_water_per_week_mean
 n_tramos	sewer_system_segment_count
-pet_del_dr	delegation_social_pressure
+pet_del_d	delegation_social_pressure
 poblacion	resident_count
 pres_hid	potable_system_pressure
 pres_med	media_social_pressure

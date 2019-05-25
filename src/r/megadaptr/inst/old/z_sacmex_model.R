@@ -363,13 +363,6 @@ determine_public_infrastructure_work_plan <-
     ordered_best_choices[0:n_census_blocks,]
   }
 
-.site_selection_inds <-
-  function(study_data, site_selection, choice_name) {
-    matching_ids <-
-      site_selection$ageb_id[site_selection$choice_name == choice_name]
-    study_data$ageb_id %in% matching_ids
-  }
-
 make_public_infrastructure_investments <-
   function(study_data, site_selection, params) {
     A1 <-
