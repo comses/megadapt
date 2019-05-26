@@ -27,18 +27,29 @@ sacmex_determine_investment_suitability <-
       sapply(study_data$resident_reports_flooding_per_year, FUN = ponding_vf)
 
     # Ponding
-    vf_pond <- study_data$ponding_index
-
+    vf_pond_maintainance <- study_data$ponding_index
+    vf_pond_new_infra <- rep(1,length(study_data$ponding_index))
     ## Fresh Water Specific
     # age infrastructure Abastecimiento
-    vf_A_Ab <- sapply(
+    #ponding
+    vf_pond_mant_delta_method <- sapply(
+      study_data$ponding_index,
+      FUN=logistica_invertida,
+      k=0.13,
+      center=3.1,
+      xmin=0,
+      xmax=13)
+
+
+    vf_Age_potable_maintanance <- sapply(
       study_data$potable_water_infrastructure_age,
-      FUN = campana_invertida,
-      center = shortage_age$center,
-      a = shortage_age$a,
-      xmax = shortage_age$max,
-      xmin = shortage_age$min
+      FUN = logistica_invertida,
+      center = 40,
+      k = 0.1,
+      xmax = 100,
+      xmin = 0
     )
+    vf_Age_potable_new_infra=rep(1,length(study_data$potable_water_infrastructure_age))
 
     # potable water system capacity
     vf_Cap_Ab <-
@@ -104,8 +115,8 @@ sacmex_determine_investment_suitability <-
 
     vf_SP <- fv_fail_claim * (1 - study_data$scarcity_index)
 
-    all_C_ab <- cbind(
-      vf_A_Ab,
+    all_C_potable_mantainance <- cbind(
+      vf_Age_potable_maintanance,
       vf_Cap_Ab,
       vf_falla_dist,
       vf_falta_dist,
@@ -113,7 +124,23 @@ sacmex_determine_investment_suitability <-
       vf_hid_pressure,
       vf_WQ,
       vf_scarcity_sacmex,
-      vf_pond,
+      vf_pond_maintainance,
+      vf_Abaste,
+      vf_pet_del_d,
+      vf_pres_medios,
+      vf_SP
+    )
+
+    all_C_potable_new_infra <- cbind(
+      vf_Age_potable_new_infra,
+      vf_Cap_Ab,
+      vf_falla_dist,
+      vf_falta_dist,
+      vf_monto,
+      vf_hid_pressure,
+      vf_WQ,
+      vf_scarcity_sacmex,
+      vf_pond_new_infra,
       vf_Abaste,
       vf_pet_del_d,
       vf_pres_medios,
@@ -172,16 +199,15 @@ sacmex_determine_investment_suitability <-
     #plot(study_data$non_potable_capacity,vf_Cap_D)
     # falla D
     #vf_fall_D <- rep(1, length(study_data$household_potable_system_lacking_percent))
-    vf_falla_dren <-
-      1 - sapply(
-        study_data$resident_reports_sewer_failure_count,
-        FUN = capacity_drainage_vf,
-        sat = 1,
-        x_max = max(study_data$household_potable_system_lacking_percent),
-        x_min = 0
-      )
-    #  plot(study_data$household_potable_system_lacking_percent,vf_fall_D)
-    #falta dren
+    vf_falla_dren <- sapply(
+      study_data$resident_reports_sewer_failure_count,
+      FUN=logistic_vf,
+      xmin=0,
+      xmax=10,
+      k=0.1,
+      center=5)
+
+
     vf_falta_dren <-
       sapply(
         100 * study_data$household_sewer_system_lacking_percent,
@@ -199,9 +225,10 @@ sacmex_determine_investment_suitability <-
       )
 
     # flooding #cchange to flooding
-    vf_flood <- study_data$flooding_index
+    vf_flood_mantainance <- 1 - study_data$flooding_index
+    vf_flood_new_infra <- 1 - study_data$flooding_index
 
-    all_C_D <- cbind(
+    all_C_sewer_mantainance <- cbind(
       vf_garbage,
       vf_run_off,
       vf_subside,
@@ -213,29 +240,46 @@ sacmex_determine_investment_suitability <-
       vf_pet_del_d,
       vf_pet_us_d,
       vf_pres_medios,
-      vf_pond,
-      vf_flood
+      vf_pond_maintainance,
+      vf_flood_mantainance
     )
+
+    all_C_sewer_new_infra <- cbind(
+      vf_garbage,
+      vf_run_off,
+      vf_subside,
+      vf_rain,
+      vf_A_D,
+      vf_Cap_D,
+      vf_falla_dren,
+      vf_falta_dren,
+      vf_pet_del_d,
+      vf_pet_us_d,
+      vf_pres_medios,
+      vf_pond_new_infra,
+      vf_flood_new_infra
+    )
+
     # calculate distance for each census block for action mantainance and build new infrastructure
     sacmcx_criteria_d <- as.vector(mental_models$sacmcx$criteria$d)
     sacmcx_alternative_weights_d <-
       mental_models$sacmcx$alternative_weights$d
 
-    if (dim(all_C_D)[2] != length(sacmcx_criteria_d)) {
+    if (dim(all_C_sewer_mantainance)[2] != length(sacmcx_criteria_d) | dim(all_C_sewer_new_infra)[2] != length(sacmcx_criteria_d) ) {
       stop(
-        "number of value functions defined should be the same length as the number of criteria in the mental model"
+        "The number of value functions should be the same length as the number of criteria in the mental model"
       )
     }
 
     distance_ideal_A1_D <- sweep(
-      x = as.matrix(all_C_D),
+      x=as.matrix(all_C_sewer_mantainance),
       MARGIN = 2,
       sacmcx_criteria_d / sum(sacmcx_criteria_d),
       FUN = ideal_distance,
       alternative_weights = sacmcx_alternative_weights_d[1] / sum(sacmcx_alternative_weights_d)
     ) # "Mantenimiento"
     distance_ideal_A2_D <- sweep(
-      x = as.matrix(all_C_D),
+      x=as.matrix(all_C_sewer_new_infra),
       MARGIN = 2,
       sacmcx_criteria_d / sum(sacmcx_criteria_d),
       FUN = ideal_distance,
@@ -247,21 +291,21 @@ sacmex_determine_investment_suitability <-
     sacmcx_alternative_weights_s <-
       mental_models$sacmcx$alternative_weights$s
 
-    if (dim(all_C_ab)[2] != length(sacmcx_criteria_ab)) {
+    if (dim(all_C_potable_mantainance)[2] != length(sacmcx_criteria_ab) | dim(all_C_potable_new_infra)[2] != length(sacmcx_criteria_ab)) {
       stop(
-        "number of value functions defined should be the same length as the number of criteria in the mental model"
+        "The number of value functions should be the same length as the number of criteria in the mental model"
       )
     }
 
     distance_ideal_A1_Ab <- sweep(
-      x = as.matrix(all_C_ab),
+      x=as.matrix(all_C_potable_mantainance),
       MARGIN = 2,
       sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
       FUN = ideal_distance,
       alternative_weights = sacmcx_alternative_weights_s['Mantenimiento'] / sum(sacmcx_alternative_weights_s)
     ) # "Mantenimiento"
     distance_ideal_A2_Ab <- sweep(
-      x = as.matrix(all_C_ab),
+      x=as.matrix(all_C_potable_new_infra),
       MARGIN = 2,
       sacmcx_criteria_ab / sum(sacmcx_criteria_ab),
       FUN = ideal_distance,
