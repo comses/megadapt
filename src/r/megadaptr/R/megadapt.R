@@ -14,7 +14,9 @@ study_area_read <- function(path) {
       household_sewer_system_lacking_percent = household_sewer_system_percent_lacking,
       resident_potable_water_lacking_count = resident_potable_water_count_lacking,
       precipitation_volume_mean = prec_mean,
-      runoff_volume_mean = runoff_mean
+      runoff_volume_mean = runoff_mean,
+      resident_reports_ponding_count_mean = resident_reports_ponding_per_year,
+      resident_reports_flooding_count_mean = resident_reports_flooding_per_year
     )
   sdf@data <- df
   sdf
@@ -204,6 +206,7 @@ megadapt_initialize <- function(megadapt) {
 #' @param params a list of params to initalize model components with
 megadapt_single_coupled_with_action_weights_create <- function(
   params, sacmex_fnss_creator = sacmex_seperate_action_budgets_fnss_create,
+  mental_models = NULL,
   flooding_fnss=NULL,
   ponding_fnss=NULL) {
 
@@ -215,8 +218,11 @@ megadapt_single_coupled_with_action_weights_create <- function(
     ponding_fnss <- ponding_index_fnss_create()
   }
 
+  if (is.null(mental_models)) {
+    mental_models <- mental_model_constant_strategies()
+  }
+
   value_function_config <- value_function_config_default()
-  mental_models <- mental_model_constant_strategies()
   study_area = study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v5.gpkg'))
   climate_fnss <- climate_fnss_create(
     data_dir('climate_landuse_scenarios', 'df_prec_precvolm3_escorrentias_excl_0_ff45.csv'))

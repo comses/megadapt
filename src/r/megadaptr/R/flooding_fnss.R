@@ -21,7 +21,7 @@ call_fnss.flooding_index_fnss <-
     )
 
     fv_non_potable_capacity <- sapply(
-      study_data$non_potable_capacity,
+      study_data$sewer_system_capacity,
       FUN = convexa_creciente,
       xmax = 2064.34,
       xmin = 0,
@@ -38,7 +38,7 @@ call_fnss.flooding_index_fnss <-
     )
 
     fv_historic_flooding_freq <- sapply(
-      study_data$resident_reports_flooding_per_year,
+      study_data$resident_reports_flooding_count_mean,
       FUN = logistica_invertida,
       xmax = 8.0266,
       xmin = 0,
@@ -70,6 +70,9 @@ value_function.flooding_index_fnss <- function(flooding, study_data) {
   study_data$flooding_index
 }
 
+#' Create a flooding delta model
+#'
+#' @export
 flooding_delta_method_fnss_create <-
   function(weights = c(capacity = 1,
                        precipitation = 1,
@@ -81,7 +84,7 @@ flooding_delta_method_fnss_create <-
 call_fnss.flooding_delta_method_fnss <-
   function(flooding_fnss, study_data) {
     w <- flooding_fnss
-    cap_init <- study_data$sewer_system_capacity_initial
+    cap_init <- study_data$sewer_system_capacity
     precip_mean <- study_data$precipitation_volume_mean
     runoff_mean <- study_data$runoff_volume_mean
 

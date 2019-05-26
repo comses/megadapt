@@ -35,7 +35,7 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   )
 
   fv_non_potable_capacity <- sapply(
-    study_data$sewer_system_capacity,
+    study_data$sewer_system_current_capacity,
     FUN = convexa_creciente,
     xmax = 2064.34,
     xmin = 0,
@@ -51,7 +51,7 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   )
 
   fv_historic_ponding_freq <- sapply(
-    study_data$resident_reports_ponding_per_year,
+    study_data$resident_reports_ponding_count_mean,
     FUN = logistica_invertida,
     xmax = 10,
     xmin = 0,
@@ -106,7 +106,7 @@ call_fnss.ponding_delta_method_fnss <- function(ponding_delta_method_fnss, study
   #' @export
   #' @method call_fnss ponding_delta_method_fnss
   w <- ponding_delta_method_fnss
-  cap_init <- study_data$sewer_system_capacity_initial
+  cap_init <- study_data$sewer_system_capacity
   precip_mean <- study_data$precipitation_volume_mean
   runoff_mean <- study_data$runoff_volume_mean
 

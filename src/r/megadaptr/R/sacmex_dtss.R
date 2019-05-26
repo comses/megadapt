@@ -181,13 +181,13 @@ sacmex_determine_investment_suitability <-
     # drainage capacity
     vf_Cap_D <-
       sapply(
-        study_data$non_potable_capacity,
+        study_data$sewer_system_capacity,
         FUN = capacity_drainage_vf,
         sat = 1,
-        x_max = max(study_data$non_potable_capacity),
+        x_max = max(study_data$sewer_system_capacity),
         x_min = 0
       )
-    #plot(study_data$non_potable_capacity,vf_Cap_D)
+    #plot(study_data$sewer_system_capacity,vf_Cap_D)
     # falla D
     #vf_fall_D <- rep(1, length(study_data$household_potable_system_lacking_percent))
     vf_falla_dren <- sapply(
@@ -437,13 +437,13 @@ sacmex_implement_work_plan <-
     # take actions sacmex
     # change value of atributes in agebs selected for action
     # action 1 mantainance D
-    #The effect of mantainance will not surpass the max. non_potable_capacity for each ageb!!!
+    #The effect of mantainance will not surpass the max. sewer_system_capacity for each ageb!!!
     if (length(A1) > 0) {
       study_data$sewer_infrastructure_age[A1] <-
         study_data$sewer_infrastructure_age[A1] - study_data$sewer_infrastructure_age[A1] * params$maintenance_effectiveness_rate
 
-      study_data$non_potable_capacity[A1] <- pmin(
-        study_data$non_potable_capacity[A1] * (1 + params$maintenance_effectiveness_rate),
+      study_data$sewer_system_capacity[A1] <- pmin(
+        study_data$sewer_system_capacity[A1] * (1 + params$maintenance_effectiveness_rate),
         # capasity of drainage increases with mantainance
         study_data$sewer_system_capacity_max[A1]
       )
@@ -455,8 +455,8 @@ sacmex_implement_work_plan <-
     if (length(A2) > 0) {
       study_data$household_sewer_system_lacking_percent[A2] <-
         study_data$household_sewer_system_lacking_percent[A2] - study_data$household_sewer_system_lacking_percent[A2] * params$new_infrastructure_effectiveness_rate
-      study_data$non_potable_capacity[A2] <-
-        study_data$non_potable_capacity[A2] * (1 + params$new_infrastructure_effectiveness_rate) # capasity of drainage increases with new infrastructure
+      study_data$sewer_system_capacity[A2] <-
+        study_data$sewer_system_capacity[A2] * (1 + params$new_infrastructure_effectiveness_rate) # capasity of drainage increases with new infrastructure
 
       study_data$sacmex_sewer_new_infrastructure_intervention_count[A2] <-
         study_data$sacmex_sewer_new_infrastructure_intervention_count[A2] + 1
@@ -489,8 +489,8 @@ sacmex_depreciate_infrastructure <-
       study_data$potable_water_infrastructure_age + 1
 
     # update_capacity of the system
-    study_data$non_potable_capacity <-
-      study_data$non_potable_capacity * (1 - infrastructure_decay_rate)
+    study_data$sewer_system_capacity <-
+      study_data$sewer_system_capacity * (1 - infrastructure_decay_rate)
     # update capacity index
     # FIDEL
     # The proportion of people without infrastructure increases proportionally to
@@ -586,7 +586,7 @@ sacmex_invest_and_depreciate <-
       sacmcx =
         mental_model_sacmex_create(
           potable_water_sacmex_limit_strategy = sacmex$potable_water_mental_model_strategy,
-          sewer_water_sacmex_limit_strategy = sacmex$potable_water_mental_model_strategy,
+          sewer_water_sacmex_limit_strategy = sacmex$sewer_mental_model_strategy,
           year = year,
           study_data = study_data
         )
@@ -626,7 +626,7 @@ sacmex_invest_and_depreciate <-
         sacmex_sewer_maintenance_intervention_count,
         sacmex_potable_new_infrastructure_intervention_count,
         sacmex_sewer_new_infrastructure_intervention_count,
-        non_potable_capacity,
+        sewer_system_capacity,
         household_potable_system_lacking_percent
       )
   }
@@ -695,6 +695,6 @@ sacmex_initialize <- function(study_data) {
       sacmex_potable_new_infrastructure_intervention_count = 0,
       sacmex_sewer_maintenance_intervention_count = 0,
       sacmex_sewer_new_infrastructure_intervention_count = 0,
-      non_potable_capacity = sewer_system_capacity_max
+      sewer_system_capacity = 0.5 * sewer_system_capacity_max
     )
 }

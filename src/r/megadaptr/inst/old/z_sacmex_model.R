@@ -502,7 +502,7 @@ sacmex_component <- list(
         antiguedad_dist = antiguedad,
         Interventions_Ab = 0,
         Interventions_D = 0,
-        non_potable_capacity = q100
+        non_potable_capacity = 0.5 * q100
       )
   },
   transition = update_public_infrastructure
