@@ -208,11 +208,11 @@ megadapt_single_coupled_with_action_weights_create <- function(
   ponding_fnss=NULL) {
 
   if (is.null(flooding_fnss)) {
-    flooding_fnss = flooding_index_fnss_create()
+    flooding_fnss <- flooding_index_fnss_create()
   }
 
   if (is.null(ponding_fnss)) {
-    ponding_fnss = ponding_index_fnss_create()
+    ponding_fnss <- ponding_index_fnss_create()
   }
 
   value_function_config <- value_function_config_default()
@@ -232,7 +232,9 @@ megadapt_single_coupled_with_action_weights_create <- function(
     potable_water_mental_model_strategy = mental_models$potable_water_sacmex_limit_strategy,
     params = params,
     potable_water_budget = params$budget,
-    sewer_budget = params$budget
+    sewer_budget = params$budget,
+    flooding_fnss = flooding_fnss,
+    ponding_fnss = ponding_fnss
   )
   water_scarcity_fnss = water_scarcity_index_fnss_create(value_function_config)
   megadapt_dtss_create(

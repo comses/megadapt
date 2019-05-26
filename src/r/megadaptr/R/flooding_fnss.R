@@ -66,6 +66,10 @@ call_fnss.flooding_index_fnss <-
                    flooding_index = flooding_index) #crear variable en dataframe
   }
 
+value_function.flooding_index_fnss <- function(flooding, study_data) {
+  study_data$flooding_index
+}
+
 flooding_delta_method_fnss_create <-
   function(weights = c(capacity = 1,
                        precipitation = 1,
@@ -95,6 +99,16 @@ call_fnss.flooding_delta_method_fnss <-
       flooding_index = flooding_index
     )
   }
+
+value_function.flooding_delta_method_fnss <- function(flooding, study_data) {
+  sapply(
+    study_data$flooding_index,
+    FUN=logistica_invertida,
+    k=0.13,
+    center=4,
+    xmin=0,
+    xmax=16)
+}
 
 flooding_initialize <- function(flooding_fnss, study_data) {
   study_data %>%

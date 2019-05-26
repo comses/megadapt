@@ -6,9 +6,11 @@
   }
 
 sacmex_determine_investment_suitability <-
-  function(study_data,
-           value_function_config,
+  function(sacmex,
+           study_data,
            mental_models) {
+    value_function_config <- sacmex$value_function_config
+
     shortage_age <- value_function_config$shortage_age
     shortage_failures <- value_function_config$shortage_failures
     hydraulic_pressure_failure <-
@@ -27,19 +29,8 @@ sacmex_determine_investment_suitability <-
       sapply(study_data$resident_reports_flooding_per_year, FUN = ponding_vf)
 
     # Ponding
-    vf_pond_maintainance <- study_data$ponding_index
+    vf_pond_maintainance <- value_function(sacmex$ponding_fnss, study_data)
     vf_pond_new_infra <- rep(1,length(study_data$ponding_index))
-    ## Fresh Water Specific
-    # age infrastructure Abastecimiento
-    #ponding
-    vf_pond_mant_delta_method <- sapply(
-      study_data$ponding_index,
-      FUN=logistica_invertida,
-      k=0.13,
-      center=3.1,
-      xmin=0,
-      xmax=13)
-
 
     vf_Age_potable_maintanance <- sapply(
       study_data$potable_water_infrastructure_age,
@@ -229,13 +220,7 @@ sacmex_determine_investment_suitability <-
     vf_flood_new_infra <- 1 - study_data$flooding_index
 
     #flooding vf for delta methods
-    vf_flood_mant<-  sapply(
-      seq(0,16,0.2),
-      FUN=logistica_invertida,
-      k=0.13,
-      center=4,
-      xmin=0,
-      xmax=16)
+    vf_flood_mant <-  value_function(sacmex$flooding_fnss, study_data)
 
     all_C_sewer_mantainance <- cbind(
       vf_garbage,
@@ -540,12 +525,15 @@ sacmex_get_budget_from_mental_model <-
     )
   }
 
-sacmex_seperate_action_budgets_fnss_create <-
+sacmex_default_create <-
   function(value_function_config,
            sewer_mental_model_strategy,
            potable_water_mental_model_strategy,
            sewer_budget,
            potable_water_budget,
+           ponding_fnss,
+           flooding_fnss,
+           class_name,
            params = list(
              maintenance_effectiveness_rate = 0.07,
              new_infrastructure_effectiveness_rate = 0.07
@@ -556,9 +544,36 @@ sacmex_seperate_action_budgets_fnss_create <-
       potable_water_budget = potable_water_budget,
       value_function_config = value_function_config,
       sewer_mental_model_strategy = sewer_mental_model_strategy,
-      potable_water_mental_model_strategy = potable_water_mental_model_strategy
+      potable_water_mental_model_strategy = potable_water_mental_model_strategy,
+      ponding_fnss = ponding_fnss,
+      flooding_fnss = flooding_fnss
     )
-    prepend_class(config, 'sacmex_seperate_action_budgets_fnss')
+    prepend_class(config, class_name)
+  }
+
+sacmex_seperate_action_budgets_fnss_create <-
+  function(value_function_config,
+           sewer_mental_model_strategy,
+           potable_water_mental_model_strategy,
+           sewer_budget,
+           potable_water_budget,
+           flooding_fnss,
+           ponding_fnss,
+           params = list(
+             maintenance_effectiveness_rate = 0.07,
+             new_infrastructure_effectiveness_rate = 0.07
+           )) {
+    sacmex_default_create(
+      class_name = 'sacmex_seperate_action_budgets_fnss',
+      flooding_fnss = flooding_fnss,
+      ponding_fnss = ponding_fnss,
+      params = params,
+      potable_water_budget = potable_water_budget,
+      potable_water_mental_model_strategy = potable_water_mental_model_strategy,
+      sewer_budget = sewer_budget,
+      sewer_mental_model_strategy = sewer_mental_model_strategy,
+      value_function_config = value_function_config
+    )
   }
 
 sacmex_invest_and_depreciate <-
@@ -579,9 +594,9 @@ sacmex_invest_and_depreciate <-
 
     params <- sacmex$params
     site_suitability <- sacmex_determine_investment_suitability(
+      sacmex = sacmex,
       study_data = study_data,
-      mental_models = mental_models,
-      value_function_config = sacmex$value_function_config
+      mental_models = mental_models
     )
 
     budget <- create_budget(
@@ -638,16 +653,20 @@ sacmex_fnss_create <-
            params = list(
              maintenance_effectiveness_rate = 0.07,
              new_infrastructure_effectiveness_rate = 0.07
-           )) {
-    config <- list(
+           ),
+           flooding_fnss,
+           ponding_fnss) {
+    sacmex_default_create(
+      class_name = 'sacmex_fnss',
+      flooding_fnss = flooding_fnss,
+      ponding_fnss = ponding_fnss,
       params = params,
-      sewer_budget = sewer_budget,
       potable_water_budget = potable_water_budget,
-      value_function_config = value_function_config,
+      potable_water_mental_model_strategy = potable_water_mental_model_strategy,
+      sewer_budget = sewer_budget,
       sewer_mental_model_strategy = sewer_mental_model_strategy,
-      potable_water_mental_model_strategy = potable_water_mental_model_strategy
+      value_function_config = value_function_config
     )
-    prepend_class(config, 'sacmex_fnss')
   }
 
 sacmex_get_budget_identity <- function(mental_models,

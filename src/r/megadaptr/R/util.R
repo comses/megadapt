@@ -32,3 +32,7 @@ transition_dtss <- function(dtss, ...) {
   #' @param ... the inputs
   UseMethod('transition_dtss', dtss)
 }
+
+value_function <- function(model, ...) {
+  UseMethod('value_function', model)
+}

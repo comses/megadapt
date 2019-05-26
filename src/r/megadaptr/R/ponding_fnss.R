@@ -42,7 +42,6 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
     gama = 0.197
   )
 
-
   fv_f_esc <- sapply(
     study_data$runoff_volume,
     FUN = convexa_decreciente,
@@ -74,6 +73,10 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
 
   tibble::tibble(censusblock_id = study_data$censusblock_id,
                  ponding_index = ponding_index) #crear variable en dataframe
+}
+
+value_function.ponding_index_fnss <- function(ponding, study_data) {
+  study_data$ponding_index
 }
 
 ################################################
@@ -119,6 +122,16 @@ call_fnss.ponding_delta_method_fnss <- function(ponding_delta_method_fnss, study
     censusblock_id = study_data$censusblock_id,
     ponding_index = ponding_index
   )
+}
+
+value_function.ponding_delta_method_fnss <- function(ponding, study_data) {
+  sapply(
+    study_data$ponding_index,
+    FUN=logistica_invertida,
+    k=0.13,
+    center=3.1,
+    xmin=0,
+    xmax=13)
 }
 
 ponding_initialize <- function(ponding_fnss, study_data) {
