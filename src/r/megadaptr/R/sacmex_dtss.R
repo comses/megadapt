@@ -228,6 +228,15 @@ sacmex_determine_investment_suitability <-
     vf_flood_mantainance <- 1 - study_data$flooding_index
     vf_flood_new_infra <- 1 - study_data$flooding_index
 
+    #flooding vf for delta methods
+    vf_flood_mant<-  sapply(
+      seq(0,16,0.2),
+      FUN=logistica_invertida,
+      k=0.13,
+      center=4,
+      xmin=0,
+      xmax=16)
+
     all_C_sewer_mantainance <- cbind(
       vf_garbage,
       vf_run_off,
