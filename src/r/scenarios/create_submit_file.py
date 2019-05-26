@@ -1,4 +1,12 @@
 import numpy as np
+import argparse
+
+parser = argparse.ArgumentParser(description='Create a condor submit file for batch run')
+parser.add_argument('experiment_name')
+args = parser.parse_args()
+
+
+
 
 
 submitfile_template = """
@@ -15,8 +23,8 @@ queue arguments from (
 
 
 steps = 40
-repetitions = 10
-experiment = 'aguas'
+repetitions = 5
+experiment = args.experiment_name
 climate_scenario = 1
 
 arguments_template = "\t--experiment %s --effectiveness_new_infra %0.2f --effectiveness_maintenance %0.2f --steps %s --infrastructure_decay %0.2f --budget %s --half_sensitivity_d %s --half_sensitivity_ab %s --climate_scenario %s --rep %s --key %s\n"
@@ -44,5 +52,5 @@ for rep in range(repetitions):
                             key += 1
 
 
-with open("input_space.sub", 'w') as f:
+with open("%s.sub" % args.experiment_name, 'w') as f:
     f.write(submitfile_template % args_table)
