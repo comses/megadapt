@@ -31,6 +31,15 @@ sacmex_determine_investment_suitability <-
     vf_pond_new_infra <- rep(1,length(study_data$ponding_index))
     ## Fresh Water Specific
     # age infrastructure Abastecimiento
+    #ponding
+    vf_pond_mant_delta_method <- sapply(
+      study_data$ponding_index,
+      FUN=logistica_invertida,
+      k=0.13,
+      center=3.1,
+      xmin=0,
+      xmax=13)
+
 
     vf_Age_potable_maintanance <- sapply(
       study_data$potable_water_infrastructure_age,
