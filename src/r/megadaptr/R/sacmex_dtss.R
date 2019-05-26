@@ -131,7 +131,7 @@ sacmex_determine_investment_suitability <-
       vf_hid_pressure,
       vf_WQ,
       vf_scarcity_sacmex,
-      vf_pond,
+      vf_pond_new_infra,
       vf_Abaste,
       vf_pet_del_d,
       vf_pres_medios,
