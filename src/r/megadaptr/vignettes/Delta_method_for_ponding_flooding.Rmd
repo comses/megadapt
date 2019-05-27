@@ -1,0 +1,22 @@
+---
+title: "Delta method for ponding and flooding"
+output: html_document
+---
+
+
+# Introduction
+Here we provide details of the method to calculate new values for ponding (and flooding) using the delta methods. The method is based on calculating the change in ponding and flooding from historical mean values using the change in precipitation, runoff and capacity from historical means, therefore the $\Delta$s.
+
+First, the relative changes in capacity, rainfall and runoff from historical means is calculated in each census block $j$:
+
+$$\Delta_{j,t}^{C}=\frac{C_{j,t}-\overline C_{j}}{\overline C_{j}}$$
+for capacity,
+
+$$\Delta_{j,t}^{rf}=\frac{rf_{j,t}-\overline {rf}_{j}}{\overline {rf}_{j}}$$
+for rainfall ($rf$), and
+
+$$\Delta_{j,t}^{r}=\frac{r_{j,t}-\overline r_{j}}{\overline r_{j}}$$
+for runoff ($r$). Thus, the new value of poinding for census block $j$ at time $t+1$ is:
+
+$$p_{j,t+1}=w_{\overline p}\overline p_{j} + w_{C} C_{j,t} + w_{rf} rf_{j,t} + w_{r} r_{j,t},$$
+where $w_{\overline p}$, $w_{C}$, $w_{rf}$, and $w_{r}$, are parameters that determines the importance mean of historic ponding, capacity, rainfall, and runoff respectively.
