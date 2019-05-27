@@ -73,6 +73,8 @@ value_function.flooding_index_fnss <- function(flooding, study_data) {
 #' Create a flooding delta model
 #'
 #' @export
+#' @param weights a vector of weights
+#' @return an object of weights of class 'flooding_delta_method_fnss'
 flooding_delta_method_fnss_create <-
   function(weights = c(capacity = 1,
                        precipitation = 1,
@@ -113,6 +115,10 @@ value_function.flooding_delta_method_fnss <- function(flooding, study_data) {
     xmax=16)
 }
 
+#' The initializilation part of the flooding component
+#' @param flooding_fnss A flooding component.
+#' @param study_data A data frame with the spatial units and associated fields.
+#' @return an updated study_data including the initial value of the flooding index.
 flooding_initialize <- function(flooding_fnss, study_data) {
   study_data %>%
     dplyr::inner_join(call_fnss(flooding_fnss, study_data = study_data), by = PK_JOIN_EXPR)

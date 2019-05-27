@@ -134,6 +134,10 @@ value_function.ponding_delta_method_fnss <- function(ponding, study_data) {
     xmax=13)
 }
 
+#' The initializilation part of the flooding component
+#' @param ponding_fnss A ponding component.
+#' @param study_data A data frame with the spatial units and associated fields.
+#' @return an updated study_data including the initial value of the flooding index.
 ponding_initialize <- function(ponding_fnss, study_data) {
   study_data %>%
     dplyr::inner_join(call_fnss(ponding_fnss, study_data = study_data), by = PK_JOIN_EXPR)

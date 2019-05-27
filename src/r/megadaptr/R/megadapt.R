@@ -109,7 +109,17 @@ create_params <-
     )
   }
 
-
+#' Creates a megadapt class,
+#' @param year The initial year of a simulation.
+#' @param n_steps The number of year to run the model for.
+#' @param study_area A data frame with the spatial unit.
+#' @param climate_fnss A climate component.
+#' @param flooding_fnss A flooding component.
+#' @param ponding_fnss A ponding component.
+#' @param resident_fnss A resident component.
+#' @param sacmex_fnss A SACMEX component.
+#' @param water_scarcity_fnss A water scarcity component.
+#' @return An object of the "megadapt_dtss" class
 megadapt_dtss_create <- function(
   year,
   n_steps,
@@ -200,10 +210,15 @@ megadapt_initialize <- function(megadapt) {
   megadapt
 }
 
-#' Create a megadapt model with no feedback and using action weights
+#' Construct a megadapt model object
 #'
 #' @export
-#' @param params a list of params to initalize model components with
+#' @param params a list of params to initalize model components.
+#' @param sacmex_fnss_creator an object to create a sacmex component.
+#' @param mental_models A mental model object. If NULL the model assumed a mental model with single coupling
+#' @param flooding_fnss A flooding model object. If null, a value funcion method model is created.
+#' @param ponding_fnss A ponding model object. If null, a value funcion method model is created.
+#' @return A megadapt model object with classes associated to subcomponent objects. The current components in the megadapt object are: Parameters, value_function_config, study_area, mental model object, climate scenario (climate_fnss), flooding model object, ponding model object, and scarcity index object.
 megadapt_single_coupled_with_action_weights_create <- function(
   params, sacmex_fnss_creator = sacmex_seperate_action_budgets_fnss_create,
   mental_models = NULL,

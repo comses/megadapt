@@ -145,6 +145,7 @@ resident_fnss_create <-
     prepend_class(config, 'resident_fnss')
   }
 
+#' @method call_fnss resident_fnss
 call_fnss.resident_fnss <- function(resident_fnss, study_data) {
   mental_models <- mental_model_resident_create(
     resident_limit_strategy = resident_fnss$mental_model_strategy,
@@ -160,7 +161,13 @@ call_fnss.resident_fnss <- function(resident_fnss, study_data) {
 }
 
 resident_infrastructure_invest <-
-  function(study_data,
+  #' Create a decision strategy for residential investment
+  #' @param study_data a data frame with the spatial units
+  #' @param value_function_config A set of value function parameters
+  #' @param mental_models An object of the mental model class
+  #' @param params a set of parameters associated to residential investments
+
+    function(study_data,
            value_function_config,
            mental_models,
            params) {
@@ -230,7 +237,10 @@ resident_infrastructure_invest <-
         household_sewer_vulnerability
       )
   }
-
+#' The initializilation part of the resident component
+#' @param resident_fnss A resident component of the class "resident_fnss".
+#' @param study_data A data frame with the spatial units and associated fields.
+#' @return a data frame with the new variables and their initial state.
 resident_initialize <- function(resident_fnss, study_data) {
   study_data %>%
     dplyr::mutate(

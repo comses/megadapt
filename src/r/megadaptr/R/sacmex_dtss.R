@@ -364,6 +364,11 @@ sacmex_work_plan_sewer_potable_split <-
                      potable_infrastructure_plan)
   }
 
+
+#' A function to return a work plant for agent sacmex to make infrastructure investments assuming separate budget for each action
+#' @param site_suitability A data frame with values of the distance metric for each action
+#' @param budget An amount of resources expresed as a number of spatial unit for sacmex to make infrastructure investments
+#' @return A data frame with the selected spatial units to invest in the different actions.
 sacmex_work_plan_separate_action_budgets <-
   function(site_suitability,
            budget) {
@@ -422,6 +427,11 @@ sacmex_work_plan_separate_action_budgets <-
     )
   }
 
+#' This function is used to implement an investment plan in a single year
+#' @param study_data A data frame with the spatial units and associated fields.
+#' @param site_selection A work plan
+#' @param params A list with parameter values and their names
+#' @return The study_data updated with the changes made by sacmex using the work plan
 sacmex_implement_work_plan <-
   function(study_data, site_selection, params) {
     A1 <-
@@ -435,17 +445,12 @@ sacmex_implement_work_plan <-
     A4 <-
       .site_selection_inds(study_data, site_selection, "potable_new_infrastructure")
 
-    # take actions sacmex
-    # change value of atributes in agebs selected for action
-    # action 1 mantainance D
-    #The effect of mantainance will not surpass the max. sewer_system_capacity for each ageb!!!
     if (length(A1) > 0) {
       study_data$sewer_infrastructure_age[A1] <-
         study_data$sewer_infrastructure_age[A1] - study_data$sewer_infrastructure_age[A1] * params$maintenance_effectiveness_rate
 
       study_data$sewer_system_capacity[A1] <- pmin(
         study_data$sewer_system_capacity[A1] * (1 + params$maintenance_effectiveness_rate),
-        # capasity of drainage increases with mantainance
         study_data$sewer_system_capacity_max[A1]
       )
       study_data$sacmex_sewer_maintenance_intervention_presence <- A1
@@ -488,12 +493,6 @@ sacmex_depreciate_infrastructure <-
     # update_capacity of the system
     study_data$sewer_system_capacity <-
       study_data$sewer_system_capacity * (1 - infrastructure_decay_rate)
-    # update capacity index
-    # FIDEL
-    # The proportion of people without infrastructure increases proportionally to
-    # the growthof the population in each delegation
-    #study_data$household_potable_system_lacking_percent <- study_data$household_potable_system_lacking_percent * (1 + (1 - study_data$household_potable_system_lacking_percent)*pop_growth)
-    #study_data$household_sewer_system_lacking_percent <- study_data$household_sewer_system_lacking_percent * (1 + (1 - study_data$household_sewer_system_lacking_percent)*pop_growth)
 
     study_data
   }
@@ -681,7 +680,9 @@ call_fnss.sacmex_fnss <- function(sacmex, year, study_data) {
                                create_work_plan = sacmex_work_plan_sewer_potable_split)
 }
 
-## Initialization Specific
+#' The initializilation part of the Sacmex component
+#' @param study_data A data frame with the spatial units and associated fields.
+#' @return a data frame with the new variables and their initial state.
 
 sacmex_initialize <- function(study_data) {
   study_data %>%
