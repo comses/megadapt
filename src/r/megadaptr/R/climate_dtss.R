@@ -23,7 +23,7 @@ load_climate_scenario <- function(emissions_scenario = 8.5, urban_scenario = "ba
 #' Climate a climate scenario model
 #'
 #' @param id the path to a climate scenario csv
-climate_fnss_create <- function(id) {
+climate_fnss_create <- function(id = 1) {
   climate_scenario <- load_climate_scenario_from_index(id)
   prepend_class(climate_scenario, 'climate_fnss')
 }
