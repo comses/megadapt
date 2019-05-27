@@ -125,6 +125,10 @@ call_fnss.ponding_delta_method_fnss <- function(ponding_delta_method_fnss, study
   )
 }
 
+#' A value function object of class "value function" to apply in specifically in the delta model component
+#' @param ponding a ponding component.
+#' @param study_data A data frame for the study area.
+#' @return A value function object to include in the delta method ponding calculation.
 value_function.ponding_delta_method_fnss <- function(ponding, study_data) {
   sapply(
     study_data$ponding_index,

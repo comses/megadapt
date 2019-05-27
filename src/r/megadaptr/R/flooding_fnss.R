@@ -107,6 +107,10 @@ call_fnss.flooding_delta_method_fnss <-
     )
   }
 
+#' A value function object of class "value function" to apply in specifically in the flooding component uisng the delta method
+#' @param flooding a flooding component.
+#' @param study_data A data frame for the study area.
+#' @return A value function object to include in the delta method flooding calculation.
 value_function.flooding_delta_method_fnss <- function(flooding, study_data) {
   sapply(
     study_data$flooding_index,

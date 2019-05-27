@@ -135,12 +135,14 @@ create_weighted_matrix <-
 
   }
 
+#' A function to obtain the limit vector from a weighted supermatrix.
+#' @param weighted_matrix_meta A - real-valued square matrix, p - natural number.
+#' @param tolerance the tolerance of the difference between columns after the matrix is elevated to p
+#' @note calculate A^p, where A is a weighted supermatrix
+
+
 create_limit_df <-
   function(weighted_matrix_meta, tolerance = 1e-10) {
-    # calculates A^p (matrix multiplied p times with itself)
-    # inputes: A - real-valued square matrix, p - natural number.
-    # output:  A^p
-    ##add while loop using tolerance
     weighted_matrix <- weighted_matrix_meta$data
     W_matrix_B = weighted_matrix
     while (any(abs(W_matrix_B[, 1] - W_matrix_B[, 2]) > tolerance)) {
@@ -241,10 +243,10 @@ mental_model_constant_strategies <- function() {
 
 
 #' A function to calculate a new set of weights to modify the supermatrix in the
-#' block "socio-hydrological risk and Environtment in the "sewer_system_sacmex_unweighted" matrix
-#'
-#' @param study_data A data frame that includes precipitation volume, runoff, and the mean precipitation and the mean runoff
-#' @return A matric of weights of the semi dimension as the block to change in the supermatrix
+#' block (risk, Environtment) in the "sewer_system_sacmex_unweighted" matrix.
+#' @param unweighted_matrix_meta An object with the elements of the unweighted matrix (labels, values, and dimension).
+#' @param study_data A data frame that includes precipitation volume, runoff, and the mean precipitation and the mean runoff.
+#' @return A matrix of weights of the same dimension as the block to change in the supermatrix.
 mental_model_update_risks <-
   function(unweighted_matrix_meta, study_data) {
     get_um_value <- function(row_label, col_label) {
@@ -328,6 +330,11 @@ mental_model_coupled_create <- function(path, cluster) {
   )
 }
 
+#' Obtain a limit vector from a weighted matrix
+#' @param mental_model A mental model object of class "mental model"
+#' @param year remove?
+#' @param study_data A data frame of the study area.
+#' @return A limit vector object.
 get_limit_df.mental_model_coupled <-
   function(mental_model, year, study_data) {
     w <- mental_model_update_risks(mental_model$unweighted_matrix_meta, study_data)
