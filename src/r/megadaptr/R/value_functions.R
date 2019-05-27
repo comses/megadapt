@@ -154,14 +154,7 @@ ponding_vf <- function(x, p1 = 30, xmax = 100, xmin = 0) {
   yy_vf <- exp(-((xmin / p1)^2))
   return((exp(-((x / p1)^2)) - y_vf) / (yy_vf - y_vf))
 }
-#######################################################################################################
-rainfall_vf <- function(x, p1 = 742.8737773, xmax = 1300, xmin = 0) {
-  y_vf <- 1 - exp((xmax - 10) / p1)
-  yy_vf <- 1 - exp((xmin - 10) / p1)
-  svf <- ((1 - exp((x - 10) / p1)) - y_vf) / (yy_vf - y_vf)
-  if (x > xmax) svf <- 0
-  return(svf)
-}
+
 #######################################################################################################
 run_off_vf <- function(x, xmax = 50, xmin = 100) {
   y_vf <- exp(-(((0 - xmax) / xmin)^2))
@@ -195,8 +188,12 @@ urban_growth_f <- function(x, xmax) {
 
 ############################################################## 3
 ################################################################
-# value function with cutoffs
-
+#' A value function with cutoffs following the Weber–Fechner progression
+#' @param x a number or a vector of values of a variables to be changed to a [1-0] scale
+#' @param xcuts A set of cutoff proportions to divide variables to be changed. The default option is the Weber–Fechner progression
+#' @param xmax  The maximum value fo the variable to be changed
+#' @param ycut The new values obtained under under the new [0,1] scale
+#' @return A number or a vector of values tranformed to a scale [0,1]
 
 Value_Function_cut_offs <- function(x, xcuts = c(0.0625, 0.125, 0.25, 0.5), xmax, ycuts = c(0.2, 0.4, 0.6, 0.8, 1)) {
   if (x > xcuts[4] * xmax) SM <- ycuts[5]
