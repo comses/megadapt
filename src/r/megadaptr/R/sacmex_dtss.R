@@ -447,8 +447,7 @@ sacmex_implement_work_plan <-
         # capasity of drainage increases with mantainance
         study_data$sewer_system_capacity_max[A1]
       )
-      study_data$sacmex_sewer_maintenance_intervention_count[A1] <-
-        study_data$sacmex_sewer_maintenance_intervention_count[A1] + 1
+      study_data$sacmex_sewer_maintenance_intervention_presence[A1] <- 1
     }
 
     # action 2 New infra D
@@ -458,8 +457,7 @@ sacmex_implement_work_plan <-
       study_data$sewer_system_capacity[A2] <-
         study_data$sewer_system_capacity[A2] * (1 + params$new_infrastructure_effectiveness_rate) # capasity of drainage increases with new infrastructure
 
-      study_data$sacmex_sewer_new_infrastructure_intervention_count[A2] <-
-        study_data$sacmex_sewer_new_infrastructure_intervention_count[A2] + 1
+      study_data$sacmex_sewer_new_infrastructure_intervention_presence[A2] <- 1
     }
 
     #
@@ -467,16 +465,14 @@ sacmex_implement_work_plan <-
     if (length(A3) > 0) {
       study_data$potable_water_infrastructure_age[A3] <-
         study_data$potable_water_infrastructure_age[A3] * (1 - params$maintenance_effectiveness_rate)
-      study_data$sacmex_potable_maintenance_intervention_count[A3] <-
-        study_data$sacmex_potable_maintenance_intervention_count[A3] + 1
+      study_data$sacmex_potable_maintenance_intervention_presence[A3] <- 1
     }
 
     # action 4 New infra Ab.
     if (length(A4) > 0) {
       study_data$household_potable_system_lacking_percent[A4] <-
         study_data$household_potable_system_lacking_percent[A4] * (1 - params$new_infrastructure_effectiveness_rate)
-      study_data$sacmex_potable_new_infrastructure_intervention_count[A4] <-
-        study_data$sacmex_potable_new_infrastructure_intervention_count[A4] + 1
+      study_data$sacmex_potable_new_infrastructure_intervention_presence[A4] <- 1
     }
     study_data
   }
@@ -622,10 +618,10 @@ sacmex_invest_and_depreciate <-
         potable_water_infrastructure_age,
         sewer_infrastructure_age,
         household_sewer_system_lacking_percent,
-        sacmex_potable_maintenance_intervention_count,
-        sacmex_sewer_maintenance_intervention_count,
-        sacmex_potable_new_infrastructure_intervention_count,
-        sacmex_sewer_new_infrastructure_intervention_count,
+        sacmex_potable_maintenance_intervention_presence,
+        sacmex_sewer_maintenance_intervention_presence,
+        sacmex_potable_new_infrastructure_intervention_presence,
+        sacmex_sewer_new_infrastructure_intervention_presence,
         sewer_system_capacity,
         household_potable_system_lacking_percent
       )
@@ -691,10 +687,10 @@ sacmex_initialize <- function(study_data) {
     dplyr::mutate(
       sewer_infrastructure_age = infrastructure_age,
       potable_water_infrastructure_age = infrastructure_age,
-      sacmex_potable_maintenance_intervention_count = 0,
-      sacmex_potable_new_infrastructure_intervention_count = 0,
-      sacmex_sewer_maintenance_intervention_count = 0,
-      sacmex_sewer_new_infrastructure_intervention_count = 0,
+      sacmex_potable_maintenance_intervention_presence = 0,
+      sacmex_potable_new_infrastructure_intervention_presence = 0,
+      sacmex_sewer_maintenance_intervention_presence = 0,
+      sacmex_sewer_new_infrastructure_intervention_presence = 0,
       sewer_system_capacity = 0.5 * sewer_system_capacity_max
     )
 }

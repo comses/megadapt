@@ -21,10 +21,10 @@ save_results <- function(study_data,
     "household_sewer_sensitivity",
     "household_potable_water_vulnerability",
     "household_sewer_vulnerability",
-    "sacmex_potable_maintenance_intervention_count",
-    "sacmex_sewer_maintenance_intervention_count",
-    "sacmex_potable_new_infrastructure_intervention_count",
-    "sacmex_sewer_new_infrastructure_intervention_count"
+    "sacmex_potable_maintenance_intervention_presence",
+    "sacmex_sewer_maintenance_intervention_presence",
+    "sacmex_potable_new_infrastructure_intervention_presence",
+    "sacmex_sewer_new_infrastructure_intervention_presence"
   )
 
   df <- study_data %>%
