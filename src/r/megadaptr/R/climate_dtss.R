@@ -2,16 +2,29 @@
 #'
 #' @param path Path to the file
 #' @return climate scenario data.frame
-load_climate_scenario <- function(path) {
+load_climate_scenario_from_path <- function(path) {
+  readr::read_csv(path)
+}
+load_climate_scenario_from_index <- function(id = 1) {
+  index <- readr::read_csv(data_dir("climate_landuse_scenarios/index.csv"))
+  row <- index %>% dplyr::filter(id == !! id)
+  path <- data_dir("climate_landuse_scenarios",row$path[1])
   readr::read_csv(path)
 }
 
 
+load_climate_scenario <- function(emissions_scenario = 8.5, urban_scenario = "bau", time_horizon = "far_future") {
+  index <- readr::read_csv(data_dir("climate_landuse_scenarios/index.csv"))
+  row <- index %>% dplyr::filter(emissions_scenario == !! emissions_scenario, urban_scenario == !! urban_scenario, time_horizon == !! time_horizon)
+  path <- data_dir("climate_landuse_scenarios",row$path[1])
+  readr::read_csv(path)
+}
+
 #' Climate a climate scenario model
 #'
-#' @param path the path to a climate scenario csv
-climate_fnss_create <- function(path) {
-  climate_scenario <- load_climate_scenario(path)
+#' @param id the path to a climate scenario csv
+climate_fnss_create <- function(id) {
+  climate_scenario <- load_climate_scenario_from_index(id)
   prepend_class(climate_scenario, 'climate_fnss')
 }
 
