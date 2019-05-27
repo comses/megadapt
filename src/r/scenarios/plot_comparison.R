@@ -27,13 +27,13 @@ conn <- dbConnect(drv, dbname = "megadapt",
                   user="fidel",
                   host="localhost")
 
-params <- tbl(conn, 'params_test1')
-results <- tbl(conn, 'results_test1')
+params <- tbl(conn, 'params_test4')
+results <- tbl(conn, 'results_test4')
 
 meta <- tibble::tribble(
   ~colname, ~name,
   "water_vulnerability_index", "Mean Water Vulnerability Index",
-  "water_system_intervention_count", "Mean Water System Interventions",
+  "water_system_intervention_presence", "Mean Water System Interventions",
   "water_sensitivity_index", "Mean Water Sensitivity Index",
   "water_infrastructure_age", "Mean Water Infrastructure Age",
   "percent_lacking", "Percent Lacking Public Infrastructure"
@@ -63,10 +63,10 @@ x <- group_by(query,
 y <- dplyr::summarize(x,
     household_potable_water_vulnerability=mean(household_potable_water_vulnerability, na.rm = TRUE),
     household_sewer_vulnerability=mean(household_sewer_vulnerability, na.rm = TRUE),
-    sacmex_potable_maintenance_intervention_count=mean(sacmex_potable_maintenance_intervention_count),
-    sacmex_sewer_maintenance_intervention_count=mean(sacmex_sewer_maintenance_intervention_count),
-    sacmex_potable_new_infrastructure_intervention_count=mean(sacmex_potable_new_infrastructure_intervention_count),
-    sacmex_sewer_new_infrastructure_intervention_count=mean(sacmex_sewer_new_infrastructure_intervention_count),
+    sacmex_potable_maintenance_intervention_presence=mean(as.integer(sacmex_potable_maintenance_intervention_presence)),
+    sacmex_sewer_maintenance_intervention_presence=mean(as.integer(sacmex_sewer_maintenance_intervention_presence)),
+    sacmex_potable_new_infrastructure_intervention_presence=mean(as.integer(sacmex_potable_new_infrastructure_intervention_presence)),
+    sacmex_sewer_new_infrastructure_intervention_presence=mean(as.integer(sacmex_sewer_new_infrastructure_intervention_presence)),
     household_potable_water_sensitivity=mean(household_potable_water_sensitivity),
     household_sewer_sensitivity=mean(household_sewer_sensitivity),
     potable_water_infrastructure_age=mean(potable_water_infrastructure_age),
@@ -80,10 +80,10 @@ potable_non_potable_comparison <- gather(z,
     value = "value",
     household_potable_water_vulnerability,
     household_sewer_vulnerability,
-    sacmex_potable_maintenance_intervention_count,
-    sacmex_sewer_maintenance_intervention_count,
-    sacmex_potable_new_infrastructure_intervention_count,
-    sacmex_sewer_new_infrastructure_intervention_count,
+    sacmex_potable_maintenance_intervention_presence,
+    sacmex_sewer_maintenance_intervention_presence,
+    sacmex_potable_new_infrastructure_intervention_presence,
+    sacmex_sewer_new_infrastructure_intervention_presence,
     household_potable_water_sensitivity,
     household_sewer_sensitivity,
     potable_water_infrastructure_age,
