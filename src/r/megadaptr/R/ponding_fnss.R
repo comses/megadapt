@@ -99,12 +99,13 @@ ponding_delta_method_fnss_create <- function(
 
 #' A function to calculate a ponding index using relative change in runoff, precipitation, and sewer system capacity.
 #'
-#'@param ponding_delta_method_fnss An object with weights parameters created with \code{\link{ponding_delta_method_fnss_create}}
-#'@param study_data data.frame with variables "precipitation_volume", "runoff_volume", "resident_reports_ponding_count" and "sewer_system_capacity".
-#'@return A data.frame with variables "censusblock_id" and "ponding_index". The ponding index will have values between 0 and 1.
+#' @export
+#' @method call_fnss ponding_delta_method_fnss
+#'
+#' @param ponding_delta_method_fnss An object with weights parameters created with \code{\link{ponding_delta_method_fnss_create}}
+#' @param study_data data.frame with variables "precipitation_volume", "runoff_volume", "resident_reports_ponding_count" and "sewer_system_capacity".
+#' @return A data.frame with variables "censusblock_id" and "ponding_index". The ponding index will have values between 0 and 1.
 call_fnss.ponding_delta_method_fnss <- function(ponding_delta_method_fnss, study_data) {
-  #' @export
-  #' @method call_fnss ponding_delta_method_fnss
   w <- ponding_delta_method_fnss
   cap_init <- study_data$sewer_system_capacity
   precip_mean <- study_data$precipitation_volume_mean
