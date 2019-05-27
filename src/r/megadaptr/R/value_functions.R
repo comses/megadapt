@@ -68,18 +68,6 @@ drainages_clogged_vf <- function(x, Valor_minimo_Y_en_X, amplitude = 5000) { # ;
 }
 
 #######################################################################################################
-scarcity_residents_vf <- function(x, p1 = 0.115526234) { #
-  y_vf <- exp(-(28 * p1))
-  yy_vf <- exp(-(0 * p1))
-  svf <- (exp(-(x * p1)) - y_vf) / (yy_vf - y_vf)
-  return(ifelse(test = svf > 0, yes = svf, 0))
-}
-#######################################################################################################
-scarcity_residents_empirical_vf <- function(x, tau = 12) { #
-  x >= tau
-}
-
-#######################################################################################################
 
 lack_of_infrastructure_vf <- function(x, saturation=1,x_max) { # p1 scale parameter
   p1 <- (-log10(log10(1.1 + 0.88 * (10 - saturation)))) / ((log10(x_max))^2)
@@ -91,39 +79,12 @@ lack_of_infrastructure_vf <- function(x, saturation=1,x_max) { # p1 scale parame
 }
 
 #######################################################################################################
-water_quality_residents_vf <- function(x, p1 = 0.3457691) { #
-  y_vf <- exp(0 * p1)
-  yy_vf <- exp(100 * p1)
-  svf <- ((exp(x * p1)) - y_vf) / (yy_vf - y_vf)
-  return(ifelse(test = svf > 0, yes = svf, 0))
-}
-#######################################################################################################
 health_vf <- function(x, max_x,saturation) { #
 control_parameter=10^(3/10*(log(max_x^5)-saturation))
   yy_vf <- 1 - exp((0 - 10) / control_parameter)
   y_vf <- 1 - exp((max_x - 10) / control_parameter)
   svf <- ((1 - exp((x - 10) / control_parameter)) - y_vf) / (yy_vf - y_vf)
-  return(ifelse(test = svf > 0, yes = svf, 0))
-}
-#######################################################################################################
-scarcity_residents_empirical_vf <- function(x, tau) { # tau=12 for protesting #tau=6 for adaptation
-  return(ifelse(test = x > tau, yes = 0, no = 1))
-}
-#######################################################################################################
-capacity_drainage_vf <- function(x, sat, x_max, x_min) { # ,p1=0.174916383
-  if (is.na(x) == FALSE) {
-    p1 <- (-log10(log10(1.1 + 0.88 * (10 - sat)))) / ((log10(x_max))^2)
-    #        x=x/10000000
-    y_vf <- exp(p1 * x_min)
-    yy_vf <- exp(p1 * x_max)
-    svf <- (exp(p1 * x) - y_vf) / (yy_vf - y_vf)
-    if (x > x_max) svf <- 1
-    if (x < 0) svf <- 0
-    return(svf)
-  }
-  else {
-    return(NA)
-  }
+  return(ifelse(test = svf > 0, yes = svf, no = 0))
 }
 #######################################################################################################
 falta_infrastructure_resident_vf <- function(x, p1 = 0.3457691) { # p1=0.3457691
@@ -131,38 +92,8 @@ falta_infrastructure_resident_vf <- function(x, p1 = 0.3457691) { # p1=0.3457691
   yy_vf <- exp(p1 * 100)
   return((exp(p1 * (x)) - y_vf) / (yy_vf - y_vf))
 }
-#######################################################################################################
-scarcity_sacmex_vf <- function(x, p1 = 0.020455577, xmax = 336, xmin = 0) { # p1=0.115526234
-  y_vf <- exp(-(xmax * p1))
-  yy_vf <- exp(-(xmin * p1))
-  svf <- (exp(-(x * p1)) - y_vf) / (yy_vf - y_vf)
-  return(ifelse(test = svf > 0, yes = svf, 0))
-}
-#######################################################################################################
-social_pressure_vf <- function(x, p1 = 20, p2 = 46) {
-  y_vf <- (exp(-((0 - p2) / p1)^2))
-  yy_vf <- (exp(-((54 - p2) / p1)^2))
-  return(1 - ((exp(-((x - p2) / p1)^2)) - y_vf) / (yy_vf - y_vf))
-}
-#######################################################################################################
-flooding_vf <- function(x) {
-  return(ifelse(test = x > 0, yes = 1, no = 0))
-}
-#######################################################################################################
-ponding_vf <- function(x, p1 = 30, xmax = 100, xmin = 0) {
-  y_vf <- exp(-((xmax / p1)^2))
-  yy_vf <- exp(-((xmin / p1)^2))
-  return((exp(-((x / p1)^2)) - y_vf) / (yy_vf - y_vf))
-}
 
-#######################################################################################################
-run_off_vf <- function(x, xmax = 50, xmin = 100) {
-  y_vf <- exp(-(((0 - xmax) / xmin)^2))
-  yy_vf <- exp(-(((xmax - xmax) / xmin)^2))
-  svf <- 1 - (exp(-(((x - xmax) / xmin)^2)) - y_vf) / (yy_vf - y_vf)
-  if (x > xmax) svf <- 0
-  return(svf)
-}
+
 #######################################################################################################
 pression_medios_vf <- function(x, p1 = 0.005268212, xmin = 0, xmax = 600) {
   y_vf <- (exp(-xmin * p1))
@@ -170,10 +101,6 @@ pression_medios_vf <- function(x, p1 = 0.005268212, xmin = 0, xmax = 600) {
   svf <- 1 - ((exp(-x * p1)) - y_vf) / (yy_vf - y_vf)
   if (x > xmax) svf <- 0
   return(svf)
-}
-#######################################################################################################
-Peticiones_usuarios_vf <- function(x, xmax) {
-  return(1 - (x / xmax))
 }
 
 #######################################################################################################
