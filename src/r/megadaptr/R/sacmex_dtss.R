@@ -206,7 +206,7 @@ sacmex_determine_investment_suitability <-
     #vf_fall_D <- rep(1, length(study_data$household_potable_system_lacking_percent))
     vf_falla_dren <- sapply(
       study_data$resident_reports_sewer_failure_count,
-      FUN=logistic_invertida,
+      FUN=logistica_invertida,
       xmin=0,
       xmax=10,
       k=0.1,
