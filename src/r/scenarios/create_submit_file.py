@@ -6,6 +6,7 @@ parser.add_argument('--experiment_name', required=True)
 parser.add_argument('--mental_models', default="mental_model_constant")
 parser.add_argument('--ponding_model', default="delta")
 parser.add_argument('--flooding_model', default="delta")
+parser.add_argument('--budget_model', default="split")
 args = parser.parse_args()
 
 
@@ -30,7 +31,7 @@ repetitions = 5
 experiment = args.experiment_name
 climate_scenario = 1
 
-arguments_template = "\t--experiment %s --effectiveness_new_infra %0.2f --effectiveness_maintenance %0.2f --steps %s --infrastructure_decay %0.2f --budget %s --half_sensitivity_d %s --half_sensitivity_ab %s --climate_scenario %s --rep %s --key %s --mental_models %s --ponding_model %s --flooding_model %s\n"
+arguments_template = "\t--experiment %s --effectiveness_new_infra %0.2f --effectiveness_maintenance %0.2f --steps %s --infrastructure_decay %0.2f --budget %s --half_sensitivity_d %s --half_sensitivity_ab %s --climate_scenario %s --rep %s --key %s --mental_models %s --ponding_model %s --flooding_model %s --budget_model %s\n"
 
 key = 0
 args_table = ""
@@ -54,7 +55,8 @@ for rep in range(repetitions):
                                                                 key,
                                                                 args.mental_models,
                                                                 args.ponding_model,
-                                                                args.flooding_model)
+                                                                args.flooding_model,
+                                                                args.budget_model)
                             key += 1
 
 

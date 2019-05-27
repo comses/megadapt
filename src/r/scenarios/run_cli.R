@@ -4,6 +4,10 @@ library("argparse")
 library("dplyr")
 library("DBI")
 library("RPostgreSQL")
+source('util.R')
+
+library(megadaptr)
+library(magrittr)
 
 
 parser <- ArgumentParser(description='Run model')
@@ -31,10 +35,43 @@ parser$add_argument("--rep",
 		    type="integer", required=T, help="number of experiment repetition")
 parser$add_argument("--key",
 		    type="integer", required=T, help="key joins params table to results table")
+parser$add_argument("--mental_models",
+                    type="character", required=T,
+                    help="name of the mental model strategy constructor")
+parser$add_argument("--ponding_model",
+                    type="character", required=T,
+                    help="name of the ponding model")
+parser$add_argument("--flooding_model",
+                    type="character", required=T,
+                    help="name of the flooding model")
+parser$add_argument("--budget_model",
+                    type="character", required=T,
+                    help="name of the strategy to allocate the budget")
+
+
 
 
 
 args <- parser$parse_args()
+
+
+
+mental_model_env <- new.env(parent = emptyenv())
+mental_model_env$mental_model_constant <- mental_model_constant_strategies
+mental_model_env$mental_model_coupled <- mental_model_sacmex_coupled_strategies
+
+ponding_model_env <- new.env(parent = emptyenv())
+ponding_model_env$delta <- ponding_delta_method_fnss_create
+ponding_model_env$multicriteria <- ponding_index_fnss_create
+
+flooding_model_env <- new.env(parent = emptyenv())
+flooding_model_env$delta <- flooding_delta_method_fnss_create
+flooding_model_env$multicriteria <- flooding_index_fnss_create
+
+budget_model_env <- new.env(parent = emptyenv())
+budget_model_env$split <- sacmex_seperate_action_budgets_fnss_create
+budget_model_env$alphas <- sacmex_fnss_create
+
 
 new_infrastructure_effectiveness_rate = as.numeric(args$effectiveness_new_infra)
 maintenance_effectiveness_rate = as.numeric(args$effectiveness_maintenance)
@@ -44,10 +81,7 @@ budget =  as.numeric(args$budget)
 half_sensitivity_ab = as.numeric(args$half_sensitivity_ab)
 half_sensitivity_d = as.numeric(args$half_sensitivity_d)
 
-source('util.R')
 
-library(megadaptr)
-library(magrittr)
 
 
 
@@ -62,7 +96,11 @@ library(magrittr)
 	    half_sensitivity_d = args$half_sensitivity_d,
 	    start_year = lubridate::ymd('2019-01-01'),
 	    climate_scenario = args$climate_scenario
-	    )
+	    ),
+	  mental_models = get(args$mental_models, envir = mental_model_env)(),
+	  ponding_fnss = get(args$ponding_model, envir = ponding_model_env)(),
+	  flooding_fnss = get(args$flooding_model, envir = flooding_model_env)(),
+	  sacmex_fnss_creator = get(args$budget_model, envir = budget_model_env)
 )
 
 results <- simulate(megadapt)
