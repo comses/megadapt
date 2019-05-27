@@ -156,7 +156,7 @@ sacmex_determine_investment_suitability <-
       FUN = convexa_decreciente,
       xmax = 504,
       xmin = 0,
-      gama = 0.035
+      gama = 0.034
     )
 
 
@@ -174,11 +174,9 @@ sacmex_determine_investment_suitability <-
     vf_rain <-sapply(
       study_data$precipitation_volume,
       FUN = convexa_decreciente,
-      xmax =  1340,
-      # [mm/km2]==  1202 mm/year
-      xmin = 500,
-      # [mm/km2]
-      gama = 0.035
+      xmax =  2072,
+      xmin = 333,
+      gama = 0.034
     )
 
     # age infrastructure drainage
@@ -208,7 +206,7 @@ sacmex_determine_investment_suitability <-
     #vf_fall_D <- rep(1, length(study_data$household_potable_system_lacking_percent))
     vf_falla_dren <- sapply(
       study_data$resident_reports_sewer_failure_count,
-      FUN=logistic_vf,
+      FUN=logistic_invertida,
       xmin=0,
       xmax=10,
       k=0.1,
@@ -224,19 +222,12 @@ sacmex_determine_investment_suitability <-
       )
     #  plot(study_data$household_sewer_system_lacking_percent,vf_falta_D)
     # peticiones de usuarions delegacionales
-    vf_pet_us_d <-
-      sapply(
-        study_data$delegation_social_pressure,
-        FUN = Peticiones_usuarios_vf,
-        xmax = max(study_data$delegation_social_pressure, na.rm = T)
-      )
+    vf_pet_us_d <- study_data$delegation_social_pressure
 
-    # flooding #cchange to flooding
-    vf_flood_mantainance <- 1 - study_data$flooding_index
-    vf_flood_new_infra <- 1 - study_data$flooding_index
+    # flooding change for vf method
+    vf_flood_mantainance <- value_function(sacmex$flooding_fnss, study_data)
+    vf_flood_new_infra <- value_function(sacmex$flooding_fnss, study_data)
 
-    #flooding vf for delta methods
-    vf_flood_mant_delta <-  value_function(sacmex$flooding_fnss, study_data)
 
     all_C_sewer_mantainance <- cbind(
       vf_garbage,
