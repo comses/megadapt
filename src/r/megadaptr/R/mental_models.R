@@ -239,10 +239,10 @@ mental_model_constant_strategies <- function() {
 }
 
 
-#' A function to calculate a new set of weights to modify the supermatrix in the block "socio-hydrological risk and Environtment, specifically in the "sewer_system_sacmex_unweighted" matrix
+#' A function to calculate a new set of weights to modify the supermatrix in the block "socio-hydrological risk and Environtment in the "sewer_system_sacmex_unweighted" matrix
 #'
 #' @param study_data A data frame that includes precipitation volume, runoff, and the mean precipitation and the mean runoff
-#' @return A list of weights to change the block "socio-hydrological risk and Environtment" in the unweighted supermatrix
+#' @return A matric of weights of the semi dimension as the block to change in the supermatrix
 mental_model_update_risks <-
   function(unweighted_matrix_meta, study_data) {
     get_um_value <- function(row_label, col_label) {
@@ -309,12 +309,13 @@ mental_model_update_risks <-
   }
 
 mental_model_coupled_create <- function(path, cluster) {
-  #' Use a single constant mental model for the simulation
+  #' This function creates a mental mode object from superDecision output for running megadapt model with double coupling
   #'
   #' @export
   #' @param path file path to the unweighted mental model matrix
   #' @param cluster a cluster mental model matrix. If the cluster is null then
   #' equal weights are assumed.
+  #' @report A mental model object with a list taht includes a limit vector, an unweighted matrix and, a cluster matrix.
   structure(
     list(
       limit_df = create_limit_df_from_unweighted_matrix_file(path, cluster),
