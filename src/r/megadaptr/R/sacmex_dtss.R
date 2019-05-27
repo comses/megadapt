@@ -640,6 +640,7 @@ call_fnss.sacmex_seperate_action_budgets_fnss <-
 
 ## Regular budget
 
+#' @export
 sacmex_fnss_create <-
   function(value_function_config,
            sewer_mental_model_strategy,
@@ -672,6 +673,8 @@ sacmex_get_budget_identity <- function(mental_models,
        potable_water = potable_water_budget)
 }
 
+#' @export
+#' @method call_fnss sacmex_fnss
 call_fnss.sacmex_fnss <- function(sacmex, year, study_data) {
   sacmex_invest_and_depreciate(sacmex = sacmex,
                                year = year,
