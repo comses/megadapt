@@ -1,3 +1,5 @@
+
+#' @export
 flooding_index_fnss_create <- function(weights = c(
   capacity = 1,
   flooding = 1,
