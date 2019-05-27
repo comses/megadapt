@@ -2,7 +2,10 @@ import numpy as np
 import argparse
 
 parser = argparse.ArgumentParser(description='Create a condor submit file for batch run')
-parser.add_argument('experiment_name')
+parser.add_argument('--experiment_name', required=True)
+parser.add_argument('--mental_models', default="mental_model_constant")
+parser.add_argument('--ponding_model', default="delta")
+parser.add_argument('--flooding_model', default="delta")
 args = parser.parse_args()
 
 
@@ -27,7 +30,7 @@ repetitions = 5
 experiment = args.experiment_name
 climate_scenario = 1
 
-arguments_template = "\t--experiment %s --effectiveness_new_infra %0.2f --effectiveness_maintenance %0.2f --steps %s --infrastructure_decay %0.2f --budget %s --half_sensitivity_d %s --half_sensitivity_ab %s --climate_scenario %s --rep %s --key %s\n"
+arguments_template = "\t--experiment %s --effectiveness_new_infra %0.2f --effectiveness_maintenance %0.2f --steps %s --infrastructure_decay %0.2f --budget %s --half_sensitivity_d %s --half_sensitivity_ab %s --climate_scenario %s --rep %s --key %s --mental_models %s --ponding_model %s --flooding_model %s\n"
 
 key = 0
 args_table = ""
@@ -48,7 +51,10 @@ for rep in range(repetitions):
                                                                 half_sensitivity_ab,
                                                                 climate_scenario,
                                                                 rep,
-                                                                key)
+                                                                key,
+                                                                args.mental_models,
+                                                                args.ponding_model,
+                                                                args.flooding_model)
                             key += 1
 
 
