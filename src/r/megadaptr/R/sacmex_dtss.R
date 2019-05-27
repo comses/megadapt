@@ -79,8 +79,7 @@ sacmex_determine_investment_suitability <-
     )
 
     # Water quality
-    vf_WQ <-
-      sapply(study_data$waterquality_index, FUN = water_quality_residents_vf)
+    vf_WQ <- 1 - study_data$waterquality_index
 
     # e)water scarcity
     #  vf_scarcity_sacmex <- sapply(study_data$days_wn_water_year, FUN = scarcity_sacmex_vf) # scarcity_annual is calculated dynamically
@@ -152,7 +151,14 @@ sacmex_determine_investment_suitability <-
     )
 
     # run-off/escurrimiento
-    vf_run_off <- sapply(study_data$runoff_volume, FUN = run_off_vf)
+    vf_run_off <- sapply(
+      study_data$runoff_volume,
+      FUN = convexa_decreciente,
+      xmax = 504,
+      xmin = 0,
+      gama = 0.035
+    )
+
 
     # subsidance
     vf_subside <- sapply(
@@ -165,28 +171,38 @@ sacmex_determine_investment_suitability <-
     )
 
     # rainfall
-    vf_rain <-
-      sapply(study_data$precipitation_volume, FUN = rainfall_vf)
-
-    # age infrastructure drainage
-    vf_A_D <- sapply(
-      study_data$sewer_infrastructure_age,
-      FUN = logistica_invertida,
-      center = sewer_age$center,
-      k = sewer_age$k,
-      xmax = sewer_age$max,
-      xmin = sewer_age$min
+    vf_rain <-sapply(
+      study_data$precipitation_volume,
+      FUN = convexa_decreciente,
+      xmax =  1340,
+      # [mm/km2]==  1202 mm/year
+      xmin = 500,
+      # [mm/km2]
+      gama = 0.035
     )
 
+    # age infrastructure drainage
+    vf_A_D_maintenance <-  sapply(
+      study_data$sewer_infrastructure_age,
+      FUN = logistica_invertida,
+      center = 40,
+      k = 0.1,
+      xmax = 100,
+      xmin = 0
+    )
+
+    # age infrastructure drainage new infra
+    vf_A_D_new_infrastructure <-  rep(1, length(study_data$sewer_infrastructure_age))
+
     # drainage capacity
-    vf_Cap_D <-
-      sapply(
-        study_data$sewer_system_capacity,
-        FUN = capacity_drainage_vf,
-        sat = 1,
-        x_max = max(study_data$sewer_system_capacity),
-        x_min = 0
-      )
+    vf_Cap_D <- sapply(
+      study_data$sewer_system_capacity,
+      FUN = convexa_creciente,
+      xmax = 2064.34,
+      xmin = 0,
+      gama = 0.197
+    )
+
     #plot(study_data$sewer_system_capacity,vf_Cap_D)
     # falla D
     #vf_fall_D <- rep(1, length(study_data$household_potable_system_lacking_percent))
@@ -220,14 +236,14 @@ sacmex_determine_investment_suitability <-
     vf_flood_new_infra <- 1 - study_data$flooding_index
 
     #flooding vf for delta methods
-    vf_flood_mant <-  value_function(sacmex$flooding_fnss, study_data)
+    vf_flood_mant_delta <-  value_function(sacmex$flooding_fnss, study_data)
 
     all_C_sewer_mantainance <- cbind(
       vf_garbage,
       vf_run_off,
       vf_subside,
       vf_rain,
-      vf_A_D,
+      vf_A_D_maintenance,
       vf_Cap_D,
       vf_falla_dren,
       vf_falta_dren,
@@ -243,7 +259,7 @@ sacmex_determine_investment_suitability <-
       vf_run_off,
       vf_subside,
       vf_rain,
-      vf_A_D,
+      vf_A_D_new_infrastructure,
       vf_Cap_D,
       vf_falla_dren,
       vf_falta_dren,
