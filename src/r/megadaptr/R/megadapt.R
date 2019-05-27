@@ -1,5 +1,6 @@
 PK_JOIN_EXPR = c("censusblock_id" = "censusblock_id")
 
+#' @export
 study_area_read <- function(path) {
   sdf <- rgdal::readOGR(dsn = path,
                  layer = 'megadapt_wgs84_v5',
@@ -208,7 +209,8 @@ megadapt_single_coupled_with_action_weights_create <- function(
   params, sacmex_fnss_creator = sacmex_seperate_action_budgets_fnss_create,
   mental_models = NULL,
   flooding_fnss=NULL,
-  ponding_fnss=NULL) {
+  ponding_fnss=NULL,
+  study_area=NULL) {
 
   if (is.null(flooding_fnss)) {
     flooding_fnss <- flooding_index_fnss_create()
@@ -222,8 +224,11 @@ megadapt_single_coupled_with_action_weights_create <- function(
     mental_models <- mental_model_constant_strategies()
   }
 
+  if (is.null(study_area)) {
+    study_area = study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v5.gpkg'))
+  }
+
   value_function_config <- value_function_config_default()
-  study_area = study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v5.gpkg'))
   climate_fnss <- climate_fnss_create(params$climate_scenario)
   resident_fnss = resident_fnss_create(
     value_function_config = value_function_config,
@@ -253,10 +258,6 @@ megadapt_single_coupled_with_action_weights_create <- function(
     sacmex_fnss = sacmex_fnss,
     water_scarcity_fnss = water_scarcity_fnss
   )
-}
-
-megadapt_single_coupled_with_split_budget_create <- function() {
-
 }
 
 #' Run the megadapt model
