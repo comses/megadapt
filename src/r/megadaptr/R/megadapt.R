@@ -224,8 +224,7 @@ megadapt_single_coupled_with_action_weights_create <- function(
 
   value_function_config <- value_function_config_default()
   study_area = study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v5.gpkg'))
-  climate_fnss <- climate_fnss_create(
-    data_dir('climate_landuse_scenarios', 'df_prec_precvolm3_escorrentias_excl_0_ff45.csv'))
+  climate_fnss <- climate_fnss_create(params$climate_scenario)
   resident_fnss = resident_fnss_create(
     value_function_config = value_function_config,
     mental_model_strategy = mental_models$resident_limit_strategy,
