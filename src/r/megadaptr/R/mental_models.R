@@ -211,6 +211,7 @@ get_limit_df.file_constant_mental_model <-
     mental_model$limit_df
   }
 
+#' @export
 mental_model_constant_strategies <- function() {
   mm_file_path <-
     function(path)
