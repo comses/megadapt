@@ -24,10 +24,6 @@ sacmex_determine_investment_suitability <-
     # presion de medios
     vf_pres_medios <-
       sapply(study_data$media_social_pressure, FUN = pression_medios_vf)
-    # flooding #cchange to flooding
-    vf_flood <-
-      sapply(study_data$resident_reports_flooding_per_year, FUN = ponding_vf)
-
     # Ponding
     vf_pond_maintainance <- value_function(sacmex$ponding_fnss, study_data)
     vf_pond_new_infra <- rep(1,length(study_data$ponding_index))
@@ -43,9 +39,7 @@ sacmex_determine_investment_suitability <-
     vf_Age_potable_new_infra=rep(1,length(study_data$potable_water_infrastructure_age))
 
     # potable water system capacity
-    vf_Cap_Ab <-
-      rep(1,
-          length(study_data$household_potable_system_lacking_percent))
+    vf_Cap_Ab <-rep(1,length(study_data$household_potable_system_lacking_percent))
 
     # d) falla Ab
     vf_falla_dist <- 1 - sapply(
@@ -206,7 +200,7 @@ sacmex_determine_investment_suitability <-
     #vf_fall_D <- rep(1, length(study_data$household_potable_system_lacking_percent))
     vf_falla_dren <- sapply(
       study_data$resident_reports_sewer_failure_count,
-      FUN=logistic_invertida,
+      FUN=logistica_invertida,
       xmin=0,
       xmax=10,
       k=0.1,

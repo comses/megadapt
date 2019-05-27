@@ -7,7 +7,6 @@ resident_determine_infrastructure_suitability <-
     criteria_iz <- as.vector(mental_models$criteria$iz)
 
     # Water quality
-    #vf_WQ <- sapply(study_data$waterquality_index, FUN = water_quality_residents_vf)
     vf_WQ <- study_data$waterquality_index
     # Crecimiento urbano
     vf_UG <-
