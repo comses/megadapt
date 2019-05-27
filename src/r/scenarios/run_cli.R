@@ -1,25 +1,37 @@
 #!/usr/bin/env Rscript
 
 library("argparse")
+library("dplyr")
+library("DBI")
+library("RPostgreSQL")
+
 
 parser <- ArgumentParser(description='Run model')
 
+parser$add_argument("--experiment",
+		    type="character", required=T,
+		    help="name of experiment, db tables will be created with this name")
 parser$add_argument("--effectiveness_new_infra",
-										type="double", help="rate of effectiveness of new infrastructure", required=T)
+		    type="double", help="rate of effectiveness of new infrastructure", required=T)
 parser$add_argument("--effectiveness_maintenance",
-										type="double", help="rate of effectiveness of maintenance", required=T)
+		    type="double", help="rate of effectiveness of maintenance", required=T)
 parser$add_argument("--steps",
-										type="integer", help="run this many steps", default=10)
+		    type="integer", help="run this many steps", default=10)
 parser$add_argument("--infrastructure_decay",
-										type="double", help="rate of infrastructure decay", required=T)
+		    type="double", help="rate of infrastructure decay", required=T)
 parser$add_argument("--budget",
-										type="double", help="annual budget for water authority", required=T)
+		    type="double", help="annual budget for water authority", required=T)
 parser$add_argument("--half_sensitivity_d",
-										type="double", required=T, help="?")
+		    type="double", required=T, help="?")
 parser$add_argument("--half_sensitivity_ab",
-										type="double", required=T, help="?")
+		    type="double", required=T, help="?")
+parser$add_argument("--climate_scenario",
+		    type="integer", required=T, help="index of climate scenario <1..12>")
 parser$add_argument("--rep",
-										type="integer", required=T, help="?")
+		    type="integer", required=T, help="number of experiment repetition")
+parser$add_argument("--key",
+		    type="integer", required=T, help="key joins params table to results table")
+
 
 
 args <- parser$parse_args()
@@ -37,33 +49,41 @@ source('util.R')
 library(megadaptr)
 library(magrittr)
 
-# set.seed(1000)
 
-megadapt <- build_megadapt_model(
-  data_root_dir = data_root_dir,
-  mental_model_strategies=mental_model_strategies,
-  params = create_params(
-    new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
-    maintenance_effectiveness_rate = maintenance_effectiveness_rate,
-    n_steps = n_steps,
-    budget = budget,
-    infrastructure_decay_rate = infrastructure_decay_rate,
-    half_sensitivity_ab = half_sensitivity_ab,
-    half_sensitivity_d = half_sensitivity_d
-  )
+
+    megadapt <- megadapt_single_coupled_with_action_weights_create(
+	list(
+	    new_infrastructure_effectiveness_rate = args$effectiveness_new_infra,
+	    maintenance_effectiveness_rate = args$effectiveness_maintenance,
+	    n_steps = args$steps,
+	    infrastructure_decay_rate = args$infrastructure_decay,
+	    budget = args$budget,
+	    half_sensitivity_ab = args$half_sensitivity_ab,
+	    half_sensitivity_d = args$half_sensitivity_d,
+	    start_year = lubridate::ymd('2019-01-01'),
+	    climate_scenario = args$climate_scenario
+	    )
 )
 
-results <- simulate_megadapt(megadapt)
+results <- simulate(megadapt)
 
-sim_id_output=sprintf("sim_%s_%s_%s_%s_%s_%s_%s_%s.rds",
-		      new_infrastructure_effectiveness_rate,
-		      maintenance_effectiveness_rate,
-		      n_steps,
-		      infrastructure_decay_rate,
-		      budget,
-		      half_sensitivity_ab,
-		      half_sensitivity_d,
-		      repetition)
+drv <- dbDriver("PostgreSQL")
+conn <- dbConnect(drv, dbname = "megadapt",
+		 host = "tawa", port = 5432,
+		 user = "fidel")
 
-saveRDS(object=results,
-	file = output_dir(sim_id_output))
+params <- data.frame(experiment=args$experiment,
+		     effectiveness_new_infra=args$effectiveness_new_infra,
+		     effectiveness_maintenance=args$effectiveness_maintenance,
+		     steps=args$steps,
+		     infrastructure_decay=args$infrastructure_decay,
+		     budget=args$budget,
+		     half_sensitivity_d=args$half_sensitivity_d,
+		     half_sensitivity_ab=args$half_sensitivity_ab,
+		     climate_scenario=args$climate_scenario,
+		     rep=args$rep,
+		     key=args$key)
+results <- results %>% mutate(param_id = args$key)
+
+dbWriteTable(conn=conn, name=paste0("params_", args$experiment), value=params, row.names=FALSE, append=TRUE)
+dbWriteTable(conn=conn, name=paste0("results_", args$experiment), value=results, row.names=FALSE, append=TRUE)
