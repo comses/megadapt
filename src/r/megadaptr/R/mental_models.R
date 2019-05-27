@@ -239,7 +239,8 @@ mental_model_constant_strategies <- function() {
 }
 
 
-#' A function to calculate a new set of weights to modify the supermatrix in the block "socio-hydrological risk and Environtment in the "sewer_system_sacmex_unweighted" matrix
+#' A function to calculate a new set of weights to modify the supermatrix in the
+#' block "socio-hydrological risk and Environtment in the "sewer_system_sacmex_unweighted" matrix
 #'
 #' @param study_data A data frame that includes precipitation volume, runoff, and the mean precipitation and the mean runoff
 #' @return A matric of weights of the semi dimension as the block to change in the supermatrix
