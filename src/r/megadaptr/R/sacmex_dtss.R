@@ -547,6 +547,7 @@ sacmex_default_create <-
     prepend_class(config, class_name)
   }
 
+#' @export
 sacmex_seperate_action_budgets_fnss_create <-
   function(value_function_config,
            sewer_mental_model_strategy,
