@@ -29,22 +29,30 @@ conn <- dbConnect(drv, dbname = "megadapt",
                   user="fidel",
                   host="localhost")
 
-split_df <- dbGetQuery(conn, "SELECT censusblock_id::char(4),
+split_df <- dbGetQuery(conn,
+"select censusblock_id::char(4),
+  budget,
 sum(sacmex_potable_maintenance_intervention_presence::int) as potable_maintenance,
 sum(sacmex_potable_new_infrastructure_intervention_presence::int) as potable_new_infra,
 sum(sacmex_sewer_maintenance_intervention_presence::int) as sewer_maintenance,
 sum(sacmex_sewer_new_infrastructure_intervention_presence::int) as sewer_new_infra
-from results_split_2 group by censusblock_id;")
+from results_split_2
+inner join params_split_2 as p on p.key = results_split_2.param_id
+group by budget, censusblock_id;")
 
 
 # Get data from non split run
 
-non_split_df <- dbGetQuery(conn, "SELECT censusblock_id::char(4),
-sum(sacmex_potable_maintenance_intervention_presence::int) as potable_maintenance,
-sum(sacmex_potable_new_infrastructure_intervention_presence::int) as potable_new_infra,
-sum(sacmex_sewer_maintenance_intervention_presence::int) as sewer_maintenance,
-sum(sacmex_sewer_new_infrastructure_intervention_presence::int) as sewer_new_infra
-from results_non_split_2 group by censusblock_id;")
+non_split_df <- dbGetQuery(conn,
+"select censusblock_id::char(4),
+  budget,
+  sum(sacmex_potable_maintenance_intervention_presence::int) as potable_maintenance,
+  sum(sacmex_potable_new_infrastructure_intervention_presence::int) as potable_new_infra,
+  sum(sacmex_sewer_maintenance_intervention_presence::int) as sewer_maintenance,
+  sum(sacmex_sewer_new_infrastructure_intervention_presence::int) as sewer_new_infra
+from results_non_split_2
+inner join params_non_split_2 as p on p.key = results_non_split_2.param_id
+group by budget, censusblock_id;")
 
 long_names <- tibble::tribble(
   ~name, ~long_name,
@@ -54,52 +62,39 @@ long_names <- tibble::tribble(
   'sewer_new_infra', 'Sewer New Infra'
 )
 
-whole_df <- bind_rows(split_df %>% mutate(budget = 'Split'), non_split_df %>% mutate(budget = 'Non Split'))
-long_df <- tidyr::gather(data = whole_df, key = statistic_name, value = statistic_value, 
+whole_df <- bind_rows(split_df %>% mutate(budget_type = 'Split'), non_split_df %>% mutate(budget_type = 'Non Split'))
+long_df <- tidyr::gather(data = whole_df, key = statistic_name, value = statistic_value,
                          potable_maintenance, potable_new_infra, sewer_maintenance, sewer_new_infra) %>%
-    mutate(statistic_value = statistic_value / 800) %>%
+    mutate(statistic_value = statistic_value / (800/5)) %>%
     mutate(statistic_name = recode(statistic_name, !!! (long_names %>% tidyr::spread(name, long_name) %>% as.list)))
-  
-ggplot() +
+
+map_facet <- ggplot() +
   geom_map(data=fortified, map=fortified,
            aes(x=long, y=lat, map_id=censusblock_id),
            color="#2b2b2b", size=0.1, fill=NA) +
   geom_map(data=long_df, map=fortified,
            aes(fill=statistic_value, map_id=censusblock_id)) +
   scale_fill_viridis_c() +
-  facet_grid(rows = vars(budget), cols = vars(statistic_name)) +
+  facet_grid(cols = vars(budget, budget_type), rows = vars(statistic_name)) +
   labs(fill = 'Intervention Count')
 
-plot_interventions <- function(polygons, df, col_name) {
-  fortified_d <- merge(polygons, df, by = 'censusblock_id')
+ggsave('/Users/fidel/tawa/src/r/scenarios/budget_intervention.png',
+       plot = map_facet,
+       device = 'png',
+       width = 45,
+       height = 30,
+       units = 'in')
 
 
-  ggplot() +
-    geom_polygon(data = long_df, aes_string(fill = statistic_value, 
-                                            x = "long", 
-                                            y = "lat", 
-                                            group = "group")) +
-    facet_grid(rows = budget, cols = statistic_name)
-}
+split_param_tbl <- tbl(conn, 'params_split_2')
+split_result_tbl <- tbl(conn, 'results_split_2')
 
-
-p1 <- plot_interventions(fortified, split_df, 'sewer_maintenance')
-p2 <- plot_interventions(fortified, split_df, 'sewer_new_infra')
-p3 <- plot_interventions(fortified, split_df, 'potable_maintenance')
-p4 <- plot_interventions(fortified, split_df, 'potable_new_infra')
-p5 <- plot_interventions(fortified, non_split_df, 'sewer_maintenance')
-p6 <- plot_interventions(fortified, non_split_df, 'sewer_new_infra')
-p7 <- plot_interventions(fortified, non_split_df, 'potable_maintenance')
-p8 <- plot_interventions(fortified, non_split_df, 'potable_new_infra')
-
-
-png(file="facet_map.png",
-    width=1980, height=800)
-grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8, nrow = 2, top = "Intervention sum")
-dev.off()
-
-
-
+ponding_df <- split_result_tbl %>%
+  inner_join(split_param_tbl, by = c('param_id'='key')) %>%
+  filter(year == 2060) %>%
+  group_by(censusblock_id, budget) %>%
+  summarize(ponding_index = mean(ponding_index, na.rm = TRUE)) %>%
+  collect()
 
 
 # Create Summary statistics
