@@ -3,43 +3,23 @@ library("RPostgreSQL")
 library("DBI")
 library(dplyr)
 library(gridExtra)
+library(plyr)
 
-sdf <- sf::st_read('inst/rawdata/censusblocks/megadapt_wgs84_v5.gpkg') %>%
-  dplyr::rename(geometry=geom) %>% select(censusblock_id,geometry)
 
-filter_results <- function(params, results) {
-  results %>%
-    inner_join(params %>% filter(half_sensitivity_ab == 10,
-                                 half_sensitivity_d == 10,
-                                 infrastructure_decay == 0.1,
-                                 effectiveness_new_infra==0.05,
-                                 effectiveness_maintenance == 0.1), c("param_id" = "key"))
-}
 
-get_db_budget <- function(params, results) {
-  filter_results(params, results) %>%
-    group_by(
-      censusblock_id,
-      half_sensitivity_ab,
-      half_sensitivity_d,
-      budget,
-      infrastructure_decay,
-      effectiveness_new_infra,
-      effectiveness_maintenance,
-      steps
-    ) %>%
-    summarise(
-      sacmex_potable_maintenance_intervention_presence=sum(as.integer(sacmex_potable_maintenance_intervention_presence)),
-      sacmex_sewer_maintenance_intervention_presence=sum(as.integer(sacmex_sewer_maintenance_intervention_presence)),
-      sacmex_potable_new_infrastructure_intervention_presence=sum(as.integer(sacmex_potable_new_infrastructure_intervention_presence)),
-      sacmex_sewer_new_infrastructure_intervention_presence=sum(as.integer(sacmex_sewer_new_infrastructure_intervention_presence))
-    ) %>%
-    collect() %>%
-    rename(sewer_maintenance=sacmex_sewer_maintenance_intervention_presence,
-           sewer_new_infra=sacmex_sewer_new_infrastructure_intervention_presence,
-           potable_maintenance=sacmex_potable_maintenance_intervention_presence,
-           potable_new_infra=sacmex_potable_new_infrastructure_intervention_presence)
-}
+
+#path <- data_dir('censusblocks')
+path <- "/Users/fidel/tawa/src/r/megadaptr/inst/rawdata/censusblocks"
+sdf <- rgdal::readOGR(dsn = path,
+                      layer = 'megadapt_wgs84',
+                      stringsAsFactors = FALSE,
+                      verbose = TRUE,
+                      integer64 = 'warn.loss')
+
+fortified <- fortify(sdf, region ="ageb_id")
+fortified$censusblock_id <- as.character(fortified$id)
+fortified$id <- fortified$censusblock_id
+
 
 # Get data from split run
 
@@ -49,40 +29,75 @@ conn <- dbConnect(drv, dbname = "megadapt",
                   user="fidel",
                   host="localhost")
 
-split_params <- tbl(conn, 'params_split_1')
-split_results <- tbl(conn, 'results_split_1')
+split_df <- dbGetQuery(conn, "SELECT censusblock_id::char(4),
+sum(sacmex_potable_maintenance_intervention_presence::int) as potable_maintenance,
+sum(sacmex_potable_new_infrastructure_intervention_presence::int) as potable_new_infra,
+sum(sacmex_sewer_maintenance_intervention_presence::int) as sewer_maintenance,
+sum(sacmex_sewer_new_infrastructure_intervention_presence::int) as sewer_new_infra
+from results_split_2 group by censusblock_id;")
 
-split_df <- get_db_budget(split_params, split_results)
 
 # Get data from non split run
 
-non_split_params <- tbl(conn, 'params_non_split_1')
-non_split_results <- tbl(conn, 'results_non_split_1')
+non_split_df <- dbGetQuery(conn, "SELECT censusblock_id::char(4),
+sum(sacmex_potable_maintenance_intervention_presence::int) as potable_maintenance,
+sum(sacmex_potable_new_infrastructure_intervention_presence::int) as potable_new_infra,
+sum(sacmex_sewer_maintenance_intervention_presence::int) as sewer_maintenance,
+sum(sacmex_sewer_new_infrastructure_intervention_presence::int) as sewer_new_infra
+from results_non_split_2 group by censusblock_id;")
 
-non_split_df <- get_db_budget(non_split_params, non_split_results)
+long_names <- tibble::tribble(
+  ~name, ~long_name,
+  'potable_maintenance', 'Potable Maintenance',
+  'potable_new_infra', 'Potable New Infra',
+  'sewer_maintenance', 'Sewer Maintenance',
+  'sewer_new_infra', 'Sewer New Infra'
+)
 
-# Union the two datasets together
-
-#df <- union_all(split_df %>% mutate(budget_strategy = 'split'), non_split_df %>% mutate(budget_strategy = 'non_split'))
+whole_df <- bind_rows(split_df %>% mutate(budget = 'Split'), non_split_df %>% mutate(budget = 'Non Split'))
+long_df <- tidyr::gather(data = whole_df, key = statistic_name, value = statistic_value, 
+                         potable_maintenance, potable_new_infra, sewer_maintenance, sewer_new_infra) %>%
+    mutate(statistic_value = statistic_value / 800) %>%
+    mutate(statistic_name = recode(statistic_name, !!! (long_names %>% tidyr::spread(name, long_name) %>% as.list)))
+  
+ggplot() +
+  geom_map(data=fortified, map=fortified,
+           aes(x=long, y=lat, map_id=censusblock_id),
+           color="#2b2b2b", size=0.1, fill=NA) +
+  geom_map(data=long_df, map=fortified,
+           aes(fill=statistic_value, map_id=censusblock_id)) +
+  scale_fill_viridis_c() +
+  facet_grid(rows = vars(budget), cols = vars(statistic_name)) +
+  labs(fill = 'Intervention Count')
 
 plot_interventions <- function(polygons, df, col_name) {
-  df <- polygons %>% inner_join(df)
-  ggplot(df, aes_string(fill = col_name)) +
-    geom_sf(size=0.05)
+  fortified_d <- merge(polygons, df, by = 'censusblock_id')
+
+
+  ggplot() +
+    geom_polygon(data = long_df, aes_string(fill = statistic_value, 
+                                            x = "long", 
+                                            y = "lat", 
+                                            group = "group")) +
+    facet_grid(rows = budget, cols = statistic_name)
 }
 
 
+p1 <- plot_interventions(fortified, split_df, 'sewer_maintenance')
+p2 <- plot_interventions(fortified, split_df, 'sewer_new_infra')
+p3 <- plot_interventions(fortified, split_df, 'potable_maintenance')
+p4 <- plot_interventions(fortified, split_df, 'potable_new_infra')
+p5 <- plot_interventions(fortified, non_split_df, 'sewer_maintenance')
+p6 <- plot_interventions(fortified, non_split_df, 'sewer_new_infra')
+p7 <- plot_interventions(fortified, non_split_df, 'potable_maintenance')
+p8 <- plot_interventions(fortified, non_split_df, 'potable_new_infra')
 
-p1 <- plot_interventions(sdf, split_df, 'sewer_maintenance')
-p2 <- plot_interventions(sdf, split_df, 'sewer_new_infra')
-p3 <- plot_interventions(sdf, split_df, 'potable_maintenance')
-p4 <- plot_interventions(sdf, split_df, 'potable_new_infra')
-p5 <- plot_interventions(sdf, non_split_df, 'sewer_maintenance')
-p6 <- plot_interventions(sdf, non_split_df, 'sewer_new_infra')
-p7 <- plot_interventions(sdf, non_split_df, 'potable_maintenance')
-p8 <- plot_interventions(sdf, non_split_df, 'potable_new_infra')
 
-grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8, nrow = 2, top = "Events by type per state")
+png(file="facet_map.png",
+    width=1980, height=800)
+grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8, nrow = 2, top = "Intervention sum")
+dev.off()
+
 
 
 
@@ -91,5 +106,4 @@ grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8, nrow = 2, top = "Events by type per state"
 # Cumulative Sum SacMex census actions
 # Mean vulnerability values
 
-ggplot(sdf, aes(fill=sacmex_potable_maintenance_intervention_presence)) +
-  geom_sf(size=0.05)
+
