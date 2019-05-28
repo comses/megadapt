@@ -20,12 +20,16 @@ library(leaflet)
 library(megadaptr)
 library(shiny)
 source('../scenarios/util.R')
+
+megadapt <- megadapt_single_coupled_with_action_weights_create(
+  create_params(),
+  mental_models = mental_model_sacmex_coupled_strategies(), 
+  flooding_fnss = flooding_index_fnss_create(),
+  ponding_fnss = ponding_index_fnss_create())
+megadapt <- megadaptr:::megadapt_initialize(megadapt)
 ```
 
 ```{r load_censusblocks, echo=FALSE}
-megadapt <- build_megadapt_model(data_root_dir = data_root_dir,
-                                 mental_model_strategies =  mental_model_strategies)
-
 sliderInput("capacity", "Non potable infrastructure capacity", min = 0, max = 20, step = 1, value = 5)
 
 sliderInput("ponding", "Average number of ponding reports in a year", min = 0, max = 20, step = 1, value = 5)
@@ -52,22 +56,23 @@ renderLeaflet({
       precipitation = input$precipitation,
       runoff = input$runoff
     )
+  ponding_index_fnss <- ponding_index_fnss_create(weights)
   ponding_index <-
-    megadaptr:::update_ponding_index(study_data = megadapt$study_area@data, weights = weights)
+    megadaptr:::call_fnss.ponding_index_fnss(ponding_index_fnss, study_data = megadapt$study_area@data)
   data <-
     megadaptr:::apply_data_changes(megadapt$study_area@data,
                                    ponding_index,
-                                   megadaptr:::PK_JOIN)
+                                   megadaptr:::PK_JOIN_EXPR)
   megadapt$study_area@data <- data
 
   pal <- colorNumeric(palette = "YlOrRd",
-                      domain = megadapt$study_area@data$encharca_index)
+                      domain = megadapt$study_area@data$ponding_index)
 
   leaflet() %>%
     addPolygons(data = megadapt$study_area,
                 weight = 1.0,
                 opacity = 1.0,
                 fillOpacity = 1.0,
-                fillColor = ~pal(megadapt$study_area@data$encharca_index))
+                fillColor = ~pal(megadapt$study_area@data$ponding_index))
 })
 ```
