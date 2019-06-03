@@ -1,2 +1,2 @@
-options(repos = c(CRAN='https://mran.microsoft.com/snapshot/2019-04-25'), download.file.method = 'libcurl')
+options(repos = c(CRAN='https://mran.microsoft.com/snapshot/2019-05-25'), download.file.method = 'libcurl')
 
