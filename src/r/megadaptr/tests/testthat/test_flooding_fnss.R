@@ -2,15 +2,15 @@ library(megadaptr)
 library(dplyr)
 
 study_data <- tibble::tibble(
-  censusblock_id = 1,
-  precipitation_volume = 200000,
-  precipitation_volume_mean = 100000,
-  runoff_volume = 3,
-  runoff_volume_mean = 2,
-  resident_reports_flooding_count =  0.12,
-  resident_reports_flooding_count_mean = 0.15,
-  sewer_system_capacity = 25,
-  sewer_system_capacity_initial = 20
+  censusblock_id = c(1, 2),
+  precipitation_volume = c(200000, 100000),
+  precipitation_volume_mean = c(100000, 50000),
+  runoff_volume = c(3, 2.5),
+  runoff_volume_mean = c(2, 2),
+  resident_reports_flooding_count =  c(0.12, 0.13),
+  resident_reports_flooding_count_mean = c(0.15, 0.16),
+  sewer_system_capacity = c(25, 25),
+  sewer_system_capacity_max = c(50, 50)
 )
 
 # describe('a flooding index fnss', {
@@ -30,23 +30,23 @@ study_data <- tibble::tibble(
 
 describe('a flooding delta method fnss', {
   flooding_fnss <- flooding_delta_method_fnss_create()
-  flooding_fnss_val <- call_fnss(flooding_fnss, study_data)$flooding_index
+  flooding_fnss_val <- call_fnss(flooding_fnss, study_data)$flooding_index[1]
 
   it('should decrease if capacity increases', {
     study_data$sewer_system_capacity <- 2 * study_data$sewer_system_capacity
-    flooding_fnss_high_cap <- call_fnss(flooding_fnss, study_data)$flooding_index
+    flooding_fnss_high_cap <- call_fnss(flooding_fnss, study_data)$flooding_index[1]
     expect_gt(flooding_fnss_val, flooding_fnss_high_cap)
   })
 
   it('should increase if precipitation increases', {
     study_data$precipitation_volume <- study_data$precipitation_volume + 50
-    flooding_fnss_high_precip <- call_fnss(flooding_fnss, study_data)$flooding_index
+    flooding_fnss_high_precip <- call_fnss(flooding_fnss, study_data)$flooding_index[1]
     expect_lt(flooding_fnss_val, flooding_fnss_high_precip)
   })
 
   it('should increase if runoff increases', {
     study_data$runoff_volume <- study_data$runoff_volume + 1
-    flooding_fnss_high_runoff <- call_fnss(flooding_fnss, study_data)$flooding_index
-    expect_lt(flooding_fnss_val, flooding_fnss_high_runoff)
+    flooding_fnss_high_runoff <- call_fnss(flooding_fnss, study_data)$flooding_index[1]
+    expect_lte(flooding_fnss_val, flooding_fnss_high_runoff)
   })
 })
