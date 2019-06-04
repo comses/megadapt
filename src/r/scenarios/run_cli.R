@@ -85,7 +85,7 @@ half_sensitivity_d = as.numeric(args$half_sensitivity_d)
 
 
 
-    megadapt <- megadapt_single_coupled_with_action_weights_create(
+    megadapt <- megadapt_create(
 	list(
 	    new_infrastructure_effectiveness_rate = args$effectiveness_new_infra,
 	    maintenance_effectiveness_rate = args$effectiveness_maintenance,

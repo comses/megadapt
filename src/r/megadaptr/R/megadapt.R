@@ -220,7 +220,7 @@ megadapt_initialize <- function(megadapt) {
 #' @param flooding_fnss A flooding model object. If null, a value funcion method model is created.
 #' @param ponding_fnss A ponding model object. If null, a value funcion method model is created.
 #' @return A megadapt model object with classes associated to subcomponent objects. The current components in the megadapt object are: Parameters, value_function_config, study_area, mental model object, climate scenario (climate_fnss), flooding model object, ponding model object, and scarcity index object.
-megadapt_single_coupled_with_action_weights_create <- function(
+megadapt_create <- function(
   params, sacmex_fnss_creator = sacmex_seperate_action_budgets_fnss_create,
   mental_models = NULL,
   flooding_fnss=NULL,

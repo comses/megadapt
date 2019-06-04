@@ -30,7 +30,7 @@ describe('a megadapt model', {
   }
 
   megadapt <- suppressWarnings(
-    megadapt_single_coupled_with_action_weights_create(
+    megadapt_create(
       create_params(),
       sacmex_fnss_creator = sacmex_fnss_create,
       mental_models = mental_model_constant_strategies(),
@@ -41,7 +41,7 @@ describe('a megadapt model', {
 
   it('can have its parameters modified', {
     new_megadapt <- suppressWarnings(
-      megadapt_single_coupled_with_action_weights_create(
+      megadapt_create(
         create_params(new_infrastructure_effectiveness = 0.1),
         sacmex_fnss_creator = sacmex_fnss_create,
         mental_models = mental_model_constant_strategies(),
