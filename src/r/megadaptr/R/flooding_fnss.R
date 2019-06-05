@@ -1,5 +1,9 @@
 
+#' Create a flooding index model
+#'
 #' @export
+#' @param weights weights to apply to capacity, flooding, precipitation and runoff value functions
+#' @return a ponding index tibble
 flooding_index_fnss_create <- function(weights = c(
   capacity = 1,
   flooding = 1,

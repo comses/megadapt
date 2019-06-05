@@ -1,6 +1,10 @@
 PK_JOIN_EXPR = c("censusblock_id" = "censusblock_id")
 
+#' Import a study area from the command line using OGR
+#'
 #' @export
+#' @param path the path to the study area file
+#' @return a study area
 study_area_read <- function(path) {
   sdf <- rgdal::readOGR(dsn = path,
                  layer = 'megadapt_wgs84_v5',
@@ -219,6 +223,7 @@ megadapt_initialize <- function(megadapt) {
 #' @param mental_models A mental model object. If NULL the model assumed a mental model with single coupling
 #' @param flooding_fnss A flooding model object. If null, a value funcion method model is created.
 #' @param ponding_fnss A ponding model object. If null, a value funcion method model is created.
+#' @param study_area A spatial polygon data frame of the study area
 #' @return A megadapt model object with classes associated to subcomponent objects. The current components in the megadapt object are: Parameters, value_function_config, study_area, mental model object, climate scenario (climate_fnss), flooding model object, ponding model object, and scarcity index object.
 megadapt_create <- function(
   params, sacmex_fnss_creator = sacmex_seperate_action_budgets_fnss_create,
