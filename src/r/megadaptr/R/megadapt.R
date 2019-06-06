@@ -189,13 +189,6 @@ transition_dtss.megadapt_dtss <- function(megadapt_dtss) {
   megadapt_dtss
 }
 
-megadapt_double_coupled_with_action_weights_create <- function() {
-}
-
-megadapt_double_coupled_with_split_budget_create <- function() {
-
-}
-
 data_dir <- function(...) {
   system.file(fs::path('rawdata', ...), package = 'megadaptr', mustWork = TRUE)
 }
