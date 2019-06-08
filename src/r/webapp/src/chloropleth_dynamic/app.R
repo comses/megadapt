@@ -10,25 +10,24 @@
 library(leaflet)
 library(megadaptr)
 library(shiny)
-library(shinyjs)
 library(shinydashboard)
 
 megadapt <- megadapt_create(params_create())
 study_area <- megadapt$study_area
-column_choices <- list(
-    'Resident Count'='resident_count',
-    'Resident Diarrhea/Pop' = 'resident_diarrhea_per_capita',
-    'Resident Asset Index' = 'resident_asset_index')
+column_choices <- tibble::tribble(
+    ~label, ~value,
+    'Resident Count', 'resident_count',
+    'Resident Diarrhea/Pop', 'resident_diarrhea_per_capita',
+    'Resident Asset Index', 'resident_asset_index')
 
 # Define UI for application that draws a histogram
 ui <- dashboardPage(
     dashboardHeader(title = "Dynamic chloropleth"),
     dashboardSidebar(
-        selectInput('column', label = 'Column', choices = column_choices, selected = column_choices[1])
+        selectInput('column', label = 'Column', choices = column_choices %>% tidyr::spread(key = label, value = value), selected = column_choices[1])
     ),
     dashboardBody(
-        useShinyjs(),
-        extendShinyjs(script = "changePolygonColors.js"),
+        tags$head(tags$script(src='leafletMonkeyPatch.js')),
         leafletOutput('map')
     )
 )
@@ -38,12 +37,7 @@ server <- function(input, output) {
     output$map <- renderLeaflet({
         leaflet() %>%
             setView(lat = 19.3326, lng =-99.14, zoom = 11) %>%
-            addPolygons(data = study_area, layerId = ~censusblock_id, fillColor = '#F00', weight = 0.2, color = '#444444', group = 'censusblocks') %>%
-            htmlwidgets::onRender("
-                function(el, x) {
-                    map = this;
-                }
-            ")
+            addPolygons(data = study_area, layerId = ~censusblock_id, fillColor = '#F00', weight = 0.2, color = '#444444', group = 'censusblocks')
     })
 
     fillColorPaletteCreator <- reactive({
@@ -55,9 +49,17 @@ server <- function(input, output) {
         column <- study_area@data[,input$column]
         pal <- fillColorPaletteCreator()
 
-        js$log('Observing...')
-        js$setStyle(group = 'censusblocks', layerId = study_area@data$censusblock_id, style = data.frame(fillColor = pal(column)))
+        leafletProxy('map') %>%
+            invokeMethod(data = NULL,
+                         method = 'setStyle',
+                         'censusblocks',
+                         study_area@data$censusblock_id,
+                         data.frame(fillColor = pal(column))) %>%
+            clearControls() %>%
+            addLegend(position = c('bottomleft'),
+                      pal = pal, values = column, title = column_choices %>% tidyr::spread(key = value, value = label) %>% .[[input$column]])
 
+        # js$setStyle(group = 'censusblocks', layerId = study_area@data$censusblock_id, style = data.frame(fillColor = pal(column)))
     })
 }
 
