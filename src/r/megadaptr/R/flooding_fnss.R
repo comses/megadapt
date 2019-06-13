@@ -14,6 +14,11 @@ flooding_index_fnss_create <- function(weights = c(
   prepend_class(weights, 'flooding_index_fnss')
 }
 
+#' Flooding index value function method
+#'
+#' @export
+#' @method call_fnss flooding_index_fnss
+#' @inheritParams call_fnss
 call_fnss.flooding_index_fnss <-
   function(flooding_index_fnss, study_data) {
     fv_f_prec_v <- sapply(
@@ -89,6 +94,12 @@ flooding_delta_method_fnss_create <-
     prepend_class(weights, 'flooding_delta_method_fnss')
   }
 
+
+#' Flooding index delta method
+#'
+#' @export
+#' @method call_fnss flooding_delta_method_fnss
+#' @inheritParams call_fnss
 call_fnss.flooding_delta_method_fnss <-
   function(flooding_fnss, study_data) {
     w <- flooding_fnss

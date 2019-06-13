@@ -37,7 +37,9 @@ ui <- dashboardPage(
   dashboardSidebar(sidebarMenu(
     id = 'tabs',
     menuItem('Ponding Index', tabName = 'ponding_index'),
-    menuItem('Ponding Delta', tabName = 'ponding_delta')
+    menuItem('Ponding Delta', tabName = 'ponding_delta'),
+    menuItem('Flooding Index', tabName = 'flooding_index'),
+    menuItem('Flooding Delta', tabName = 'flooding_delta')
   )),
   dashboardBody(
     tags$head(tags$script(src = 'leafletMonkeyPatch.js')),
@@ -84,7 +86,118 @@ ui <- dashboardPage(
                     width = 3
                   )
                 )),
-        tabItem(tabName = 'ponding_delta', h2('Hello')))
+        tabItem(tabName = 'ponding_delta', h2("Ponding Delta"),
+                fluidRow(
+                   box(
+                     sliderInput(
+                       "capacityd",
+                       "Non potable infrastructure capacity",
+                       min = 0,
+                       max = 20,
+                       step = 1,
+                       value = 5
+                     ),
+                     sliderInput(
+                       "precipitationd",
+                       "Precipiation Volume",
+                       min = 0,
+                       max = 20,
+                       step = 1,
+                       value = 5
+                     ),
+                     sliderInput(
+                       "runoffd",
+                       "Runoff Volume",
+                       min = 0,
+                       max = 20,
+                       step = 1,
+                       value = 5
+                     ),
+                     width = 3
+                   )
+                )
+             ),
+      tabItem(tabName = 'flooding_index', h2("Flooding Index"),
+              fluidRow(
+                box(
+                  sliderInput(
+                    "floodingf",
+                    "Flooding capacity",
+                    min = 0,
+                    max = 20,
+                    step = 1,
+                    value = 5
+                  ),
+                  sliderInput(
+                    "capacityf",
+                    "Non potable infrastructure capacity",
+                    min = 0,
+                    max = 20,
+                    step = 1,
+                    value = 5
+                  ),
+                  sliderInput(
+                    "precipitationf",
+                    "Precipiation Volume",
+                    min = 0,
+                    max = 20,
+                    step = 1,
+                    value = 5
+                  ),
+                  sliderInput(
+                    "runofff",
+                    "Runoff Volume",
+                    min = 0,
+                    max = 20,
+                    step = 1,
+                    value = 5
+                  ),
+                  width = 3
+                )
+              )
+           ),
+      tabItem(tabName = 'flooding_delta',
+              fluidRow(
+                box(
+                  h2("Flooding Delta"),
+                  sliderInput(
+                    "floodingfd",
+                    "Flooding capacity",
+                    min = 0,
+                    max = 20,
+                    step = 1,
+                    value = 5
+                  ),
+                  sliderInput(
+                    "capacityfd",
+                    "Non potable infrastructure capacity",
+                    min = 0,
+                    max = 20,
+                    step = 1,
+                    value = 5
+                  ),
+                  sliderInput(
+                    "precipitationfd",
+                    "Precipiation Volume",
+                    min = 0,
+                    max = 20,
+                    step = 1,
+                    value = 5
+                  ),
+                  sliderInput(
+                    "runofffd",
+                    "Runoff Volume",
+                    min = 0,
+                    max = 20,
+                    step = 1,
+                    value = 5
+                  ),
+                  width = 3
+                )
+              )
+      )
+
+      )
     )
   )
 )
@@ -103,48 +216,194 @@ server <- function(input, output) {
         data = megadapt$study_area,
         layerId = ~ censusblock_id,
         fillColor = '#F00',
+        fillOpacity = 0.9,
         weight = 0.2,
         color = '#444444',
         group = 'censusblocks'
       )
   })
-  
+
   output$tabName <- reactive(paste0('Name: ', input$tabs))
 
+
   observe({
-    weights <-
-      c(
-        capacity = input$capacity,
-        ponding = input$ponding,
-        precipitation = input$precipitation,
-        runoff = input$runoff
-      )
-    ponding_index_fnss <- ponding_index_fnss_create(weights)
-    ponding_index <-
-      megadaptr:::call_fnss(ponding_index_fnss, study_data = megadapt$study_area@data)
-    data <-
-      megadaptr:::apply_data_changes(megadapt$study_area@data,
-                                     ponding_index,
-                                     megadaptr:::PK_JOIN_EXPR)
 
-    pal <- colorNumeric(palette = "YlOrRd",
-                        domain = c(0, 1))
+    if (identical(input$tabs,'ponding_index')){
+      weights <-
+        c(
+          capacity = input$capacity,
+          ponding = input$ponding,
+          precipitation = input$precipitation,
+          runoff = input$runoff
+        )
+      ponding_index_fnss <- ponding_index_fnss_create(weights)
+      ponding_index <-
+        megadaptr:::call_fnss(ponding_index_fnss, study_data = megadapt$study_area@data)
+      data <-
+        megadaptr:::apply_data_changes(megadapt$study_area@data,
+                                       ponding_index,
+                                       megadaptr:::PK_JOIN_EXPR)
 
-    layerId <- data$censusblock_id
-    style <- data.frame(fillColor = pal(data$ponding_index))
+      pal <- colorNumeric(palette = "YlOrRd",
+                          domain = c(0, 1))
 
-    leafletProxy('map') %>%
-      setStyle(group = 'censusblocks',
-               layerId = layerId,
-               style = style) %>%
-      clearControls() %>%
-      addLegend(
-        position = c('bottomleft'),
-        pal = pal,
-        values = data$ponding_index,
-        title = 'Ponding Index'
-      )
+      layerId <- data$censusblock_id
+      style <- data.frame(fillColor = pal(data$ponding_index))
+
+      leafletProxy('map') %>%
+        setStyle(group = 'censusblocks',
+                 layerId = layerId,
+                 style = style) %>%
+        clearControls() %>%
+        addLegend(
+          position = c('bottomleft'),
+          pal = pal,
+          values = data$ponding_index,
+          title = 'Ponding Index'
+        )
+    }
+    if (identical(input$tabs,'ponding_delta')){
+      weights <-
+        c(
+          capacity = input$capacityd,
+          precipitation = input$precipitationd,
+          runoff = input$runoffd
+        )
+      ponding_delta_fnss <- ponding_delta_method_fnss_create(weights)
+      ponding_delta <-
+        megadaptr:::call_fnss(ponding_delta_fnss, study_data = megadapt$study_area@data)
+      data <-
+        megadaptr:::apply_data_changes(megadapt$study_area@data,
+                                       ponding_delta,
+                                       megadaptr:::PK_JOIN_EXPR)
+
+      pal <- colorNumeric(palette = "YlOrRd",
+                          domain = c(0, 1))
+
+      layerId <- data$censusblock_id
+      style <- data.frame(fillColor = pal(data$ponding_index))
+
+      leafletProxy('map') %>%
+        setStyle(group = 'censusblocks',
+                 layerId = layerId,
+                 style = style) %>%
+        clearControls() %>%
+        addLegend(
+          position = c('bottomleft'),
+          pal = pal,
+          values = data$ponding_index,
+          title = 'Ponding Delta'
+        )
+    }
+    if (identical(input$tabs,'flooding_index')){
+      weights <-
+        c(
+          flooding = input$floodingf,
+          capacity = input$capacityf,
+          precipitation = input$precipitationf,
+          runoff = input$runofff
+        )
+      flooding_index_fnss <- flooding_index_fnss_create(weights)
+      flooding_index <-
+        megadaptr:::call_fnss(flooding_index_fnss, study_data = megadapt$study_area@data)
+      data <-
+        megadaptr:::apply_data_changes(megadapt$study_area@data,
+                                       flooding_index,
+                                       megadaptr:::PK_JOIN_EXPR)
+
+      pal <- colorNumeric(palette = "YlOrRd",
+                          domain = c(0, 1))
+
+      layerId <- data$censusblock_id
+      style <- data.frame(fillColor = pal(data$flooding_index))
+
+      leafletProxy('map') %>%
+        setStyle(group = 'censusblocks',
+                 layerId = layerId,
+                 style = style) %>%
+        clearControls() %>%
+        addLegend(
+          position = c('bottomleft'),
+          pal = pal,
+          values = data$flooding_index,
+          title = 'Ponding Delta'
+        )
+    }
+
+    if (identical(input$tabs,'flooding_delta')){
+      weights <-
+        c(
+          flooding = input$floodingfd,
+          capacity = input$capacityfd,
+          precipitation = input$precipitationfd,
+          runoff = input$runofffd
+        )
+
+      flooding_delta_fnss <- flooding_delta_method_fnss_create(weights)
+      flooding_delta <-
+        megadaptr:::call_fnss(flooding_delta_fnss, study_data = megadapt$study_area@data)
+      data <-
+        megadaptr:::apply_data_changes(megadapt$study_area@data,
+                                       flooding_delta,
+                                       megadaptr:::PK_JOIN_EXPR)
+
+      pal <- colorNumeric(palette = "YlOrRd",
+                          domain = c(0, 1))
+
+      layerId <- data$censusblock_id
+      style <- data.frame(fillColor = pal(data$flooding_index))
+
+      leafletProxy('map') %>%
+        setStyle(group = 'censusblocks',
+                 layerId = layerId,
+                 style = style) %>%
+        clearControls() %>%
+        addLegend(
+          position = c('bottomleft'),
+          pal = pal,
+          values = data$flooding_index,
+          title = 'Ponding Delta'
+        )
+    }
+
   })
+
+
+  # observe({
+  #   weights <-
+  #     c(
+  #       capacity = input$capacity,
+  #       ponding = input$ponding,
+  #       precipitation = input$precipitation,
+  #       runoff = input$runoff
+  #     )
+  #   ponding_index_fnss <- ponding_index_fnss_create(weights)
+  #   ponding_index <-
+  #     megadaptr:::call_fnss(ponding_index_fnss, study_data = megadapt$study_area@data)
+  #   data <-
+  #     megadaptr:::apply_data_changes(megadapt$study_area@data,
+  #                                    ponding_index,
+  #                                    megadaptr:::PK_JOIN_EXPR)
+  #
+  #   pal <- colorNumeric(palette = "YlOrRd",
+  #                       domain = c(0, 1))
+  #
+  #   layerId <- data$censusblock_id
+  #   style <- data.frame(fillColor = pal(data$ponding_index))
+  #
+  #   leafletProxy('map') %>%
+  #     setStyle(group = 'censusblocks',
+  #              layerId = layerId,
+  #              style = style) %>%
+  #     clearControls() %>%
+  #     addLegend(
+  #       position = c('bottomleft'),
+  #       pal = pal,
+  #       values = data$ponding_index,
+  #       title = 'Ponding Index'
+  #     )
+  # })
+
 }
 
 # Run the application
