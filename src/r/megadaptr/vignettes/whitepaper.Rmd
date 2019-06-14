@@ -1,0 +1,149 @@
+---
+title: "PresentationOutline"
+author: "Andres Baeza, Calvin Pritchard"
+date: "May 22, 2019"
+output: html_document
+---
+
+# Introduction
+
+The infrastructure investment decisions of municipal goverments and residents impact the environment and resident well-being in the municpality and surrounding area. Potable water infrastructure coverage and quality determines. Sewer and stormwater infrastructure quality and coverage influences ponding and flooding rates as well as water borne disease rates.
+
+Megadapt is a spatial microsimulation model made for determining the impact of public and private potable water and sewer infrastructure investment on residents and the environment. The megadapt model could be used to determine the determine the impacts of different policy decisions such as budget levels, initial sewer infrastructure capacity, landuse and municipal investment decisions as well as changing environmental conditions. The example shown is this whitepaper is about how the budget for potable water and sewer infrastructure influences household vulnerability in Mexico City. 
+
+# Setting up a model
+
+In order to run the Megadapt model in your municipality some data is required.
+
+The Megadapt model is composed of different subcomponents. Each subcomponent has its own data requirements to function. The climate component requires a panel of precipitation and runoff data by census block. The flooding and ponding models depends on the climate data as well as infrastructure capacity per census block. The water scarcity model depends infrastructure information (such as water pressure), demographic information, infrastructure failure reports and resident preference data. The resident investment model requires resident preference data (value functions and a mental model) as well as infrastructure data (private and public) and demographic data. The municipal model requires municipal sewer and potable water department preferences, infrastructure data, climate data and demographic data.
+
+The relationships between components is shown below
+
+```{r echo=FALSE, message=FALSE}
+library('DiagrammeR')
+library('ggplot2')
+grViz("
+digraph megadapt {
+
+  # a 'graph' statement
+  graph [overlap = true, fontsize = 10]
+
+  # several 'node' statements
+  node [shape = box,
+        fontname = Helvetica]
+  climate; 
+  ponding; 
+  flooding; 
+  water_scarcity [label='water scarcity']; 
+  resident [label='resid invest']; 
+  municipality [label='municip invest']
+
+  node [shape = circle,
+        fixedsize = true,
+        width = 0.9] // sets as circles
+  apply_climate_changes [label='apply']; 
+  apply_data_changes [label='apply']; 
+  combine_data_changes [label='join']
+  
+  node [shape = egg]
+  study_data [label='study data']
+
+  # several 'edge' statements
+  study_data->climate
+  climate->apply_climate_changes
+  study_data->apply_climate_changes
+  apply_climate_changes->flooding
+  apply_climate_changes->ponding
+  
+  study_data->municipality
+  study_data->resident
+  study_data->water_scarcity
+  
+  climate->combine_data_changes
+  flooding->combine_data_changes
+  ponding->combine_data_changes
+  municipality->combine_data_changes
+  resident->combine_data_changes
+  water_scarcity->combine_data_changes
+  
+  combine_data_changes->apply_data_changes
+  study_data->apply_data_changes
+  apply_data_changes->study_data
+}
+")
+```
+
+There are few interesting timing take aways from the graph. The flooding and ponding models use climate data generated for the current year while the residential investment, municipal investment and residential water scarcity models use climate data from the previous year. All other input data used by the model components is either static or generated from the previous year.
+
+## Model Components
+
+The Megadapt model is composed of weather, ponding, flooding, water scarcity, household investment, municipal investment and infrastructure depreciation components. Detailed information about individual model components is avaiable in the *megadaptr* docs.
+
+### Weather
+
+The weather component generates runoff and precipitation values by census block under
+a given climate and landuse scenario.
+
+### Ponding
+
+The ponding model generates the number ponding events in a census block per year
+
+### Flooding
+
+The flooding model generates the number flooding events in a census block per year
+
+# Running the model
+
+The megadapt model constructor is flexible. It allows the replacement of the mental model, climate scenario, study area, flooding model, ponding model and municipal investment model. The simplest way to run the model is
+
+```{r, eval=FALSE}
+megadapt <- megadapt_create(params_create())
+results <- simulate(megadapt)
+```
+
+but if you want the change the municipalities budget, the ponding and flooding model and mental models you could also run the model with
+
+```{r, eval=FALSE}
+megadapt2 <- megadapt_create(
+  params_create(),
+  sacmex_fnss_creator = sacmex_fnss_create,
+  mental_models = mental_model_constant_strategies(),
+  flooding_fnss = flooding_delta_method_fnss_create(),
+  ponding_fnss = ponding_delta_method_fnss_create()
+)
+results2 <- simulate(megadapt)
+```
+
+# Interpreting Experiment Results
+
+Megadapt model results can be plotted to show how outcomes of interest change in response to a particular input parameter. Since the experiment we just ran only changed budget values but left everything else constant it makes sense to plot different outcomes from varying the budget. Each budget value is sampled multiple times in order to the impact of weather variation on outcomes. Household vulnerability to potable and sewer water systems, household investments, municipal investments and infrastructure capacity are shown in plots faceted by budget level below.
+
+```{r, echo=FALSE, message=FALSE}
+fs::file_delete('ex2.db')
+conn <- DBI::dbConnect(RSQLite::SQLite(), 'ex2.db')
+params_df <- megadaptr:::params_cartesian_create(megadaptr::params_create(budget=1:5*200))
+megadaptr:::params_table_create(conn, 'ex', params_df)
+megadaptr:::results_table_create(conn, 'ex', params_df)
+
+params <- dplyr::tbl(conn, 'ex_params')
+results <- dplyr::tbl(conn, 'ex_results')
+
+experiment_map_plot <- function(experiment_df, study_area) {
+  fortified <- fortify(study_area, region ="censusblock_id")
+  fortified$censusblock_id <- fortified$id
+
+  ggplot() +
+    geom_map(data=experiment_df, map=fortified,
+             aes(fill=statistic_value, map_id=censusblock_id)) +
+    expand_limits(x=fortified$long, y=fortified$lat) +
+    scale_fill_viridis_c() +
+    facet_grid(cols = vars(budget), rows = vars(statistic_name)) +
+    labs(fill = 'Intervention Count')
+}
+```
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+experiment_df <- megadaptr:::experiment_map_df(results, params, facets = rlang::sym('budget'))
+study_area <- megadaptr::study_area_read('../inst/rawdata/censusblocks/megadapt_wgs84_v5.gpkg')
+experiment_map_plot(experiment_df, study_area)
+```
