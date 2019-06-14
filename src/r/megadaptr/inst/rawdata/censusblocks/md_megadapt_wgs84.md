@@ -3,35 +3,45 @@ output:
   html_document: default
   pdf_document: default
 ---
-# Metadata for megadapt_wgs84 
-This Shape file is use to operationalize the MEGADAPT model for Mexico City
+# Metadata for layer megadapt_wgs84 
+
+This Shape file is used to operationalize the MEGADAPT model for Mexico City using the megadaptr package.
 
 ## Path 
+
 https://github.com/comses/megadapt/tree/master/src/r/megadaptr/inst/rawdata/censusblocks
 
 ## Contact
 
-Laboratorio Nacional de Ciencias de la Sostenibilidad
-School of Sustainability, Arizona State University
+1. Laboratorio Nacional de Ciencias de la Sostenibilidad
+
+2. School of Sustainability, Arizona State University
 
 ## Coordinate system 
+
 EPSG:WGS 84 / UTM zone 14N (EPSG:32614)
 
 
 ## Extensión geográfica 
-Norte = 19.5927572802
-Sur = 19.1240921744
-Este = -98.9466436802
-Oeste = -99.3430557324
+
+North = 19.5927572802
+
+South = 19.1240921744
+
+East = -98.9466436802
+
+West = -99.3430557324
 
 ## Number of polygons (Census blocks)
+
 2428
 
 
 ### Number of fields
+
 36
 
-### List of fields 
+### List of fields, description, and details
 
 <div class="foo">
 
@@ -53,7 +63,7 @@ resident_potable_water_exportation_perception|desv_agua | Real | Perception of r
 resident_reports_ponding_count_mean|prom_en | Real |Frequency of ponding events reported by residents in a year  | 0.0 - 6.30308292051 | Events per year |
 resident_reports_potable_water_failure_count|fail_claim | Real | Number of reports of failures in the distribution potable water | 0.0 - 348.395163286 | number of reports |
 household_potable_system_lacking_percent|falla_dist | Real | Number of reports collected by sacmex about lickages in the system and failures in the distribution potable water  | 0.0 - 387.38628 | number of reports| 
-falla_dren | Real | Number of reports collected by sacmex about failure in the sewer system | 0.0 - 9.24135217868 | index |
+resident_reports_sewer_failure_count|falla_dren | Real | Number of reports collected by sacmex about failure in the sewer system | 0.0 - 9.24135217868 | index |
 household_potable_system_lacking_percent|falta_dist | Real | Proportion of households without connection to potable water distribution infrastructure | 0.0 - 1.0 | proportion of houses |
 household_sewer_system_lacking_percent|falta_dren | Real |Proportion of households without connection to the sewer system  | 0.0 - 1.0 |  proportion of houses |
 resident_diarrhea_per_capita|enf_14 | Real | Number of cases of Diarrheal diseases per 10000 individual in the year 2014 | 0.0 - 51.0 |  cases / 1000 people |
