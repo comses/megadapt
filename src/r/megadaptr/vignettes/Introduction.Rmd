@@ -11,12 +11,13 @@ vignette: >
 
 Megacities are confronted with multiple stressors that influence the vulnerability of urban populations around the world. Some of these stressors are external and associated to regional forces, such as climate changes, and migration. Others are associated with the decision of influential actors, including residents, managers and policians. Many of these decisions are embedded in institutions that must invest resources to adaptation according to their mandate, resources, preferences and socio-political factors.
 
-In Megadapt we recognize that human societies need to have a systemic understanding of the world that surround us to understand how to intervene the system, to change it, and to adapt to new conditions. This requires not just focusing on the biophysical determinant of risk, but also on the decisions and actions of influential institutions. The socio-policy-technical connections. 
+MEGADAPT (megacity adaptation) is a project that repost to the need of authorities and decition-makers to have innovative frameworks and tools for decision-making to reduce the vulnerability of megacities to climate change. We focus on the socio-hydrological risk factors of megacities, which include the interactions between soft-infrastructure, whcih are the deicison and social rules (the invisible infrastructure), the hard infrastructure (visible structures), and the biophisical processes that have to do with the external factors influence risk. 
+In Megadapt, we recognize that human societies need to have a systemic understanding of the world that surround us to understand how to intervene the system, to change it, and to adapt to new conditions. This requires not just focusing on the biophysical determinant of risk, but also on the decisions and actions of influential institutions. The socio-policy-technical connections. 
 
 
 But, how do institutions make decisions? What information is considered as important when decisions about investments in public infrastructure are made? How do those decisions influence the risk to hazards in different areas of a megacity today or in the future? All these questions can emerge in any participatory process where the governability of the territory is discussed. These questions are related to the socio-political process that influence decisions in the territory that will ultimately determinate the vulnerability of cities to environmental and climate-related hazards. Understand the causal connections between these decisions and the socio-technical processes is a critical step to archive the sustainable development goals (SDGs) proposed by the UN to confront climate change (ref). 
 
-The Megadapt model is a computational tool that allows the integration of system models and decision-making models to understand the vulnerabilities of megacities. It is applied to Mexico City but the approach was developed thinking about its applicability to other cities as well. The Megadapt model aims to be a participatory model where decision makers, residents and stakeholders can evaluate and self-reflect on the consequences of their decisions and actions. By integrating system models with decision-making models in a GIS platform, Megadapt aims to help in making explicit how decisions impact the spatial patterns of urban vulnerability. It also aim to help to spart discusss to validate and tranparent current practices and investments. Decision-makers can also evaluate the impact of their decisions on different regions, and can evaluate the tradeoffs that emerge from considering different priorities.
+In MEGADAPT we construct computational models that allows the integration of system models and decision-making models to understand the vulnerabilities of megacities. It is applied to Mexico City but the approach was developed thinking about its applicability to other cities as well. The Megadapt model aims to be a participatory model where decision makers, residents and stakeholders can evaluate and self-reflect on the consequences of their decisions and actions. By integrating system models with decision-making models in a GIS platform, Megadapt aims to help in making explicit how decisions impact the spatial patterns of urban vulnerability. It also aim to help to spart discusss to validate and tranparent current practices and investments. Decision-makers can also evaluate the impact of their decisions on different regions, and can evaluate the tradeoffs that emerge from considering different priorities.
 
 
 **How is decision-making modeled in Megadapt?**
@@ -29,7 +30,7 @@ Now consider a citizen, how do the decisions from institutions influence my vuln
 
 In MEGADAPT we also represent how resident adapt and change the fabric of vulnerability in a city by considering the criteria and the actions that alter local determiannt of risk.
 
-The MEGADAPT project therefore aims to understand the vulnerability of cities as the product of the actions of influential actors on the biophysical aspects of risk. We aim to use the model in a collective and participatory way to spark discussion about the thresholds of vulnerability and the sensitivity of city to different decision prioritizations. The project aims to consider the explicit feedback between these decisions, the information that influence these decisions, the biophysical manifestation of those decisions, and the consequences for risk.
+The MEGADAPT project therefore aims to understand the vulnerability of cities as an emergent outcome that is the result of the decisions of influential actors on the soft and hard infrastructure, the actions of their residents to adapt, and the biophisical processes. Becasue MEGADAPT aim to respond to the need of decision-makers and city practicioners, The modeling procedures are obtained after multiple interactions with managers, politicians, and residents, and the results are analized in a collective and participatory way with the actors, to spark discussion about the vulnerability and the sensitivity of the city to different decision and prioritizations. The project aims to consider the explicit feedback between these decisions, the information that influence these decisions, the biophysical manifestation of those decisions, and the consequences for risk.
 
 The Megadapt model allows users to evaluate and self-reflect on the consequences of their decisions. To analize how their decisions can influnce the spatial patterns of vulnerability, and to evaluate how their decisions can generate innequality. It also helps to validate and tranparent current practices.  Decision makers can also evaluate the sensitivity of their decisions on different regions, and can evaluate the tradeoffs that emerge from considering different priorities.
 
@@ -42,7 +43,7 @@ The Megadapt model allows users to evaluate and self-reflect on the consequences
 
 MCDA is a well-established branch of decision theory that rigorously identifies context-specific decision criteria through stakeholder engagement. Typically, problems with multiple criteria do not have a single best solution, which is why in MCDA, decision maker's preferences become part of the solution process (Lootsma, 1999 cited by Bausch, Bojórquez and Eakin 2014). MCDA provides a rich collection of techniques and procedures for structuring decisions problems, and designing, evaluating and prioritizing alternative decisions.
 
-In MEGADAPT, we use the Analytical Network Process (ANP; Saaty 2001), an established method of MCDA, to construct with the participants a decision model that most concern them, criteria upon which they make decisions, and decisions they are most likely to pursue to address their vulnerability (Eakin and Bojórquez-Tapia 2008; Bojórquez-Tapia et al. 2011; Mazari-Hiriart et al. 2006). The method allows us to translate qualitative preferences (e.g., “flood threats are more important to me than having access to potable water”) into quantitative weight of criteria and decision alternatives (“Invest in this neighborhood”). 
+The MEGADAPT approach uses the Analytical Network Process (ANP; Saaty 2001), an established method of MCDA, to construct with the participants a decision model that most concern them, criteria upon which they make decisions, and decisions they are most likely to pursue to address their vulnerability (Eakin and Bojórquez-Tapia 2008; Bojórquez-Tapia et al. 2011; Mazari-Hiriart et al. 2006). The method allows us to translate qualitative preferences (e.g., “flood threats are more important to me than having access to potable water”) into quantitative weight of criteria and decision alternatives (“Invest in this neighborhood”). 
 Based on workshops with stakeholders and residents we formalize decision strategies and preference profiles associated with different actors, which then are the input for the megadapt model.
 
 ## 2.2 Agent-Based model
@@ -76,7 +77,7 @@ b. A team of social and system modelers translated these interviews and workshop
     
 c. The team and the stakeholders define the "study area", and the "minimal spatial unit of decision" (msud). The minimal spatial unit of decision is the smallest partition of the territory for which resources can be allocated. The set of minimal spatial units define the study area.  An example of a minimal spatial unit, is for instance, the census block. Each msud is indexed with the letter $j$, and the study area with $SA$, such that $SA={1,...,j,...J}$. 
     
-d. Each criteria in the MCDA model is connected to a geospatial layer representing the biophysical manifestation of the criteria. For example, if an actor reports that the age of infrastructure is a criteria for the decision, then we need to find a layer that can represent the age of the infrastructure in each spatial unit to represent the heterogeneity in age across the city. Each layer associated to the criteria is an attribute of the landscape. 
+d. Each criterion in the MCDA model is connected to a geospatial layer representing the biophysical manifestation of the criterion. For example, if an actor reports that the age of infrastructure is criteria for their decisions, then we need to find a layer that can represent the age of the infrastructure in each spatial unit to represent the heterogeneity in age across the city. Each layer associated to the criteria is an attribute of the spatial units that define the study area.
     
 e. The natural scale of an attribute $A$, which is often represented in phisical units, is then transformed into a standardized scale, using a set of value functions $VF$, such that $x_{j}=VF(a_{j})$, where $a_{j}$ is the value of the attribute $A$ in spatial unit $j$, and $x_{j}$ is the tranformed value of $a$ in the interval $[0-1]$.  This transformation has two purposes: 
     
@@ -98,45 +99,93 @@ j. The study area, the MCDA model outputs, the geo-layers, the value functions, 
 
 k. The megadapt model is simulated under different parameter values, and results are stored and then displayed in a interactive map-viewer application. The application allows the observer to visualize the spatial pattern of vulnerability, and how their priorities are manifested in the urban landscape. 
 
+l. Different scenarios of climate change, land-use, and priorities of the agents are designed for comparison. Different indicators of vulnerability are constructed to compare the outcomes emerging from these different scenarios.
+
 
 
 
  --- 
 
-
- 
 # 4. A Megadapt model to explore the socio-hydrological vulnerability of Mexico City
 
-The project MEGADAPT had produced a first application of the Megadapt model for the case of Mexico City and its vulnerability to water-related hazards, especifically flooding, and water scarcity. A team of researchers from the National Autonomous University of Mexico City (UNAM) have developed a suit of risk-models to characterized the risk of the city to potable water scarcity and flooding. A team of researchers from Arizona State University (ASU) and UNAM have conducted interviews and workshops with stakeholders, residents and managers of Mexico City. IN colaboration with the stakeholder of the water managment institutions (SACMEX), the team have developed MCDA decision models to represent the actions and priorities. The UNAM team have also compiled and produced a set of geo-layers to represent the attributes for CDMX connected to the criteria of the MCDA model. The ASU-UNAM team had also conducted workshops with decition-makers and residents to parametrize the judgments associated to thecriteria set in their MCDA model, the value functions $VF$. Finnaly, a team from UNAM and ASU have developed computational procedures to represent the linkages between the decision-making processes (MCDA outputs) with the risk-based models.
+The MEGADAPT approach has it first application of a Megadapt model for the case of Mexico City and its vulnerability to water-related hazards, especifically flooding, and water scarcity. A team of researchers from Arizona State University (ASU) and UNAM have conducted interviews and workshops with stakeholders, residents and managers of Mexico City. A team of researchers from the National Autonomous University of Mexico City (UNAM) have developed a suit of spatially-explicit risk indices to characterize the risk of the city to potable water scarcity and flooding. . IN colaboration with the stakeholder of the water managment institutions (SACMEX), the team have developed MCDA decision models to represent the actions and priorities. The UNAM team have also compiled and produced a set of geo-layers to represent the attributes for CDMX connected to the criteria of the MCDA model. The ASU-UNAM team had also conducted workshops with decition-makers and residents to parametrize the judgments associated to thecriteria set in their MCDA model, the value functions $VF$. Finnaly, a team from UNAM and ASU have developed computational procedures to represent the linkages between the decision-making processes (MCDA outputs) with the risk-based models.
+
+The current implementation of the model incorporates a set of procedures to simulate the decisions of the institution responsible for the management of water and water-related infrastructure in CDMX, The Servicio de Agua de la Ciudad de Mexico (SACMEX here on), and the actions of residents within neighborhoods of CDMX.  The models incorporate procedures to simulate events of flooding, water distribution problems, and the associated burden of waterborne diseases spatially in CDMX based on statistical association found between hazard production and infrastructure condition. The megadapt approach is to couple the biophysical models with the decisions of the residents and the managers that with their actions change the biophysical conditions and the attributes of the landscape, changing thus the risk of those neighborhoods to hazards.
 
 The megadapt model for Mexico City is accompanied by a set of computational procedures to conduct simulations using high-performance computing, to conduct sensivity analisis on uncertain parameters, and to visualize and compare model results using interactive shiny map-viewer application.
 
-
 ## 4.1. Data Requirements
 
-### 4.1.1 Study area requirements
-
-TBC
 
 ### 4.1.2 MCDA model output
 
 TBC
 
-### 4.1.3 Geo-layers
+### 4.1.3 Study area requirements and Geo-layers
 
-TBC
+
 
 ### 4.1.4 Value functions and the judgment of importance
 
-TBC
+A value function is a tranformation of a attribute of the census block that is associated to a criterion in the MCDA model, from its natural scale to a scale between [0, 1]. This standardized score represents a judgment about the importance of an observable value of a certain criterion for a socio-institutional agent maing decisions. It also represents the relationship between the magnitude of the geographic attribute in the landscape related to a criterion and an action that influence the infrastructure systems. It is important to mention that the shapes of the functions must be elicited in consultation with the actors for which the actions and decisions are simulated.
+
+
+## 4.2 Institutional Decisions
+
+Institutional decisions are the investments that institutional agents made to impruve hard infrastructure. These investments are associated to the actions and the changes in the landscape that target the management of waste and potable water vulnerability. The procedures that simulate institutional decision-making processes are built using the multi-criteria decision principles. In the MEGADAPT approach, this involves connecting multi-criteria modeling priority outcomes to changes in the state of the attributes of the census blocks in the urban landscape. 
+
+
+Action       | Attribute to be changed | Description                          | Change               | 
+----------- | ----------------------- | ----------------------------------------- | --------------  |  
+Mantainance of infrastructure systems | Age of system, sewer system capacity | The mantainance of the infrastructure implies cleaning and other annualy planned management that tent to focus on expanding the lifespan of infrastructure systems| This action changes the state of the variable age, and increases capacity of sewer system up to it maximum initial capasity.
+New investments on infrastructure systems | sewer system capacity |*. Increase capacity of sewer system beyond initial maxima. *. *Increase connection to* |
+
+
+From this connection, the agents can calculate a metric of vulnerability according to the agent and can evaluate the urban landscape to define spatial units with priorities for investments. The current implementation reads, as input, a list of criteria and actions and the parameter values associated with the priorities of the criteria and actions. This information was obtained after a consultation with SACMEX and transformed into an analytic network using the software SuperDecision (Bojorquez-Tapia et al., 2019).
+
+
+
+## 4.3 Resident decisions
+
+The residents are groups of people living in a neighborhood and taking actions within census blocks. Similar to the institutional agents, residents evaluate a set of possible actions based on a set of criteria they consider important to confronting water-related hazards, with the goal to adapt and cope with water scarcity and flooding. Based on a set of workshops with different residents (Eakin et al., 2016), a generic multi-criteria model was defined (Shelton et al., 2018). The model includes three actions: House modifications, protests, buy water and collective actions. The current implementation of the ABM includes the decision to modify their house and to protest. House modifications imply adaptation. In the model thus house modifications influence the resident's sensitivity to hazards events. For instance, modifying the house to store water is an action that can reduce the need of people to rely on public sources, and thus reduce the sensitivity of residents to water supply disruptions (Eakin et al., 2016). The action “protest” on the other hand implies a respond from the residents to the authority. Currently, protests from residents can influence criteria in the decision of SACMEX. 
 
 ## 4.2 Risk-based models
 
 
 ### 4.2.1 Water scarcity Index
 
-TBC
+The water scarcity index is constructed assuming that the risk of a census block to jave potable water scarcity is a multi-factor outcome that depends on:
 
-### 4.2.2 Ponding and flooding risk index
+1. The adaptation of the population to water scarcity
+
+2. The reports of the population associated to disruptions in the service.
+
+3. The socio-economic statust of the census blocks,
+
+4. The proportion of houses without connetion to the potable water supply system.
+
+5. The difficulties and challenge the authority has to provide potable to the census blocks.  
+
+### 4.2.2 Ponding and flooding index
+
+To represent the risk associated to ponding and flooding a team of researchers developed, in consultation with Mexico CIty secretary of water management (SACMEX), indicators that take into consideration:
+
+1. The historic frequency of ponding and floding events.
+2. The volume of precipitation.
+3. The volume of runoff from mountain watershed, and
+4. The capacity of the sewer and storm water system.
+
+The index returns a value in each census block that should be interpreted as the frequency of events. Agents influence the capasity of the sewer and storm water system, and cliamte change can modify the vilume of precipitation and runoff. We therefore expect that this index will change over time in a simulation of the megadapt model for Mexico City.
+more information can be found in file "Delta_method_for_ponding_flooding.R".
+
+
+## Urbanization changes
+
+## 
+
+
+
+
+
 
 TBC
