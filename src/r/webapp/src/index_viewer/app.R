@@ -278,7 +278,7 @@ server <- function(input, output) {
                                        megadaptr:::PK_JOIN_EXPR)
 
       pal <- colorNumeric(palette = "YlOrRd",
-                          domain = c(0, 1))
+                          domain = c(0, 25))
 
       layerId <- data$censusblock_id
       style <- data.frame(fillColor = pal(data$ponding_index))
@@ -312,7 +312,7 @@ server <- function(input, output) {
                                        megadaptr:::PK_JOIN_EXPR)
 
       pal <- colorNumeric(palette = "YlOrRd",
-                          domain = c(0, 1))
+                          domain = c(0.5, 1))
 
       layerId <- data$censusblock_id
       style <- data.frame(fillColor = pal(data$flooding_index))
@@ -326,7 +326,7 @@ server <- function(input, output) {
           position = c('bottomleft'),
           pal = pal,
           values = data$flooding_index,
-          title = 'Ponding Delta'
+          title = 'Flooding Index'
         )
     }
 
@@ -348,7 +348,7 @@ server <- function(input, output) {
                                        megadaptr:::PK_JOIN_EXPR)
 
       pal <- colorNumeric(palette = "YlOrRd",
-                          domain = c(0, 1))
+                          domain = c(0, 8))
 
       layerId <- data$censusblock_id
       style <- data.frame(fillColor = pal(data$flooding_index))
@@ -362,7 +362,7 @@ server <- function(input, output) {
           position = c('bottomleft'),
           pal = pal,
           values = data$flooding_index,
-          title = 'Ponding Delta'
+          title = 'Flooding Delta'
         )
     }
 
