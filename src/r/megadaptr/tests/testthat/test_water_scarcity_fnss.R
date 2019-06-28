@@ -6,7 +6,7 @@ study_data <- tibble::tibble(
   criticalzone = 0.04,
   resident_count = 3000,
   household_potable_system_lacking_percent = 30,
-  household_water_storage_tank_available_percent = 0.0,
+  household_water_storage_tank_percent = 0.0,
   resident_income_per_capita = 4000,
   resident_reports_potable_water_failure_count_per_area = 5
 )

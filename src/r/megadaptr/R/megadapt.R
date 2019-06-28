@@ -1,6 +1,10 @@
 PK_JOIN_EXPR = c("censusblock_id" = "censusblock_id")
 
+#' Import a study area from the command line using OGR
+#'
 #' @export
+#' @param path the path to the study area file
+#' @return a study area
 study_area_read <- function(path) {
   sdf <- rgdal::readOGR(dsn = path,
                  layer = 'megadapt_wgs84_v5',
@@ -83,11 +87,10 @@ value_function_config_default <- function() {
 #' infrastructure)
 #' @param half_sensitivity_ab sensitivity to fresh water access
 #' @param half_sensitivity_d sensitivity to ponding and flooding
-#' @param start_year the date of the start of the simulation
 #' @param climate_scenario the climate scenario id used to lookup the climate
 #' scenario
 #' @return a parameter list used to configure a megadapt model
-create_params <-
+params_create <-
   function(new_infrastructure_effectiveness_rate = 0.07,
            maintenance_effectiveness_rate = 0.07,
            n_steps = 5,
@@ -95,7 +98,6 @@ create_params <-
            budget = 1200,
            half_sensitivity_ab = 10,
            half_sensitivity_d = 10,
-           start_year = lubridate::ymd('2019-01-01'),
            climate_scenario=1) {
     list(
       new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
@@ -105,7 +107,6 @@ create_params <-
       budget = budget,
       half_sensitivity_ab = half_sensitivity_ab,
       half_sensitivity_d = half_sensitivity_d,
-      start_year = start_year,
       climate_scenario = climate_scenario
     )
   }
@@ -185,13 +186,6 @@ transition_dtss.megadapt_dtss <- function(megadapt_dtss) {
   megadapt_dtss
 }
 
-megadapt_double_coupled_with_action_weights_create <- function() {
-}
-
-megadapt_double_coupled_with_split_budget_create <- function() {
-
-}
-
 data_dir <- function(...) {
   system.file(fs::path('rawdata', ...), package = 'megadaptr', mustWork = TRUE)
 }
@@ -219,13 +213,28 @@ megadapt_initialize <- function(megadapt) {
 #' @param mental_models A mental model object. If NULL the model assumed a mental model with single coupling
 #' @param flooding_fnss A flooding model object. If null, a value funcion method model is created.
 #' @param ponding_fnss A ponding model object. If null, a value funcion method model is created.
+#' @param study_area A spatial polygon data frame of the study area
 #' @return A megadapt model object with classes associated to subcomponent objects. The current components in the megadapt object are: Parameters, value_function_config, study_area, mental model object, climate scenario (climate_fnss), flooding model object, ponding model object, and scarcity index object.
-megadapt_single_coupled_with_action_weights_create <- function(
-  params, sacmex_fnss_creator = sacmex_seperate_action_budgets_fnss_create,
+megadapt_create <- function(
+  params,
+  flooding_fnss = NULL,
   mental_models = NULL,
-  flooding_fnss=NULL,
-  ponding_fnss=NULL,
-  study_area=NULL) {
+  ponding_fnss = NULL,
+  sacmex_fnss_creator = sacmex_seperate_action_budgets_fnss_create,
+  study_area = NULL) {
+
+  assert_shape(
+    params,
+    shape = list(
+      new_infrastructure_effectiveness_rate = function(x) checkmate::check_numeric(x, lower = 0, upper = 1),
+      maintenance_effectiveness_rate = function(x) checkmate::check_numeric(x, lower = 0, upper = 1),
+      n_steps = function(x) checkmate::check_int(x, lower = 0),
+      infrastructure_decay_rate = function(x) checkmate::check_numeric(0.01, lower = 0, upper = 1),
+      budget = function(x) checkmate::check_int(x, lower = 0),
+      half_sensitivity_ab = function(x) checkmate::check_int(x, lower = 1, upper = 20),
+      half_sensitivity_d = function(x) checkmate::check_int(x, lower = 1, upper = 20),
+      climate_scenario = function(x) checkmate::check_int(x, lower = 1, upper = 12)
+    ))
 
   if (is.null(flooding_fnss)) {
     flooding_fnss <- flooding_index_fnss_create()
@@ -233,6 +242,11 @@ megadapt_single_coupled_with_action_weights_create <- function(
 
   if (is.null(ponding_fnss)) {
     ponding_fnss <- ponding_index_fnss_create()
+  }
+
+  if (is.character(sacmex_fnss_creator)) {
+    checkmate::assert_choice(sacmex_fnss_creator, choices = c('sacmex_seperate_action_budgets_fnss_create', 'sacmex_fnss_create'))
+    sacmex_fnss_creator <- get(sacmex_fnss_creator)
   }
 
   if (is.null(mental_models)) {
@@ -273,6 +287,92 @@ megadapt_single_coupled_with_action_weights_create <- function(
     sacmex_fnss = sacmex_fnss,
     water_scarcity_fnss = water_scarcity_fnss
   )
+}
+
+megdapt_config_serialize <- function(config) {
+  jsonlite::toJSON(config, auto_unbox = TRUE)
+}
+
+megadapt_config_deserialize <- function(config) {
+  caller_shape <- function(args) list(
+    name = checkmate::check_character,
+    args = args
+  )
+
+  assert_shape(config$ponding_fnss, caller_shape(list(
+    weights = checkmate::check_numeric
+  )))
+  assert_shape(config$ponding_fnss, caller_shape(list(
+    weights = checkmate::check_numeric
+  )))
+  assert_shape(config$mental_models, caller_shape(list()))
+  a
+}
+
+megadapt_config_create <- function(
+  params = NULL,
+  flooding_fnss = NULL,
+  mental_models = NULL,
+  ponding_fnss = NULL,
+  sacmex_fnss_creator = NULL,
+  study_area = NULL
+) {
+  if (is.null(params)) {
+    params <- params_create()
+  }
+
+  if (is.null(flooding_fnss)) {
+    flooding_fnss <- list(
+      name = 'flooding_index_fnss_create',
+      args = as.list(flooding_index_fnss_create()))
+  }
+
+  if (is.null(ponding_fnss)) {
+    ponding_fnss <- list(
+      name = 'ponding_index_fnss_create',
+      args = as.list(ponding_index_fnss_create()))
+  }
+
+  if (is.null(mental_models)) {
+    mental_models <- list(
+      name = 'mental_model_constant_strategies',
+      args = list())
+  }
+
+  if (is.null(sacmex_fnss_creator)) {
+    sacmex_fnss_creator <- 'sacmex_seperate_action_budgets_fnss_create'
+  }
+
+  if (is.null(study_area)) {
+    study_area <- list(
+      name = 'study_area_read',
+      args = list(path = data_dir('censusblocks/megadapt_wgs84_v5.gpkg'))
+    )
+  }
+
+  list(
+    params = params,
+    flooding_fnss = flooding_fnss,
+    mental_models = mental_models,
+    ponding_fnss = ponding_fnss,
+    sacmex_fnss_creator = sacmex_fnss_creator,
+    study_area = study_area
+  )
+}
+
+megadapt_from_config_load <- function(path) {
+  check_climate <- function(climate) {
+    checkmate::assert(
+      checkmate::check_names(climate, identical.to = 'id'),
+      checkmate::check_int(climate$id)
+    )
+  }
+
+  config <- jsonlite::fromJSON(file(path))
+  checkmate::assert(
+    checkmate::check_names()
+  )
+  do.call(megadapt_create, config)
 }
 
 #' Run the megadapt model

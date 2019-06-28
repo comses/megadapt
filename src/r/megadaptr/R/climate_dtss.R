@@ -30,15 +30,16 @@ climate_fnss_create <- function(id = 1) {
 
 #' Generates yearly precipitation and runoff (in millimeters) by census block
 #'
+#' @inheritParams call_fnss
 #' @param study_data A data frame of study area data
 #' @return yearly runoff and precipitation values by census block
-call_fnss.climate_fnss <- function(climate_scenario, study_data) {
+call_fnss.climate_fnss <- function(fnss, study_data) {
   # create a vector of alternative years for sampling
   # and sample one of them each year
   year_sampled_from_scenario <- sample(size = 1, x = 1993:2013)
 
   # subset the data.frame of scenario for the year sampled
-  sampled_rain_runoff_scenario <- subset(climate_scenario, year == year_sampled_from_scenario)
+  sampled_rain_runoff_scenario <- subset(fnss, year == year_sampled_from_scenario)
 
   # Every year of simulation, sample with a uniform distribution a single year of estimations from the N columns posible (2001-20013?)
 

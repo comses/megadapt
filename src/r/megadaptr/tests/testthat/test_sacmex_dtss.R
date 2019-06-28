@@ -1,41 +1,24 @@
 library(megadaptr)
 
 site_suitability <- tibble::tribble(
-  ~ ageb_id,
+  ~ censusblock_id,
   ~ non_potable_maintenance,
   ~ non_potable_new_infrastructure,
   ~ potable_maintenance,
   ~ potable_new_infrastructure,
-  1,
-  1,
-  0,
-  6,
-  0,
-  2,
-  0,
-  3,
-  0,
-  0,
-  3,
-  0,
-  0,
-  5,
-  0,
-  4,
-  0,
-  5,
-  0,
-  7
+  1, 1, 0, 6, 0,
+  2, 0, 3, 0, 0,
+  3, 0, 0, 5, 0,
+  4, 0, 5, 0, 7
 )
 
 describe('sacmex infracstructure allocation with separate potable, non potable budgets',
-         {
+          {
            it('is empty when both budgets are zero', {
              allocation <-
-               determine_public_infrastructure_work_plan_separate_budgets(
+               sacmex_work_plan_sewer_potable_split(
                  site_suitability = site_suitability,
-                 potable_water_budget = 0,
-                 non_potable_water_budget = 0
+                 budget = list(potable_water = 0, sewer = 0)
                )
              expect_equal(nrow(allocation), 0)
            })
@@ -44,12 +27,11 @@ describe('sacmex infracstructure allocation with separate potable, non potable b
              'includes the census blocks that in most need of non potable work if non potable budget greater than zero',
              {
                allocation <-
-                 determine_public_infrastructure_work_plan_separate_budgets(
+                 sacmex_work_plan_sewer_potable_split(
                    site_suitability = site_suitability,
-                   potable_water_budget = 0,
-                   non_potable_water_budget = 3
+                   budget = list(potable_water = 0, sewer = 3)
                  )
-               expect_equal(allocation$ageb_id, c(4, 2, 1))
+               expect_equal(allocation$censusblock_id, c(4, 2, 1))
                expect_equal(
                  as.character(allocation$choice_name),
                  c(
@@ -66,12 +48,11 @@ describe('sacmex infracstructure allocation with separate potable, non potable b
              'includes the census blocks that in most need of potable work if potable budget greater than zero',
              {
                allocation <-
-                 determine_public_infrastructure_work_plan_separate_budgets(
+                 sacmex_work_plan_sewer_potable_split(
                    site_suitability = site_suitability,
-                   potable_water_budget = 3,
-                   non_potable_water_budget = 0
+                   budget = list(potable_water = 3, sewer = 0)
                  )
-               expect_equal(allocation$ageb_id, c(4, 1, 3))
+               expect_equal(allocation$censusblock_id, c(4, 1, 3))
                expect_equal(
                  as.character(allocation$choice_name),
                  c(
@@ -86,54 +67,54 @@ describe('sacmex infracstructure allocation with separate potable, non potable b
 
            it('includes all census blocks with a large enough budget', {
              allocation <-
-               determine_public_infrastructure_work_plan_separate_budgets(
+               sacmex_work_plan_sewer_potable_split(
                  site_suitability = site_suitability,
-                 potable_water_budget = 4,
-                 non_potable_water_budget = 4
+                 budget = list(potable_water = 4, sewer = 4)
                )
              expect_equal(nrow(allocation), 8)
            })
          })
 
-describe('a site suitability determination', {
-  it('foo', {
-
-  })
-})
 
 describe('a split infrastructure allocation', {
   it('should invest in all census blocks if budget if large enough', {
     allocation <-
-      megadaptr:::determine_public_infrastructure_work_plan_split_budgets(
+      sacmex_work_plan_separate_action_budgets(
         site_suitability = site_suitability,
-        potable_water_new_infrastructure_budget = 10,
-        potable_water_maintenance_budget = 500,
-        sewer_water_new_infrastructure_budget = 4,
-        sewer_water_maintenance_budget = 5
+        budget = list(
+          potable_water_new_infrastructure = 10,
+          potable_water_maintenance = 500,
+          sewer_water_new_infrastructure = 4,
+          sewer_water_maintenance = 5
+        )
       )
     expect_equal(nrow(allocation), 16)
   })
 
   it('should invest in no census blocks if budget is zero', {
     allocation <-
-      determine_public_infrastructure_work_plan_split_budgets(
+      sacmex_work_plan_separate_action_budgets(
         site_suitability = site_suitability,
-        potable_water_new_infrastructure_budget = 0,
-        potable_water_maintenance_budget = 0,
-        sewer_water_new_infrastructure_budget = 0,
-        sewer_water_maintenance_budget = 0
+        budget = list(
+          potable_water_new_infrastructure = 0,
+          potable_water_maintenance = 0,
+          sewer_water_new_infrastructure = 0,
+          sewer_water_maintenance = 0
+        )
       )
     expect_equal(nrow(allocation), 0)
   })
 
   it('includes most in need census blocks if budget between 0 and max', {
     allocation <-
-      determine_public_infrastructure_work_plan_split_budgets(
+      sacmex_work_plan_separate_action_budgets(
         site_suitability = site_suitability,
-        potable_water_new_infrastructure_budget = 2,
-        potable_water_maintenance_budget = 2,
-        sewer_water_new_infrastructure_budget = 1,
-        sewer_water_maintenance_budget = 1
+        budget = list(
+          potable_water_new_infrastructure = 2,
+          potable_water_maintenance = 2,
+          sewer_water_new_infrastructure = 1,
+          sewer_water_maintenance = 1
+        )
       )
     expect_equal(nrow(allocation), 6)
   })

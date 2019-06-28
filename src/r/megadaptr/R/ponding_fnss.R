@@ -19,10 +19,11 @@ ponding_index_fnss_create <-
 #'
 #' @export
 #' @method call_fnss ponding_index_fnss
-#' @param ponding_index_fnss An object with weights parameters created with \code{\link{ponding_index_fnss_create}}
+#' @inheritParams call_fnss
+#' @param fnss An object with weights parameters created with \code{\link{ponding_index_fnss_create}}
 #' @param study_data data.frame with variables "precipitation_volume", "runoff_volume", "resident_reports_ponding_count" and "sewer_system_capacity".
 #' @return A data.frame with variables "censusblock_id" and "ponding_index". The ponding index will have values between 0 and 1.
-call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
+call_fnss.ponding_index_fnss <- function(fnss, study_data, ...) {
   fv_f_prec_v <- sapply(
     study_data$precipitation_volume,
     FUN = convexa_decreciente,
@@ -59,7 +60,7 @@ call_fnss.ponding_index_fnss <- function(ponding_index_fnss, study_data) {
   )# min+(max-min)/2 ==49
 
 
-  weights <- ponding_index_fnss
+  weights <- fnss
   w_historic_ponding_freq = weights['ponding']
   w_f_prec_v = weights['precipitation']
   w_non_potable_capacity = weights['capacity']
@@ -100,11 +101,12 @@ ponding_delta_method_fnss_create <- function(
 #' @export
 #' @method call_fnss ponding_delta_method_fnss
 #'
-#' @param ponding_delta_method_fnss An object with weights parameters created with \code{\link{ponding_delta_method_fnss_create}}
+#' @inheritParams call_fnss
+#' @param fnss An object with weights parameters created with \code{\link{ponding_delta_method_fnss_create}}
 #' @param study_data data.frame with variables "precipitation_volume", "runoff_volume", "resident_reports_ponding_count" and "sewer_system_capacity".
 #' @return A data.frame with variables "censusblock_id" and "ponding_index". The ponding index will have values between 0 and 1.
-call_fnss.ponding_delta_method_fnss <- function(ponding_delta_method_fnss, study_data) {
-  w <- ponding_delta_method_fnss
+call_fnss.ponding_delta_method_fnss <- function(fnss, study_data, ...) {
+  w <- fnss
   cap_init <- study_data$sewer_system_capacity_max * 0.5
   precip_mean <- study_data$precipitation_volume_mean
   runoff_mean <- study_data$runoff_volume_mean

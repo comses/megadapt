@@ -41,10 +41,8 @@ body <- dashboardBody(
             ),
            box(width = 910,height = 900, solidHeader = TRUE,
                leafletOutput("map", height =870, width = 900)
-           ),
-            box(width = 100,
-                uiOutput("mapUI")
-            )
+           )#,
+
     ),
     column(width = 4,
            box(width = NULL, status = "warning",
@@ -52,61 +50,16 @@ body <- dashboardBody(
            ),
            box(width = 475, status = "warning",
                uiOutput("plot_view")
-          #     selectInput('selected_language',
-           #                "Language",
-            #               choices = list("English" = "en", "Espanol" = "es"))
-           #     checkboxGroupInput("directions", "Show",
-           #                        choices = c(
-           #                          Northbound = 4,
-           #                          Southbound = 1,
-           #                          Eastbound = 2,
-           #                          Westbound = 3
-           #                        ),
-           #                        selected = c(1, 2, 3, 4)
-           #     ),
-           #     p(
-           #       class = "text-muted",
-           #       paste("Note: a route number can have several different trips, each",
-           #             "with a different path. Only the most commonly-used path will",
-           #             "be displayed on the map."
-           #       )
-           #     ),
-           #     actionButton("zoomButton", "Zoom to fit buses")
+
             ),
             box(width = NULL, status = "warning",
-                uiOutput("more_info")
-           #     selectInput("interval", "Refresh interval",
-           #                 choices = c(
-           #                   "30 seconds" = 30,
-           #                   "1 minute" = 60,
-           #                   "2 minutes" = 120,
-           #                   "5 minutes" = 300,
-           #                   "10 minutes" = 600
-           #                 ),
-           #                 selected = "60"
-           #     ),
-           #     uiOutput("timeSinceLastUpdate"),
-           #     actionButton("refresh", "Refresh now"),
-           #     p(class = "text-muted",
-           #       br(),
-           #       "Source data updates every 30 seconds."
-           #     )
+                uiOutput("mapUI")
+
             )
    )
   )
-    ))#,
-  # tabItems(
-  #   tabItem("info_tab",
-  #
-  #           paste("The agent-based model presented here simulates the decision-making processes of different socio-institutional and socio-political actors of Mexico City, and their actions and decisions to adapt to hydrological risk and vulnerabilities.
-  #                 The model is divided in three modules that together they incorporate a set of procedures to simulate the socio-hydrological vulnerability in a Megacity. These modules are: The socio-Institutional module, the risk module and the socio-political module. The three modules represent different actors and agents that interact internally and with other agents from the other modules.
-  #                 The socio-institutional module represents the decisions of socio-institutional agents to invest in infrastructure systems associated to water management. In this module, the decision-making procedures that simulate the decisions are built using multi-criteria decision techniques.
-  #                 The socio-political module represents the action of resident and other local stakeholder actors that can influence the decisions of socio-institutional actors.
-  #                 Finnaly, the risk module simulates events of exposure. Within the module, frequency-based models simulate the exposure. These models are parametrized based on empirical information that associate the frequency of the events to the condition of the infrastructure systems that are modify by the socio-institutional agents. Socio-political actors such a as resident suffer the exposure that modify their decision based on the level of exposure. The actions of the socio-political agents influence the condition and supply of infrastructure that then should modify the condition of the infrastructure and therefore the risk. The landscape is divided in spatial units, each of them, which confines a unit of risk where the frequency of events are accumulated, and the actions are implemented. Each spatial unit is represented by a set of attributes that represent the condition of the infrastructure systems and the population. Based on the values of the attributes,
-  #                 frequency based models simulate water scarcity, flooding and health hazard."
-  #           )
-  #           )
-  #   )
+    ))
+
 
 )
 
@@ -206,6 +159,7 @@ server <- function(input, output, session) {
 
 
   output$mapUI <- renderUI({
+
     selectInput("select_budget", i18n()$t("Budget scenarios"), choices = budgetList(),
     width = 150
     )
@@ -320,7 +274,7 @@ server <- function(input, output, session) {
     x$sort_id <- 1:nrow(as(x, "data.frame"))  # Column containing original row order for later sorting
     x.dat <- as(x, "data.frame")  # Create new data.frame object
     x.dat <-as.data.frame(x.dat[,c(1,ncol(x.dat))])
-    x.dat2 <- merge(x.dat, y, by.x = "ageb_id", by.y = "censusblock_id")  # Merge
+    x.dat2 <- merge(x.dat, y, by.x = "censusblock_id", by.y = "censusblock_id")  # Merge
     x.dat2.ord <- x.dat2[order(x.dat2$sort_id), ]  # Reorder back to original
     x2 <- x[x$sort_id %in% x.dat2$sort_id, ]  # Make new set of polygons, dropping those which arent in merge
     x2.dat <- as(x2, "data.frame")  # Make update x2 into a data.frame
@@ -406,7 +360,7 @@ server <- function(input, output, session) {
     x$sort_id <- 1:nrow(as(x, "data.frame"))  # Column containing original row order for later sorting
     x.dat <- as(x, "data.frame")  # Create new data.frame object
     x.dat <-as.data.frame(x.dat[,c(1,ncol(x.dat))])
-    x.dat2 <- merge(x.dat, y, by.x = "ageb_id", by.y = "censusblock_id")  # Merge
+    x.dat2 <- merge(x.dat, y, by.x = "censusblock_id", by.y = "censusblock_id")  # Merge
     x.dat2.ord <- x.dat2[order(x.dat2$sort_id), ]  # Reorder back to original
     x2 <- x[x$sort_id %in% x.dat2$sort_id, ]  # Make new set of polygons, dropping those which arent in merge
     x2.dat <- as(x2, "data.frame")  # Make update x2 into a data.frame

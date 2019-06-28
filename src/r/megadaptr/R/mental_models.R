@@ -136,11 +136,10 @@ create_weighted_matrix <-
   }
 
 #' A function to obtain the limit vector from a weighted supermatrix.
+#'
 #' @param weighted_matrix_meta A - real-valued square matrix, p - natural number.
 #' @param tolerance the tolerance of the difference between columns after the matrix is elevated to p
 #' @note calculate A^p, where A is a weighted supermatrix
-
-
 create_limit_df <-
   function(weighted_matrix_meta, tolerance = 1e-10) {
     weighted_matrix <- weighted_matrix_meta$data
@@ -213,7 +212,10 @@ get_limit_df.file_constant_mental_model <-
     mental_model$limit_df
   }
 
+#' Create constant mental model strategies
+#'
 #' @export
+#' @return potable, sewer and household mental models
 mental_model_constant_strategies <- function() {
   mm_file_path <-
     function(path)

@@ -1,4 +1,4 @@
-FROM rocker/rstudio:3.5.3
+FROM rocker/rstudio:3.6.0
 
 COPY deploy/apt_install.sh .
 RUN apt-get update \

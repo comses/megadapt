@@ -12,8 +12,19 @@ initialize_model_cache <- function() {
   }
 
   budget <- 1:6 * 400
-  megadapt <- build_megadapt_model(data_root_dir = data_root_dir,
-                                   mental_model_strategies = megadaptr:::create_constant_mental_model_strategies())
+  #megadapt <- build_megadapt_model(data_root_dir = data_root_dir,
+  #                                 mental_model_strategies = megadaptr:::create_constant_mental_model_strategies())
+
+  megadapt <- megadapt_create(
+    params_create()
+    #mental_models = mental_model_sacmex_coupled_strategies(),
+    #flooding_fnss = flooding_index_fnss_create(),
+    #ponding_fnss = ponding_index_fnss_create()
+  )
+  megadapt <- megadaptr:::megadapt_initialize(megadapt)
+
+
+
   if (fs::dir_exists(cache_path)) {
     cache <- load_scenario_cache(cache_path)
   } else {

@@ -5,7 +5,7 @@ output: html_document
 
 
 # Introduction
-Here we provide details of the method to calculate new values for ponding (and flooding) using the delta methods. The method is based on calculating the change in ponding and flooding from historical mean values using the change in precipitation, runoff and capacity from historical means, therefore the $\Delta$s.
+Here we provide details of the method to calculate new values for ponding (and flooding) using the delta methods. The method is based on calculating the yearly change in frequency of ponding and flooding from historical mean values using the change in precipitation, runoff and capacity from historical means, therefore the $\Delta$s.
 
 First, the relative changes in capacity, rainfall and runoff from historical means is calculated in each census block $j$:
 

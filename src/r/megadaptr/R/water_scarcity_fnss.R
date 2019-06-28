@@ -11,14 +11,15 @@ water_scarcity_index_fnss_create <- function(value_function_config) {
   prepend_class(value_function_config, 'water_scarcity_index_fnss')
 }
 
-call_fnss.water_scarcity_index_fnss <- function(water_scarcity_index_fnss, study_data) {
+call_fnss.water_scarcity_index_fnss <- function(fnss, study_data, ...) {
   #' Water scarcity index calculation
-  #' @param study_data data frame with the data of the study area
-  #' @param water_scarcity_index_fnss_create an object of the class "water_scarcity_index_fnss" with a set of value functions
+  #'
   #' @export
   #' @method call_fnss water_scarcity_index_fnss
+  #' @inheritParams call_fnss
+  #' @param study_data data frame with the data of the study area
   #' @return a data frame with field "censusblock_id" and "scarcity_index"
-  value_function_config <- water_scarcity_index_fnss
+  value_function_config <- fnss
   sewer_age <- value_function_config$sewer_age
   shortage_age <- value_function_config$shortage_age
   shortage_failures <- value_function_config$shortage_failures

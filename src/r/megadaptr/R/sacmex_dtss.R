@@ -521,6 +521,17 @@ sacmex_get_budget_from_mental_model <-
     )
   }
 
+#' Create a sacmex model
+#'
+#' @param class_name name of S3 class to create
+#' @param value_function_config parameterization for value functions
+#' @param sewer_mental_model_strategy strategy used to update the sewer mental model
+#' @param potable_water_mental_model_strategy strategy used to update the potable water mental model
+#' @param sewer_budget the number census blocks a sewer infrastructure improvements can be made on
+#' @param potable_water_budget the number census blocks a potable water infrastructure improvements can be made on
+#' @param params configuration list determining the effectiveness of maintenance and new infrastructure investment
+#' @param flooding_fnss a flooding model with a value function method
+#' @param ponding_fnss a ponding model with a value function method
 sacmex_default_create <-
   function(value_function_config,
            sewer_mental_model_strategy,
@@ -547,7 +558,10 @@ sacmex_default_create <-
     prepend_class(config, class_name)
   }
 
+#' Create a sacmex model with split action budgets
+#'
 #' @export
+#' @inheritParams sacmex_default_create
 sacmex_seperate_action_budgets_fnss_create <-
   function(value_function_config,
            sewer_mental_model_strategy,
@@ -628,20 +642,25 @@ sacmex_invest_and_depreciate <-
       )
   }
 
+#' Create a split action budget sacmex model
+#'
 #' @export
-#' @method call_fnss sacmex_seperate_action_budgets_fnss
+#' @inheritParams call_fnss
+#' @param year current simulation year
+#' @param study_data study area tibble
 call_fnss.sacmex_seperate_action_budgets_fnss <-
-  function(sacmex, year, study_data) {
-    sacmex_invest_and_depreciate(sacmex = sacmex,
+  function(fnss, year, study_data, ...) {
+    sacmex_invest_and_depreciate(sacmex = fnss,
                                  year = year,
                                  study_data = study_data,
                                  create_budget = sacmex_get_budget_from_mental_model,
                                  create_work_plan = sacmex_work_plan_separate_action_budgets)
   }
 
-## Regular budget
-
+#' Create a potable / sewer split budget sacmex model
+#'
 #' @export
+#' @inheritParams sacmex_default_create
 sacmex_fnss_create <-
   function(value_function_config,
            sewer_mental_model_strategy,
@@ -674,20 +693,27 @@ sacmex_get_budget_identity <- function(mental_models,
        potable_water = potable_water_budget)
 }
 
+#' Invest in municipality
+#'
 #' @export
 #' @method call_fnss sacmex_fnss
-call_fnss.sacmex_fnss <- function(sacmex, year, study_data) {
-  sacmex_invest_and_depreciate(sacmex = sacmex,
+#' @inheritParams call_fnss
+#' @param year current year of simulation
+#' @param study_data census block data
+#' @return A data.frame with municipal infrastructure investment decisions and their impact
+#' on the infrastructure
+call_fnss.sacmex_fnss <- function(fnss, year, study_data, ...) {
+  sacmex_invest_and_depreciate(sacmex = fnss,
                                year = year,
                                study_data = study_data,
                                create_budget = sacmex_get_budget_identity,
                                create_work_plan = sacmex_work_plan_sewer_potable_split)
 }
 
-#' The initializilation part of the Sacmex component
+#' Sacmex component initializer
+#'
 #' @param study_data A data frame with the spatial units and associated fields.
 #' @return a data frame with the new variables and their initial state.
-
 sacmex_initialize <- function(study_data) {
   study_data %>%
     dplyr::mutate(
