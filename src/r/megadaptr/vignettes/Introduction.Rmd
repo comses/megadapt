@@ -1,5 +1,5 @@
 ---
-title: "MEGADAPT: A Computational Framework For The Adaptation of Megacities"
+title: "MEGADAPT: A Computational Framework For The Adaptation of Megacities to Climate Change"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Introduction}
@@ -59,9 +59,9 @@ In MEGADAPT we use ABM to create agents that represent important actors of Mexic
 
 ## 2.4 Climate Scenarios Modeling
 
-## 2.5 Flooding and Ponding Risk Models
 
-## 2.6 Potable Water Scarcity Index
+## 2.5 Risk Index Models
+
 
 
  ---
@@ -136,9 +136,9 @@ Institutional decisions are the investments that institutional agents made to im
 
 
 Action       | Attribute to be changed | Description                          | Change               | 
------------ | ----------------------- | ----------------------------------------- | --------------  |  
+----------- | ------------------- | ------------------------------------- |  ---------------------  |  
 Mantainance of infrastructure systems | Age of system, sewer system capacity | The mantainance of the infrastructure implies cleaning and other annualy planned management that tent to focus on expanding the lifespan of infrastructure systems| This action changes the state of the variable age, and increases capacity of sewer system up to it maximum initial capasity.
-New investments on infrastructure systems | sewer system capacity |*. Increase capacity of sewer system beyond initial maxima. *. *Increase connection to* |
+New investments on infrastructure systems | sewer system capacity | Increase capacity of sewer system beyond initial maxima, and increase connections of houses to sewer and potable water systems. | These actions change the state of the attributes of the infrastructure systems  
 
 
 From this connection, the agents can calculate a metric of vulnerability according to the agent and can evaluate the urban landscape to define spatial units with priorities for investments. The current implementation reads, as input, a list of criteria and actions and the parameter values associated with the priorities of the criteria and actions. This information was obtained after a consultation with SACMEX and transformed into an analytic network using the software SuperDecision (Bojorquez-Tapia et al., 2019).
@@ -149,10 +149,10 @@ From this connection, the agents can calculate a metric of vulnerability accordi
 
 The residents are groups of people living in a neighborhood and taking actions within census blocks. Similar to the institutional agents, residents evaluate a set of possible actions based on a set of criteria they consider important to confronting water-related hazards, with the goal to adapt and cope with water scarcity and flooding. Based on a set of workshops with different residents (Eakin et al., 2016), a generic multi-criteria model was defined (Shelton et al., 2018). The model includes three actions: House modifications, protests, buy water and collective actions. The current implementation of the ABM includes the decision to modify their house and to protest. House modifications imply adaptation. In the model thus house modifications influence the resident's sensitivity to hazards events. For instance, modifying the house to store water is an action that can reduce the need of people to rely on public sources, and thus reduce the sensitivity of residents to water supply disruptions (Eakin et al., 2016). The action “protest” on the other hand implies a respond from the residents to the authority. Currently, protests from residents can influence criteria in the decision of SACMEX. 
 
-## 4.2 Risk-based models
+## 4.4 Risk-based indices
 
 
-### 4.2.1 Water scarcity Index
+### 4.4.1 Water scarcity Index
 
 The water scarcity index is constructed assuming that the risk of a census block to jave potable water scarcity is a multi-factor outcome that depends on:
 
@@ -166,7 +166,7 @@ The water scarcity index is constructed assuming that the risk of a census block
 
 5. The difficulties and challenge the authority has to provide potable to the census blocks.  
 
-### 4.2.2 Ponding and flooding index
+### 4.4.2 Ponding and flooding index
 
 To represent the risk associated to ponding and flooding a team of researchers developed, in consultation with Mexico CIty secretary of water management (SACMEX), indicators that take into consideration:
 
@@ -179,13 +179,8 @@ The index returns a value in each census block that should be interpreted as the
 more information can be found in file "Delta_method_for_ponding_flooding.R".
 
 
-## Urbanization changes
-
-## 
-
-
-
-
-
+## 4.5 Urbanization 
 
 TBC
+
+## 4.6 Climate scenarios
