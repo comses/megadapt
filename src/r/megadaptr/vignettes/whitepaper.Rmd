@@ -116,14 +116,15 @@ results2 <- simulate(megadapt)
 
 # Interpreting Experiment Results
 
-Megadapt model results can be plotted to show how outcomes of interest change in response to a particular input parameter. Since the experiment we just ran only changed budget values but left everything else constant it makes sense to plot different outcomes from varying the budget. Each budget value is sampled multiple times in order to the impact of weather variation on outcomes. Household vulnerability to potable and sewer water systems, household investments, municipal investments and infrastructure capacity are shown in plots faceted by budget level below.
+Megadapt model results can be plotted to show how outcomes of interest change in response to a particular input parameter. Since the experiment we just ran only changed budget values but left everything else constant it makes sense to plot different outcomes from varying the budget. Each budget value is sampled multiple times in order to determine the impact of weather variation on outcomes. Household vulnerability to potable and sewer water systems, household investments, municipal investments and infrastructure capacity are shown in plots faceted by budget level below.
 
-```{r, echo=FALSE, message=FALSE}
-fs::file_delete('ex2.db')
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 conn <- DBI::dbConnect(RSQLite::SQLite(), 'ex2.db')
-params_df <- megadaptr:::params_cartesian_create(megadaptr::params_create(budget=1:5*200))
-megadaptr:::params_table_create(conn, 'ex', params_df)
-megadaptr:::results_table_create(conn, 'ex', params_df)
+if (!fs::file_exists('ex2.db')) {
+  params_df <- megadaptr:::params_cartesian_create(megadaptr::params_create(budget=1:5*200))
+  megadaptr:::params_table_create(conn, 'ex', params_df)
+  megadaptr:::results_table_create(conn, 'ex', params_df)
+}
 
 params <- dplyr::tbl(conn, 'ex_params')
 results <- dplyr::tbl(conn, 'ex_results')
@@ -142,7 +143,7 @@ experiment_map_plot <- function(experiment_df, study_area) {
 }
 ```
 
-```{r, message=FALSE, warning=FALSE, echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 experiment_df <- megadaptr:::experiment_map_df(results, params, facets = rlang::sym('budget'))
 study_area <- megadaptr::study_area_read('../inst/rawdata/censusblocks/megadapt_wgs84_v5.gpkg')
 experiment_map_plot(experiment_df, study_area)
