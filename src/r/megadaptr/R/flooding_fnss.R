@@ -25,8 +25,9 @@ flooding_index_fnss_create <- function(weights = c(
 #' @export
 #' @method call_fnss flooding_index_fnss
 #' @inheritParams call_fnss
+#' @param study_data cross section of census block level flood data
 call_fnss.flooding_index_fnss <-
-  function(flooding_index_fnss, study_data) {
+  function(fnss, study_data, ...) {
     fv_f_prec_v <- sapply(
       study_data$precipitation_volume,
       FUN = convexa_decreciente,
@@ -68,7 +69,7 @@ call_fnss.flooding_index_fnss <-
     #For now, weights are equal for all the factors: 1/3 for areas without runoff and
     #1/4 for areas with runoff
 
-    w <- flooding_index_fnss
+    w <- fnss
     w_historic_flooding_freq = w['flooding']
     w_f_prec_v = w['precipitation']
     w_fv_non_potable_capacity = w['capacity']
@@ -106,9 +107,10 @@ flooding_delta_method_fnss_create <-
 #' @export
 #' @method call_fnss flooding_delta_method_fnss
 #' @inheritParams call_fnss
+#' @param study_data census block cross section with
 call_fnss.flooding_delta_method_fnss <-
-  function(flooding_fnss, study_data) {
-    w <- flooding_fnss
+  function(fnss, study_data, ...) {
+    w <- fnss
     cap_init <- study_data$sewer_system_capacity_max * 0.5
     precip_mean <- study_data$precipitation_volume_mean
     runoff_mean <- study_data$runoff_volume_mean

@@ -321,7 +321,7 @@ mental_model_coupled_create <- function(path, cluster) {
   #' @param path file path to the unweighted mental model matrix
   #' @param cluster a cluster mental model matrix. If the cluster is null then
   #' equal weights are assumed.
-  #' @report A mental model object with a list taht includes a limit vector, an unweighted matrix and, a cluster matrix.
+  #' @return A mental model object with a list taht includes a limit vector, an unweighted matrix and, a cluster matrix.
   structure(
     list(
       limit_df = create_limit_df_from_unweighted_matrix_file(path, cluster),

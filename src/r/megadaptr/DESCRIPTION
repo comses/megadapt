@@ -31,9 +31,10 @@ Imports:
     pscl,
     purrr,
     qrng,
+    readr,
     reshape2,
     rgdal,
-    readr,
+    rlang,
     stringr,
     tibble,
     tidyr

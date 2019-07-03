@@ -5,8 +5,6 @@
 #' @param value_function_config A set of parameters to configurate value functions
 #'
 #' @return An object of class 'water_scarcity_index_fnss' to be used as arguments into the ponding index with value functions.
-
-
 water_scarcity_index_fnss_create <- function(
   weights = c(
     population=0.2,
@@ -19,18 +17,11 @@ water_scarcity_index_fnss_create <- function(
     hydra_pressure=0.2
   ),
   value_function_config) {
-  #' calculate scarcity index from a set of landscape attributes from the study area value functions
-  #'
-  #' @export
-  #' @param value_function_config List of functions determining the impact of population
-  #' density, potable water accessibility and potable water critical zone status on the
-  #' water scarcity index
   weights <- weights / sum(weights)
   config <- list(
     weights = weights,
     value_function_config = value_function_config
   )
- #   prepend_class(value_function_config, 'water_scarcity_index_fnss')
   prepend_class(config, 'water_scarcity_index_fnss')
 }
 
