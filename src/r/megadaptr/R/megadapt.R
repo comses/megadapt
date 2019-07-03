@@ -275,7 +275,7 @@ megadapt_create <- function(
     flooding_fnss = flooding_fnss,
     ponding_fnss = ponding_fnss
   )
-  water_scarcity_fnss = water_scarcity_index_fnss_create(value_function_config)
+  water_scarcity_fnss = water_scarcity_index_fnss_create(value_function_config = value_function_config)
   megadapt_dtss_create(
     year = 2020,
     n_steps = params$n_steps,
@@ -306,7 +306,7 @@ megadapt_config_deserialize <- function(config) {
     weights = checkmate::check_numeric
   )))
   assert_shape(config$mental_models, caller_shape(list()))
-  a
+
 }
 
 megadapt_config_create <- function(
@@ -369,9 +369,6 @@ megadapt_from_config_load <- function(path) {
   }
 
   config <- jsonlite::fromJSON(file(path))
-  checkmate::assert(
-    checkmate::check_names()
-  )
   do.call(megadapt_create, config)
 }
 

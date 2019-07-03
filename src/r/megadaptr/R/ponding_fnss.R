@@ -1,3 +1,10 @@
+ponding_config_call <- function(name, args) {
+  checkmate::assert_subset(name, choices = c('ponding_index_fnss_create', 'ponding_delta_method_fnss_create'))
+  weights <- numeric(args)
+  names(weights) <- names(args)
+  get(name)(weights)
+}
+
 #' Create an object of class "ponding_index_fnss".
 #'
 #' @export
@@ -10,6 +17,11 @@ ponding_index_fnss_create <-
              ponding = 0.25,
              capacity = 0.25
            )) {
+  checkmate::assert(
+    checkmate::check_numeric(weights),
+    checkmate::check_names(names(weights), permutation.of = c('precipitation', 'runoff', 'ponding', 'capacity')),
+    combine = 'and'
+  )
 
   weights <- weights / sum(weights)
   prepend_class(weights, 'ponding_index_fnss')
@@ -59,7 +71,6 @@ call_fnss.ponding_index_fnss <- function(fnss, study_data, ...) {
     center = 3.5
   )# min+(max-min)/2 ==49
 
-
   weights <- fnss
   w_historic_ponding_freq = weights['ponding']
   w_f_prec_v = weights['precipitation']
@@ -92,6 +103,12 @@ ponding_delta_method_fnss_create <- function(
     precipitation = 1,
     runoff = 1
   )) {
+  checkmate::assert(
+    checkmate::check_numeric(weights),
+    checkmate::check_names(names(weights), permutation.of = c('capacity', 'precipitation', 'runoff')),
+    combine = 'and'
+  )
+
   prepend_class(weights, 'ponding_delta_method_fnss')
 }
 

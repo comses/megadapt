@@ -22,10 +22,18 @@ load_climate_scenario <- function(emissions_scenario = 8.5, urban_scenario = "ba
 
 #' Climate a climate scenario model
 #'
+#' @export
 #' @param id the path to a climate scenario csv
+#' @return a climate scenario
 climate_fnss_create <- function(id = 1) {
+  checkmate::assert_int(id)
+
   climate_scenario <- load_climate_scenario_from_index(id)
-  prepend_class(climate_scenario, 'climate_fnss')
+  config <- list(
+    scenario = climate_scenario,
+    id = id
+  )
+  prepend_class(config, 'climate_fnss')
 }
 
 #' Generates yearly precipitation and runoff (in millimeters) by census block
@@ -39,7 +47,7 @@ call_fnss.climate_fnss <- function(fnss, study_data) {
   year_sampled_from_scenario <- sample(size = 1, x = 1993:2013)
 
   # subset the data.frame of scenario for the year sampled
-  sampled_rain_runoff_scenario <- subset(fnss, year == year_sampled_from_scenario)
+  sampled_rain_runoff_scenario <- subset(fnss$scenario, year == year_sampled_from_scenario)
 
   # Every year of simulation, sample with a uniform distribution a single year of estimations from the N columns posible (2001-20013?)
 

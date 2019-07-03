@@ -26,8 +26,12 @@ water_scarcity_index_fnss_create <- function(
   #' density, potable water accessibility and potable water critical zone status on the
   #' water scarcity index
   weights <- weights / sum(weights)
+  config <- list(
+    weights = weights,
+    value_function_config = value_function_config
+  )
  #   prepend_class(value_function_config, 'water_scarcity_index_fnss')
-  prepend_class(weights, 'water_scarcity_index_fnss')
+  prepend_class(config, 'water_scarcity_index_fnss')
 }
 
 call_fnss.water_scarcity_index_fnss <- function(fnss, study_data, ...) {
@@ -38,7 +42,8 @@ call_fnss.water_scarcity_index_fnss <- function(fnss, study_data, ...) {
   #' @inheritParams call_fnss
   #' @param study_data data frame with the data of the study area
   #' @return a data frame with field "censusblock_id" and "scarcity_index"
-  weights <- fnss
+  weights <- fnss$weights
+  hydraulic_pressure_failure <- fnss$value_function_config$hydraulic_pressure_failure
 
   #population
   fv_pob_ageb <-

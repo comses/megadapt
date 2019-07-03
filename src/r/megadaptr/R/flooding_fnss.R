@@ -1,3 +1,9 @@
+flooding_config_call <- function(name, args) {
+  checkmate::assert_subset(name, choices = c('flooding_index_fnss_create', 'flooding_delta_method_fnss_create'))
+  weights <- numeric(args)
+  names(weights) <- names(args)
+  get(name)(weights)
+}
 
 #' Create a flooding index model
 #'

@@ -31,7 +31,7 @@ describe('a megadapt model', {
 
   megadapt <- suppressWarnings(
     megadapt_create(
-      create_params(),
+      params_create(),
       sacmex_fnss_creator = sacmex_fnss_create,
       mental_models = mental_model_constant_strategies(),
       flooding_fnss = flooding_delta_method_fnss_create(),
@@ -42,7 +42,7 @@ describe('a megadapt model', {
   it('can have its parameters modified', {
     new_megadapt <- suppressWarnings(
       megadapt_create(
-        create_params(new_infrastructure_effectiveness = 0.1),
+        params_create(new_infrastructure_effectiveness = 0.1),
         sacmex_fnss_creator = sacmex_fnss_create,
         mental_models = mental_model_constant_strategies(),
         flooding_fnss = flooding_delta_method_fnss_create(),
