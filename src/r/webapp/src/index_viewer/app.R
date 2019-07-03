@@ -50,6 +50,7 @@ ui <- dashboardPage(
         tabItem(tabName = 'ponding_index',
                 fluidRow(
                   box(
+                    h2("Ponding Index"),
                     textOutput('tabName'),
                     sliderInput(
                       "capacity",
@@ -87,8 +88,10 @@ ui <- dashboardPage(
                   )
                 )),
         tabItem(tabName = 'ponding_delta', h2("Ponding Delta"),
+        tabItem(tabName = 'ponding_delta',
                 fluidRow(
                    box(
+                     h2("Ponding Delta"),
                      sliderInput(
                        "capacityd",
                        "Non potable infrastructure capacity",
@@ -118,8 +121,10 @@ ui <- dashboardPage(
                 )
              ),
       tabItem(tabName = 'flooding_index', h2("Flooding Index"),
+      tabItem(tabName = 'flooding_index',
               fluidRow(
                 box(
+                  h2("Flooding Index"),
                   sliderInput(
                     "floodingf",
                     "Flooding capacity",
