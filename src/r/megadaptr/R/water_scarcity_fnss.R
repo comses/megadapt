@@ -113,19 +113,24 @@ call_fnss.water_scarcity_index_fnss <- function(fnss, study_data, ...) {
     xmin = hydraulic_pressure_failure$min
   )
 
-  scarcity_index = weights["population"]*fv_pob_ageb +
-                   weights["zonas_crit"]*fv_zonas_crit +
+  scarcity_index_sensitivity = weights["population"]*fv_pob_ageb +
                    weights["tanks"]*fv_num_cisternas +
-                   weights["income"]*fv_ingreso +
-                   weights["days_no_water"]*fv_dias_sagua  +
-                   weights["houses_without_water"]*fv_viviendas_sagua +
+                   weights["income"]*fv_ingreso
+#need to include water capture
+
+  scarcity_index_exposure = weights["zonas_crit"]*fv_zonas_crit +
+                    weights["days_no_water"]*fv_dias_sagua  +
                    weights["age_infrastructure"]*fv_Age_Infrastructure +
+                weights["houses_without_water"]*fv_viviendas_sagua +
                    weights["hydra_pressure"]*fv_hid_pressure
+  #
 
 
   tibble::tibble(
     censusblock_id = study_data$censusblock_id,
-    scarcity_index = scarcity_index)
+    scarcity_index_sensitivity = scarcity_index_sensitivity,
+    scarcity_index_exposure=scarcity_index_exposure
+    )
 }
 
 water_scarcity_initialize <- function(water_scarcity_fnss, study_data) {
