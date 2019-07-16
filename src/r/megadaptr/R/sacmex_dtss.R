@@ -77,7 +77,7 @@ sacmex_determine_investment_suitability <-
 
     # e)water scarcity
     #  vf_scarcity_sacmex <- sapply(study_data$days_wn_water_year, FUN = scarcity_sacmex_vf) # scarcity_annual is calculated dynamically
-    vf_scarcity_sacmex <- study_data$scarcity_index
+    vf_scarcity_sacmex <- study_data$scarcity_index_exposure
     # abastecimiento
     vf_Abaste <-
       sapply(
@@ -97,7 +97,7 @@ sacmex_determine_investment_suitability <-
       xmin = min(study_data$resident_reports_potable_water_failure_count)
     )
 
-    vf_SP <- fv_fail_claim * (1 - study_data$scarcity_index)
+    vf_SP <- fv_fail_claim * (1 - study_data$scarcity_index_exposure)
 
     all_C_potable_mantainance <- cbind(
       vf_Age_potable_maintanance,

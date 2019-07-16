@@ -5,15 +5,12 @@
 #' @param value_function_config A set of parameters to configurate value functions
 #'
 #' @return An object of class 'water_scarcity_index_fnss' to be used as arguments into the ponding index with value functions.
-water_scarcity_index_fnss_create <- function(
+water_scarcity_index_exposure_fnss_create <- function(
   weights = c(
-    population=0.2,
-    houses_without_water=0.2,
     zonas_crit=0.2,
-    tanks=0.2,
     days_no_water=0.2,
-    income=0.2,
     age_infrastructure=0.2,
+    houses_without_water=0.2,
     hydra_pressure=0.2
   ),
   value_function_config) {
@@ -22,30 +19,37 @@ water_scarcity_index_fnss_create <- function(
     weights = weights,
     value_function_config = value_function_config
   )
-  prepend_class(config, 'water_scarcity_index_fnss')
+  prepend_class(config, 'water_scarcity_index_exposure_fnss')
 }
 
-call_fnss.water_scarcity_index_fnss <- function(fnss, study_data, ...) {
+
+water_scarcity_index_sensitivity_fnss_create <- function(
+  weights = c(
+    population=0.2,
+    tanks=0.2,
+    income=0.2  #add water capture
+  ),
+  value_function_config) {
+  weights <- weights / sum(weights)
+  config <- list(
+    weights = weights,
+    value_function_config = value_function_config
+  )
+  prepend_class(config, 'water_scarcity_index_sensitivity_fnss')
+}
+
+
+
+call_fnss.water_scarcity_index_exposure_fnss <- function(fnss, study_data, ...) {
   #' Water scarcity index calculation
   #'
   #' @export
-  #' @method call_fnss water_scarcity_index_fnss
+  #' @method call_fnss water_scarcity_index_exposure_fnss
   #' @inheritParams call_fnss
   #' @param study_data data frame with the data of the study area
   #' @return a data frame with field "censusblock_id" and "scarcity_index"
   weights <- fnss$weights
   hydraulic_pressure_failure <- fnss$value_function_config$hydraulic_pressure_failure
-
-  #population
-  fv_pob_ageb <-
-    sapply((study_data$resident_count / study_data$area) * 1000000,
-           FUN = logistic_vf,
-           k = 0.3,
-           xmin = min(study_data$resident_count),
-           xmax = max(study_data$resident_count),
-           center = 15000
-    )
-
 
   fv_viviendas_sagua <- sapply(
     study_data$household_potable_system_lacking_percent,
@@ -66,17 +70,6 @@ call_fnss.water_scarcity_index_fnss <- function(fnss, study_data, ...) {
   )
 
 
-  0#  zonas criticas no estan en el dataframe
-  fv_num_cisternas = 0  #  study_data$household_water_storage_tank_percent   add cisternas
-
-  fv_num_cisternas <- sapply(
-    study_data$household_water_storage_tank_percent,
-    FUN = convexa_creciente,
-    gama = .05,
-    xmax = max(study_data$household_water_storage_tank_percent, na.rm = T),
-    xmin = min(study_data$household_water_storage_tank_percent, na.rm = T)
-  )
-
   fv_dias_sagua = sapply(
     study_data$resident_reports_potable_water_failure_count_per_area,
     FUN = gaussian,
@@ -84,15 +77,6 @@ call_fnss.water_scarcity_index_fnss <- function(fnss, study_data, ...) {
     center = 0,
     xmin = min(study_data$resident_reports_potable_water_failure_count_per_area, na.rm = T),
     xmax = max(study_data$resident_reports_potable_water_failure_count_per_area, na.rm = T)
-  )
-
-
-  fv_ingreso <- sapply(
-    study_data$resident_income_per_capita,
-    FUN = convexa_creciente,
-    gama = .015,
-    xmin = min(study_data$resident_income_per_capita, na.rm = T),
-    xmax = max(study_data$resident_income_per_capita, na.rm = T)
   )
 
   fv_Age_Infrastructure <- sapply(
@@ -113,10 +97,6 @@ call_fnss.water_scarcity_index_fnss <- function(fnss, study_data, ...) {
     xmin = hydraulic_pressure_failure$min
   )
 
-  scarcity_index_sensitivity = weights["population"]*fv_pob_ageb +
-                   weights["tanks"]*fv_num_cisternas +
-                   weights["income"]*fv_ingreso
-#need to include water capture
 
   scarcity_index_exposure = weights["zonas_crit"]*fv_zonas_crit +
                     weights["days_no_water"]*fv_dias_sagua  +
@@ -128,12 +108,72 @@ call_fnss.water_scarcity_index_fnss <- function(fnss, study_data, ...) {
 
   tibble::tibble(
     censusblock_id = study_data$censusblock_id,
-    scarcity_index_sensitivity = scarcity_index_sensitivity,
     scarcity_index_exposure=scarcity_index_exposure
     )
 }
 
-water_scarcity_initialize <- function(water_scarcity_fnss, study_data) {
-  study_data %>%
-    dplyr::inner_join(call_fnss(water_scarcity_fnss, study_data = study_data), by = PK_JOIN_EXPR)
+call_fnss.water_scarcity_index_sensitivity_fnss <- function(fnss, study_data, ...) {
+  #' Water scarcity index calculation
+  #'
+  #' @export
+  #' @method call_fnss water_scarcity_index_sensitivity_fnss
+  #' @inheritParams call_fnss
+  #' @param study_data data frame with the data of the study area
+  #' @return a data frame with field "censusblock_id" and "scarcity_index"
+  weights <- fnss$weights
+
+  #population
+  fv_pob_ageb <-
+    sapply((study_data$resident_count / study_data$area) * 1000000,
+           FUN = logistic_vf,
+           k = 0.3,
+           xmin = min(study_data$resident_count),
+           xmax = max(study_data$resident_count),
+           center = 15000
+    )
+
+
+
+  fv_num_cisternas <- sapply(
+    study_data$household_water_storage_tank_percent,
+    FUN = convexa_creciente,
+    gama = .05,
+    xmax = max(study_data$household_water_storage_tank_percent, na.rm = T),
+    xmin = min(study_data$household_water_storage_tank_percent, na.rm = T)
+  )
+
+
+
+  fv_ingreso <- sapply(
+    study_data$resident_income_per_capita,
+    FUN = convexa_creciente,
+    gama = .015,
+    xmin = min(study_data$resident_income_per_capita, na.rm = T),
+    xmax = max(study_data$resident_income_per_capita, na.rm = T)
+  )
+
+
+  scarcity_index_sensitivity = weights["population"]*fv_pob_ageb +
+    weights["tanks"]*fv_num_cisternas +
+    weights["income"]*fv_ingreso
+
+   #need to include water capture
+
+
+  tibble::tibble(
+    censusblock_id = study_data$censusblock_id,
+    scarcity_index_sensitivity = scarcity_index_sensitivity
+  )
 }
+
+
+water_scarcity_index_exposure_initialize <- function(water_scarcity_index_exposure_fnss, study_data) {
+  study_data %>%
+    dplyr::inner_join(call_fnss(water_scarcity_index_exposure_fnss, study_data = study_data), by = PK_JOIN_EXPR)
+}
+
+water_scarcity_index_sensitivity_initialize <- function(water_scarcity_index_sensitivity_fnss, study_data) {
+  study_data %>%
+    dplyr::inner_join(call_fnss(water_scarcity_index_sensitivity_fnss, study_data = study_data), by = PK_JOIN_EXPR)
+}
+

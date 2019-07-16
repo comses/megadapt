@@ -131,9 +131,11 @@ megadapt_dtss_create <- function(
   ponding_fnss,
   resident_fnss,
   sacmex_fnss,
-  water_scarcity_fnss
+  water_scarcity_index_sensitivity_fnss,
+  water_scarcity_index_exposure_fnss
 ) {
   config <- list(
+    initial_year = year,
     year = year,
     n_steps = n_steps,
     study_area = study_area,
@@ -142,7 +144,8 @@ megadapt_dtss_create <- function(
     ponding_fnss = ponding_fnss,
     resident_fnss = resident_fnss,
     sacmex_fnss = sacmex_fnss,
-    water_scarcity_fnss = water_scarcity_fnss
+    water_scarcity_index_sensitivity_fnss = water_scarcity_index_sensitivity_fnss,
+    water_scarcity_index_exposure_fnss = water_scarcity_index_exposure_fnss
   )
   prepend_class(config, 'megadapt_dtss')
 }
@@ -158,17 +161,19 @@ transition_dtss.megadapt_dtss <- function(megadapt_dtss) {
   resident_fnss <- megadapt_dtss$resident_fnss
   sacmex_fnss <- megadapt_dtss$sacmex_fnss
   study_data <- megadapt_dtss$study_area@data
-  water_scarcity_fnss <- megadapt_dtss$water_scarcity_fnss
+  water_scarcity_index_sensitivity_fnss <- megadapt_dtss$water_scarcity_index_sensitivity_fnss
+  water_scarcity_index_exposure_fnss <- megadapt_dtss$water_scarcity_index_exposure_fnss
   year <- megadapt_dtss$year
-
+  step_in_years <- year - megadapt_dtss$initial_year + 1
   climate_changes <- call_fnss(climate_fnss, study_data)
   climate_augmented_data <- apply_data_changes(study_data, climate_changes, join_columns = PK_JOIN_EXPR)
   flooding_changes <- call_fnss(flooding_fnss, climate_augmented_data)
   ponding_changes <- call_fnss(ponding_fnss, climate_augmented_data)
 
-  resident_changes <- call_fnss(resident_fnss, study_data)
+  resident_changes <- call_fnss(resident_fnss, study_data,step_in_years)
   sacmex_changes <- call_fnss(sacmex_fnss, year, study_data)
-  water_scarcity_index_changes <- call_fnss(water_scarcity_fnss, study_data)
+  water_scarcity_index_exposure_changes <- call_fnss(water_scarcity_index_exposure_fnss, study_data)
+  water_scarcity_index_sensitivity_changes <- call_fnss(water_scarcity_index_sensitivity_fnss, study_data)
 
   next_year_changes <- list(
     climate_changes,
@@ -176,7 +181,8 @@ transition_dtss.megadapt_dtss <- function(megadapt_dtss) {
     ponding_changes,
     resident_changes,
     sacmex_changes,
-    water_scarcity_index_changes
+    water_scarcity_index_sensitivity_changes,
+    water_scarcity_index_exposure_changes
   ) %>%
     purrr::reduce(dplyr::left_join, by = PK_JOIN_EXPR)
   new_study_data <- apply_data_changes(study_data, next_year_changes, join_columns = PK_JOIN_EXPR)
@@ -199,7 +205,8 @@ megadapt_initialize <- function(megadapt) {
     flooding_initialize(megadapt$flooding_fnss, study_data = .) %>%
     ponding_initialize(megadapt$ponding_fnss, study_data = .) %>%
     resident_initialize(megadapt$resident_fnss, study_data = .) %>%
-    water_scarcity_initialize(megadapt$water_scarcity_fnss, study_data = .)
+    water_scarcity_index_sensitivity_initialize(megadapt$water_scarcity_index_sensitivity_fnss, study_data = .) %>%
+    water_scarcity_index_exposure_initialize(megadapt$water_scarcity_index_exposure_fnss, study_data = .)
 
   megadapt$study_area@data <- study_data
   megadapt
@@ -275,7 +282,10 @@ megadapt_create <- function(
     flooding_fnss = flooding_fnss,
     ponding_fnss = ponding_fnss
   )
-  water_scarcity_fnss = water_scarcity_index_fnss_create(value_function_config = value_function_config)
+  water_scarcity_index_sensitivity_fnss = water_scarcity_index_sensitivity_fnss_create(value_function_config = value_function_config)
+  water_scarcity_index_exposure_fnss = water_scarcity_index_exposure_fnss_create(value_function_config = value_function_config)
+
+
   megadapt_dtss_create(
     year = 2020,
     n_steps = params$n_steps,
@@ -285,7 +295,8 @@ megadapt_create <- function(
     ponding_fnss = ponding_fnss,
     resident_fnss = resident_fnss,
     sacmex_fnss = sacmex_fnss,
-    water_scarcity_fnss = water_scarcity_fnss
+    water_scarcity_index_sensitivity_fnss = water_scarcity_index_sensitivity_fnss,
+    water_scarcity_index_exposure_fnss = water_scarcity_index_exposure_fnss
   )
 }
 
