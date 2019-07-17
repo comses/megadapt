@@ -132,14 +132,14 @@ resident_determine_infrastructure_suitability <-
 resident_fnss_create <-
   function(value_function_config,
            mental_model_strategy,
-           half_sensitivity_ab,
-           half_sensitivity_d) {
+           resident_action_efficiency_potable,
+           resident_action_efficiency_drainage) {
     config <- list(
       value_function_config = value_function_config,
       mental_model_strategy = mental_model_strategy,
       params = list(
-        half_sensitivity_ab = half_sensitivity_ab,
-        half_sensitivity_d = half_sensitivity_d
+        resident_action_efficiency_potable = resident_action_efficiency_potable,
+        resident_action_efficiency_drainage = resident_action_efficiency_drainage
       )
     )
     prepend_class(config, 'resident_fnss')
@@ -218,13 +218,11 @@ resident_infrastructure_invest <-
         },
         household_water_storage_tank_percent := {
           household_water_storage_tank_percent[HM_Agua] <-
-            household_water_storage_tank_percent[HM_Agua] + 1 / params$half_sensitivity_ab
+          household_water_storage_tank_percent[HM_Agua] + (params$resident_action_efficiency_potable / 10) # this menas that for an resident action efficiency of 1, in one step 10% of residents get a new tank (discuss it with the team!)
           household_water_storage_tank_percent
         },
-#        household_potable_water_vulnerability = (household_potable_water_sensitivity * scarcity_index) / (1 + resident_asset_index),
-        household_potable_water_vulnerability = (scarcity_index_sensitivity ^ (1 - household_potable_water_sensitivity)) ^ (1 + resident_asset_index),
-#                household_sewer_vulnerability = (household_sewer_sensitivity * ponding_index) / (1 + resident_asset_index)
-        household_sewer_vulnerability = (ponding_index ^ (1 - household_sewer_sensitivity)) ^ (1 + resident_asset_index)
+        household_potable_water_vulnerability = ((1 - scarcity_index_sensitivity) ^ (1 - household_potable_water_sensitivity)) ^ (1 + resident_asset_index),
+        household_sewer_vulnerability = ((1- flooding_index) ^ (1 - household_sewer_sensitivity)) ^ (1 + resident_asset_index)
       ) %>%
       dplyr::select(
         censusblock_id,
