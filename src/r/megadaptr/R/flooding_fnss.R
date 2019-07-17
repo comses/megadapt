@@ -151,5 +151,8 @@ value_function.flooding_delta_method_fnss <- function(flooding, study_data) {
 #' @return an updated study_data including the initial value of the flooding index.
 flooding_initialize <- function(flooding_fnss, study_data) {
   study_data %>%
-    dplyr::inner_join(call_fnss(flooding_fnss, study_data = study_data), by = PK_JOIN_EXPR)
+    dplyr::inner_join(call_fnss(flooding_fnss, study_data = study_data), by = PK_JOIN_EXPR) %>%
+    dplyr::mutate(
+      initial_flooding_index=flooding_index
+    )
 }
