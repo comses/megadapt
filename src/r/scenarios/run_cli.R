@@ -25,9 +25,9 @@ parser$add_argument("--infrastructure_decay",
 		    type="double", help="rate of infrastructure decay", required=T)
 parser$add_argument("--budget",
 		    type="double", help="annual budget for water authority", required=T)
-parser$add_argument("--half_sensitivity_d",
+parser$add_argument("--resident_action_efficiency_drainage",
 		    type="double", required=T, help="?")
-parser$add_argument("--half_sensitivity_ab",
+parser$add_argument("--resident_action_efficiency_potable",
 		    type="double", required=T, help="?")
 parser$add_argument("--climate_scenario",
 		    type="integer", required=T, help="index of climate scenario <1..12>")
@@ -78,8 +78,8 @@ maintenance_effectiveness_rate = as.numeric(args$effectiveness_maintenance)
 n_steps =  as.numeric(args$steps)
 infrastructure_decay_rate =  as.numeric(args$infrastructure_decay)
 budget =  as.numeric(args$budget)
-half_sensitivity_ab = as.numeric(args$half_sensitivity_ab)
-half_sensitivity_d = as.numeric(args$half_sensitivity_d)
+resident_action_efficiency_potable = as.numeric(args$resident_action_efficiency_potable)
+resident_action_efficiency_drainage = as.numeric(args$resident_action_efficiency_drainage)
 
 
 
@@ -92,8 +92,8 @@ half_sensitivity_d = as.numeric(args$half_sensitivity_d)
 	    n_steps = args$steps,
 	    infrastructure_decay_rate = args$infrastructure_decay,
 	    budget = args$budget,
-	    half_sensitivity_ab = args$half_sensitivity_ab,
-	    half_sensitivity_d = args$half_sensitivity_d,
+	    resident_action_efficiency_potable = args$resident_action_efficiency_potable,
+	    resident_action_efficiency_drainage = args$resident_action_efficiency_drainage,
 	    start_year = lubridate::ymd('2019-01-01'),
 	    climate_scenario = args$climate_scenario
 	    ),
@@ -116,8 +116,8 @@ params <- data.frame(experiment=args$experiment,
 		     steps=args$steps,
 		     infrastructure_decay=args$infrastructure_decay,
 		     budget=args$budget,
-		     half_sensitivity_d=args$half_sensitivity_d,
-		     half_sensitivity_ab=args$half_sensitivity_ab,
+		     resident_action_efficiency_drainage=args$resident_action_efficiency_drainage,
+		     resident_action_efficiency_potable=args$resident_action_efficiency_potable,
 		     climate_scenario=args$climate_scenario,
 		     rep=args$rep,
 		     key=args$key)
