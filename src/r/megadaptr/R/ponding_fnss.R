@@ -65,8 +65,7 @@ ponding_index_calculate <- function(weights, study_data) {
     (w_non_potable_capacity * fv_non_potable_capacity) +
     (w_f_esc * fv_f_esc)
 
-  tibble::tibble(censusblock_id = study_data$censusblock_id,
-                 ponding_index = ponding_index) #crear variable en dataframe
+  ponding_index
 }
 
 ################################################

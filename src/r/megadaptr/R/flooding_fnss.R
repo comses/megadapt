@@ -59,8 +59,7 @@ flooding_index_calculate <- function(weights, study_data) {
     (w_fv_non_potable_capacity * fv_non_potable_capacity) +
     (w_f_esc * fv_f_esc)
 
-  tibble::tibble(censusblock_id = study_data$censusblock_id,
-                 flooding_index = flooding_index) #crear variable en dataframe
+  flooding_index
 }
 
 #' Create a flooding delta model
@@ -110,7 +109,7 @@ call_fnss.flooding_delta_method_fnss <-
 
     tibble::tibble(
       censusblock_id = study_data$censusblock_id,
-      flooding_event_count = flooding_index,
+      flooding_event_count = flooding_event_count,
       flooding_index = flooding_index
     )
   }
