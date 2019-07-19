@@ -271,15 +271,15 @@ mental_model_update_risks <-
                                                                   1)], na.rm = T)
 
     ponding_current_sum_for_precipitation <-
-      sum(study_data$ponding_index, na.rm = T)
+      sum(study_data$ponding_event_count, na.rm = T)
     flooding_current_sum_for_precipitation <-
-      sum(study_data$flooding_index, na.rm = T)
+      sum(study_data$flooding_event_count, na.rm = T)
 
     ponding_current_sum_for_runoff <-
-      sum(study_data$ponding_index[which(study_data$runoff_presence == 1)], na.rm =
+      sum(study_data$ponding_event_count[which(study_data$runoff_presence == 1)], na.rm =
             T)
     flooding_current_sum_for_runoff <-
-      sum(study_data$flooding_index[which(study_data$runoff_presence == 1)], na.rm =
+      sum(study_data$flooding_event_count[which(study_data$runoff_presence == 1)], na.rm =
             T)
 
     weight_precipitation <-
