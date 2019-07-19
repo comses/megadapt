@@ -66,6 +66,7 @@ flooding_index_calculate <- function(weights, study_data) {
 #'
 #' @export
 #' @param weights a vector of weights
+#' @param index_weights a vector of weight for calcutating the flooding index
 #' @return an object of weights of class 'flooding_delta_method_fnss'
 flooding_delta_method_fnss_create <-
   function(weights = c(capacity = 0.1,

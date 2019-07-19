@@ -120,7 +120,8 @@ params_create <-
 #' @param ponding_fnss A ponding component.
 #' @param resident_fnss A resident component.
 #' @param sacmex_fnss A SACMEX component.
-#' @param water_scarcity_fnss A water scarcity component.
+#' @param water_scarcity_index_exposure_fnss A water scarcity exposure component.
+#' @param water_scarcity_index_sensitivity_fnss A water scarcity sensitivity component.
 #' @return An object of the "megadapt_dtss" class
 megadapt_dtss_create <- function(
   year,

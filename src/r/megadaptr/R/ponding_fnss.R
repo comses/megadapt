@@ -74,6 +74,7 @@ ponding_index_calculate <- function(weights, study_data) {
 #'
 #' @export
 #' @param weights A vector of weigth parameters of length=3
+#' @param index_weights A vector weights for caclulating the ponding index
 #' @return An object of class 'ponding_delta_method_fnss' to be used as arguments into the ponding index using "call_fnss.ponding_delta_method_fnss".
 ponding_delta_method_fnss_create <- function(
   weights = c(

@@ -160,13 +160,13 @@ call_fnss.resident_fnss <- function(resident_fnss, study_data, step_in_years, ..
   )
 }
 
+#' Create a decision strategy for residential investment
+#' @param study_data a data frame with the spatial units
+#' @param value_function_config A set of value function parameters
+#' @param mental_models An object of the mental model class
+#' @param params a set of parameters associated to residential investments
+#' @param step_in_years the number of years the simulation has run for
 resident_infrastructure_invest <-
-  #' Create a decision strategy for residential investment
-  #' @param study_data a data frame with the spatial units
-  #' @param value_function_config A set of value function parameters
-  #' @param mental_models An object of the mental model class
-  #' @param params a set of parameters associated to residential investments
-
     function(study_data,
            value_function_config,
            mental_models,
