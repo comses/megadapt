@@ -4,7 +4,9 @@ describe('a coupled mental model', {
   study_data <- tibble::tibble(
     resident_reports_ponding_count_mean = 1,
     resident_reports_flooding_count_mean = 1,
+    ponding_event_count = 1,
     ponding_index = 0.5,
+    flooding_event_count = 1,
     flooding_index = 0.5,
     runoff_presence = 1
   )
@@ -12,7 +14,7 @@ describe('a coupled mental model', {
   w <- mental_model_update_risks(unweighted_matrix_meta = uwm, study_data = study_data)
 
   it('should weight runoff more if runoff is increased', {
-    study_data$ponding_index = 0.9
+    study_data$ponding_event_count = 2
     w1 <- mental_model_update_risks(unweighted_matrix_meta = uwm, study_data = study_data)
     expect_gt(w1['Encharcamientos', 'Escurrimiento'], w['Encharcamientos', 'Escurrimiento'])
   })
