@@ -244,11 +244,11 @@ megadapt_create <- function(
     ))
 
   if (is.null(flooding_fnss)) {
-    flooding_fnss <- flooding_index_fnss_create()
+    flooding_fnss <- flooding_delta_method_fnss_create()
   }
 
   if (is.null(ponding_fnss)) {
-    ponding_fnss <- ponding_index_fnss_create()
+    ponding_fnss <- ponding_delta_method_fnss_create()
   }
 
   if (is.character(sacmex_fnss_creator)) {

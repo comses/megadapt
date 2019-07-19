@@ -77,9 +77,9 @@ ponding_index_calculate <- function(weights, study_data) {
 #' @return An object of class 'ponding_delta_method_fnss' to be used as arguments into the ponding index using "call_fnss.ponding_delta_method_fnss".
 ponding_delta_method_fnss_create <- function(
   weights = c(
-    capacity = 1,
-    precipitation = 1,
-    runoff = 1
+    capacity = 0.1,
+    precipitation = 0.25,
+    runoff = 0.25
   ),
   index_weights = c(
     capacity = 1,
@@ -125,7 +125,7 @@ call_fnss.ponding_delta_method_fnss <- function(fnss, study_data, ...) {
   ponding_index = ponding_index_calculate(weights = index_weights, study_data = study_data)
   tibble::tibble(
     censusblock_id = study_data$censusblock_id,
-    ponding_event_count = ponding_event_count,
+    ponding_event_count = pmax(ponding_event_count, 0),
     ponding_index = ponding_index
   )
 }

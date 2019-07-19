@@ -68,9 +68,9 @@ flooding_index_calculate <- function(weights, study_data) {
 #' @param weights a vector of weights
 #' @return an object of weights of class 'flooding_delta_method_fnss'
 flooding_delta_method_fnss_create <-
-  function(weights = c(capacity = 1,
-                       precipitation = 1,
-                       runoff = 1),
+  function(weights = c(capacity = 0.1,
+                       precipitation = 0.25,
+                       runoff = 0.25),
            index_weights = c(
              capacity = 1,
              flooding = 1,
@@ -109,7 +109,7 @@ call_fnss.flooding_delta_method_fnss <-
 
     tibble::tibble(
       censusblock_id = study_data$censusblock_id,
-      flooding_event_count = flooding_event_count,
+      flooding_event_count = pmax(flooding_event_count, 0),
       flooding_index = flooding_index
     )
   }
