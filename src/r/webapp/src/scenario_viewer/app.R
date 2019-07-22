@@ -46,17 +46,8 @@ body <- dashboardBody(
     ),
     column(width = 4,
            box(width = NULL, status = "warning",
-               uiOutput("municSelector")
-           ),
-           box(width = 475, status = "warning",
                uiOutput("municSelector"),
                uiOutput("plot_view")
-
-            ),
-            box(width = NULL, status = "warning",
-                uiOutput("mapUI")
-
-            )
            )
    )
   )
@@ -66,14 +57,11 @@ body <- dashboardBody(
 )
 
 dash <- dashboardSidebar(
-  width = 425, collapsed = TRUE,
   width = 300, collapsed = FALSE,
 
   sidebarMenu(
     # Setting id makes input$tabs give the tabName of currently-selected tab
     id = "tabs",
-    menuItem("Map Viewer", tabName = "results_tab", icon = icon("dashboard")),
-    menuItem("More Information", icon = icon("th"), tabName = "info_tab")# , badgeLabel = "new", badgeColor = "green")
     menuItem("Map Viewer", tabName = "results_tab", icon = icon("dashboard"))
     #menuItem("More Information", icon = icon("th"), tabName = "info_tab")# , badgeLabel = "new", badgeColor = "green")
 
@@ -81,9 +69,6 @@ dash <- dashboardSidebar(
 
 
   #uiOutput("factor_chooser"),
-  paste("This application shows the results of the agent-based model of the MEGADAPT project (Adaptation in a Megacity). The MEGADAPT model simulates the coupling
-        between biophysical processes and the decisions of residents and the water authority of Mexico City.
-        The aim of the model is to investigate with stakeholders the consequences of this coupling for the spatial distribution of socio-hydrological vulnerability in Mexico City." ),
   #paste("This application shows the results of the agent-based model of the MEGADAPT project (Adaptation in a Megacity). The MEGADAPT model simulates the coupling
   #      between biophysical processes and the decisions of residents and the water authority of Mexico City.
   #      The aim of the model is to investigate with stakeholders the consequences of this coupling for the spatial distribution of socio-hydrological vulnerability in Mexico City." ),
