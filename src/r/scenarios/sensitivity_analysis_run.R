@@ -16,8 +16,9 @@ SAConditions <- list(
   onCluster=F,
   municip=T,
   outStats=c("mean","max","min"),
-  oMetricNames = c("non_potable_percent_lacking","potable_water_system_intervention_count","potable_water_infrastructure_age","potable_water_vulnerability_index","non_potable_water_vulnerability_index"),
+  oMetricNames = c("household_potable_water_vulnerability","household_sewer_vulnerability","flooding_index","ponding_index","scarcity_index"),
   # oMetricNames=c("potable_water_vulnerability_index","non_potable_water_vulnerability_index"),
+  # oMetricNames = c("non_potable_percent_lacking","potable_water_system_intervention_count","potable_water_infrastructure_age","potable_water_vulnerability_index","non_potable_water_vulnerability_index"),
   communities = c(
     "Azcapotzalco",
     "Coyoacan",
@@ -40,35 +41,35 @@ SAConditions <- list(
 )
 
 
-runMod <- T
+runMod <- F
 
 # Input Parameters and their Names
 noParams <- 4 #number of parameters to take into account
 
 SAParams <- list(
   p1 = list(
-    name = "effectivity_newInfra",
+    name = "new_infrastructure_effectiveness_rate",
     min = 0.01,
     max = 0.3,
     isInteger = F
   ),
   p2 = list(
-    name = "effectivity_mantenimiento",
+    name = "maintenance_effectiveness_rate",
     min = 0.1,
     max = 0.3,
     isInteger = F
   ),
   p3 = list(
-    name = "decay_infra",
+    name = "infrastructure_decay_rate",
     min = 0.001,
     max = 1,
     isInteger = F
   ),
   p4 = list(
-    name = "Budget",
+    name = "budget",
     min = 24,
     max = 2428,
-    isInteger = F
+    isInteger = T
   ),
   p5 = list(
     name = "climate_scenario",
@@ -117,9 +118,10 @@ if (SAConditions$whichmodel == "book") {
 ################################################################################################
 ################################################################################################
 
-ABMats <- megadaptr:::createLinearMatrices(SAConditions, SAParams)
 
-resultsold <-
-  megadaptr:::VBSA(SAConditions, SAParams, oMetricNames, ABMats)
+resultsss <- megadaptr:::VBSA(SAConditions, SAParams)
 
-saveRDS(resultsold, "results")
+# saveRDS(resultsold, "results")
+
+print(SAConditions)
+
