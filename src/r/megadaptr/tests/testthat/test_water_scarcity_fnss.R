@@ -15,9 +15,11 @@ study_data <- tibble::tibble(
 
 describe('a water scarcity index', {
   value_function_config <- value_function_config_default()
-  water_scarcity_index_fnss <- water_scarcity_index_fnss_create(value_function_config = value_function_config)
+  water_scarcity_index_sensitivity_fnss <- water_scarcity_index_sensitivity_fnss_create(value_function_config = value_function_config)
+  water_scarcity_index_exposure_fnss <- water_scarcity_index_exposure_fnss_create(value_function_config = value_function_config)
 
   it('should run', {
-    water_scarcity_index <- call_fnss(water_scarcity_index_fnss, study_data)
+    water_scarcity_index_sensitivity <- call_fnss(water_scarcity_index_sensitivity_fnss, study_data)
+    water_scarcity_index_exposure <- call_fnss(water_scarcity_index_exposure_fnss, study_data)
   })
 })

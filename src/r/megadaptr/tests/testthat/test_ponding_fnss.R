@@ -13,15 +13,6 @@ study_data <- tibble::tibble(
   sewer_system_capacity_max = c(50, 50)
 )
 
-describe('a ponding index fnss', {
-  ponding_index_fnss <- ponding_index_fnss_create()
-
-  it('should evaluate between 0 and 1', {
-    ponding_df <- call_fnss(ponding_index_fnss, study_data)
-    expect_between(ponding_df$ponding_index, 0, 1)
-  })
-})
-
 describe('a ponding delta method fnss', {
   ponding_fnss <- ponding_delta_method_fnss_create()
   ponding_fnss_df <- call_fnss(ponding_fnss, study_data)
@@ -29,18 +20,18 @@ describe('a ponding delta method fnss', {
   it('should decrease if capacity increases', {
     study_data$sewer_system_capacity <- 2 * study_data$sewer_system_capacity
     ponding_fnss_high_cap_df <- call_fnss(ponding_fnss, study_data)
-    expect_gt(ponding_fnss_df$ponding_index[1], ponding_fnss_high_cap_df$ponding_index[1])
+    expect_gt(ponding_fnss_df$ponding_event_count[1], ponding_fnss_high_cap_df$ponding_event_count[1])
   })
 
   it('should increase if precipitation increases', {
     study_data$precipitation_volume <- study_data$precipitation_volume + 50
     ponding_fnss_high_precip_df <- call_fnss(ponding_fnss, study_data)
-    expect_lt(ponding_fnss_df$ponding_index[1], ponding_fnss_high_precip_df$ponding_index[1])
+    expect_lt(ponding_fnss_df$ponding_event_count[1], ponding_fnss_high_precip_df$ponding_event_count[1])
   })
 
   it('should increase if runoff increases', {
     study_data$runoff_volume <- study_data$runoff_volume + 1
     ponding_fnss_high_runoff_df <- call_fnss(ponding_fnss, study_data)
-    expect_lte(ponding_fnss_df$ponding_index[1], ponding_fnss_high_runoff_df$ponding_index[1])
+    expect_lte(ponding_fnss_df$ponding_event_count[1], ponding_fnss_high_runoff_df$ponding_event_count[1])
   })
 })

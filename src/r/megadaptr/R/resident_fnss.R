@@ -19,9 +19,9 @@ resident_determine_infrastructure_suitability <-
       )
     # agua insuficiente
     vf_Agua_insu <- sapply(
-      study_data$scarcity_index,
+      study_data$scarcity_index_sensitivity,
       FUN = convexa_decreciente,
-      xmax = max(study_data$scarcity_index),
+      xmax = max(study_data$scarcity_index_sensitivity),
       xmin = 0,
       gama = 0.01975
     )
@@ -132,45 +132,46 @@ resident_determine_infrastructure_suitability <-
 resident_fnss_create <-
   function(value_function_config,
            mental_model_strategy,
-           half_sensitivity_ab,
-           half_sensitivity_d) {
+           resident_action_efficiency_potable,
+           resident_action_efficiency_drainage) {
     config <- list(
       value_function_config = value_function_config,
       mental_model_strategy = mental_model_strategy,
       params = list(
-        half_sensitivity_ab = half_sensitivity_ab,
-        half_sensitivity_d = half_sensitivity_d
+        resident_action_efficiency_potable = resident_action_efficiency_potable,
+        resident_action_efficiency_drainage = resident_action_efficiency_drainage
       )
     )
     prepend_class(config, 'resident_fnss')
   }
 
 #' @method call_fnss resident_fnss
-call_fnss.resident_fnss <- function(resident_fnss, study_data) {
+call_fnss.resident_fnss <- function(resident_fnss, study_data, step_in_years, ...) {
   mental_models <- mental_model_resident_create(
     resident_limit_strategy = resident_fnss$mental_model_strategy,
-    study_data = study_data,
-    year = year
+    study_data = study_data
   )
   resident_infrastructure_invest(
     study_data = study_data,
     value_function_config = resident_fnss$value_function_config,
     mental_models = mental_models,
-    params = resident_fnss$params
+    params = resident_fnss$params,
+    step_in_years = step_in_years
   )
 }
 
+#' Create a decision strategy for residential investment
+#' @param study_data a data frame with the spatial units
+#' @param value_function_config A set of value function parameters
+#' @param mental_models An object of the mental model class
+#' @param params a set of parameters associated to residential investments
+#' @param step_in_years the number of years the simulation has run for
 resident_infrastructure_invest <-
-  #' Create a decision strategy for residential investment
-  #' @param study_data a data frame with the spatial units
-  #' @param value_function_config A set of value function parameters
-  #' @param mental_models An object of the mental model class
-  #' @param params a set of parameters associated to residential investments
-
     function(study_data,
            value_function_config,
            mental_models,
-           params) {
+           params,
+           step_in_years) {
     suitability <- resident_determine_infrastructure_suitability(
       study_data = study_data,
       value_function_config = value_function_config,
@@ -198,10 +199,9 @@ resident_infrastructure_invest <-
         household_sewer_sensitivity := {
           household_sewer_sensitivity[HM_LL] <-
             1 - (
-              household_sewer_intervention_count[HM_LL] / (
-                params$half_sensitivity_d + household_sewer_intervention_count[HM_LL]
+              household_sewer_intervention_count[HM_LL] / step_in_years
               )
-            )
+
           household_sewer_sensitivity
         },
         household_potable_water_invention_count := {
@@ -212,19 +212,17 @@ resident_infrastructure_invest <-
         household_potable_water_sensitivity := {
           household_potable_water_sensitivity[HM_Agua] <-
             1 - (
-              household_potable_water_invention_count[HM_Agua] / (
-                params$half_sensitivity_ab + household_potable_water_invention_count[HM_Agua]
-              )
+              household_potable_water_invention_count[HM_Agua] / step_in_years
             )
           household_potable_water_sensitivity
         },
         household_water_storage_tank_percent := {
           household_water_storage_tank_percent[HM_Agua] <-
-            household_water_storage_tank_percent[HM_Agua] + 1 / params$half_sensitivity_ab
+          household_water_storage_tank_percent[HM_Agua] + (params$resident_action_efficiency_potable / 10) # this menas that for an resident action efficiency of 1, in one step 10% of residents get a new tank (discuss it with the team!)
           household_water_storage_tank_percent
         },
-        household_potable_water_vulnerability = (household_potable_water_sensitivity * scarcity_index) / (1 + resident_asset_index),
-        household_sewer_vulnerability = (household_sewer_sensitivity * ponding_index) / (1 + resident_asset_index)
+        household_potable_water_vulnerability = ((1 - scarcity_index_sensitivity) ^ (1 - household_potable_water_sensitivity)) ^ (1 + resident_asset_index),
+        household_sewer_vulnerability = ((1- flooding_index) ^ (1 - household_sewer_sensitivity)) ^ (1 + resident_asset_index)
       ) %>%
       dplyr::select(
         censusblock_id,

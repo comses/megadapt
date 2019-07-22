@@ -85,8 +85,8 @@ value_function_config_default <- function() {
 #' The budget value is identical for potable and non potable infrastructure
 #' (if the budget is 200 then it is 200 for potable and 200 for non potable
 #' infrastructure)
-#' @param half_sensitivity_ab sensitivity to fresh water access
-#' @param half_sensitivity_d sensitivity to ponding and flooding
+#' @param resident_action_efficiency_potable sensitivity to fresh water access
+#' @param resident_action_efficiency_drainage sensitivity to ponding and flooding
 #' @param climate_scenario the climate scenario id used to lookup the climate
 #' scenario
 #' @return a parameter list used to configure a megadapt model
@@ -96,8 +96,8 @@ params_create <-
            n_steps = 5,
            infrastructure_decay_rate = 0.01,
            budget = 1200,
-           half_sensitivity_ab = 10,
-           half_sensitivity_d = 10,
+           resident_action_efficiency_potable = 0.5,
+           resident_action_efficiency_drainage = 0.5,
            climate_scenario=1) {
     list(
       new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
@@ -105,8 +105,8 @@ params_create <-
       n_steps = n_steps,
       infrastructure_decay_rate = infrastructure_decay_rate,
       budget = budget,
-      half_sensitivity_ab = half_sensitivity_ab,
-      half_sensitivity_d = half_sensitivity_d,
+      resident_action_efficiency_potable = resident_action_efficiency_potable,
+      resident_action_efficiency_drainage = resident_action_efficiency_drainage,
       climate_scenario = climate_scenario
     )
   }
@@ -120,7 +120,8 @@ params_create <-
 #' @param ponding_fnss A ponding component.
 #' @param resident_fnss A resident component.
 #' @param sacmex_fnss A SACMEX component.
-#' @param water_scarcity_fnss A water scarcity component.
+#' @param water_scarcity_index_exposure_fnss A water scarcity exposure component.
+#' @param water_scarcity_index_sensitivity_fnss A water scarcity sensitivity component.
 #' @return An object of the "megadapt_dtss" class
 megadapt_dtss_create <- function(
   year,
@@ -131,9 +132,11 @@ megadapt_dtss_create <- function(
   ponding_fnss,
   resident_fnss,
   sacmex_fnss,
-  water_scarcity_fnss
+  water_scarcity_index_sensitivity_fnss,
+  water_scarcity_index_exposure_fnss
 ) {
   config <- list(
+    initial_year = year,
     year = year,
     n_steps = n_steps,
     study_area = study_area,
@@ -142,7 +145,8 @@ megadapt_dtss_create <- function(
     ponding_fnss = ponding_fnss,
     resident_fnss = resident_fnss,
     sacmex_fnss = sacmex_fnss,
-    water_scarcity_fnss = water_scarcity_fnss
+    water_scarcity_index_sensitivity_fnss = water_scarcity_index_sensitivity_fnss,
+    water_scarcity_index_exposure_fnss = water_scarcity_index_exposure_fnss
   )
   prepend_class(config, 'megadapt_dtss')
 }
@@ -158,17 +162,19 @@ transition_dtss.megadapt_dtss <- function(megadapt_dtss) {
   resident_fnss <- megadapt_dtss$resident_fnss
   sacmex_fnss <- megadapt_dtss$sacmex_fnss
   study_data <- megadapt_dtss$study_area@data
-  water_scarcity_fnss <- megadapt_dtss$water_scarcity_fnss
+  water_scarcity_index_sensitivity_fnss <- megadapt_dtss$water_scarcity_index_sensitivity_fnss
+  water_scarcity_index_exposure_fnss <- megadapt_dtss$water_scarcity_index_exposure_fnss
   year <- megadapt_dtss$year
-
+  step_in_years <- year - megadapt_dtss$initial_year + 1
   climate_changes <- call_fnss(climate_fnss, study_data)
   climate_augmented_data <- apply_data_changes(study_data, climate_changes, join_columns = PK_JOIN_EXPR)
   flooding_changes <- call_fnss(flooding_fnss, climate_augmented_data)
   ponding_changes <- call_fnss(ponding_fnss, climate_augmented_data)
 
-  resident_changes <- call_fnss(resident_fnss, study_data)
+  resident_changes <- call_fnss(resident_fnss, study_data,step_in_years)
   sacmex_changes <- call_fnss(sacmex_fnss, year, study_data)
-  water_scarcity_index_changes <- call_fnss(water_scarcity_fnss, study_data)
+  water_scarcity_index_exposure_changes <- call_fnss(water_scarcity_index_exposure_fnss, study_data)
+  water_scarcity_index_sensitivity_changes <- call_fnss(water_scarcity_index_sensitivity_fnss, study_data)
 
   next_year_changes <- list(
     climate_changes,
@@ -176,7 +182,8 @@ transition_dtss.megadapt_dtss <- function(megadapt_dtss) {
     ponding_changes,
     resident_changes,
     sacmex_changes,
-    water_scarcity_index_changes
+    water_scarcity_index_sensitivity_changes,
+    water_scarcity_index_exposure_changes
   ) %>%
     purrr::reduce(dplyr::left_join, by = PK_JOIN_EXPR)
   new_study_data <- apply_data_changes(study_data, next_year_changes, join_columns = PK_JOIN_EXPR)
@@ -199,7 +206,8 @@ megadapt_initialize <- function(megadapt) {
     flooding_initialize(megadapt$flooding_fnss, study_data = .) %>%
     ponding_initialize(megadapt$ponding_fnss, study_data = .) %>%
     resident_initialize(megadapt$resident_fnss, study_data = .) %>%
-    water_scarcity_initialize(megadapt$water_scarcity_fnss, study_data = .)
+    water_scarcity_index_sensitivity_initialize(megadapt$water_scarcity_index_sensitivity_fnss, study_data = .) %>%
+    water_scarcity_index_exposure_initialize(megadapt$water_scarcity_index_exposure_fnss, study_data = .)
 
   megadapt$study_area@data <- study_data
   megadapt
@@ -231,17 +239,17 @@ megadapt_create <- function(
       n_steps = function(x) checkmate::check_int(x, lower = 0),
       infrastructure_decay_rate = function(x) checkmate::check_numeric(0.01, lower = 0, upper = 1),
       budget = function(x) checkmate::check_int(x, lower = 0),
-      half_sensitivity_ab = function(x) checkmate::check_int(x, lower = 1, upper = 20),
-      half_sensitivity_d = function(x) checkmate::check_int(x, lower = 1, upper = 20),
+      resident_action_efficiency_potable = function(x) checkmate::check_numeric(x, lower = 0, upper = 1),
+      resident_action_efficiency_drainage = function(x) checkmate::check_numeric(x, lower = 0, upper = 1),
       climate_scenario = function(x) checkmate::check_int(x, lower = 1, upper = 12)
     ))
 
   if (is.null(flooding_fnss)) {
-    flooding_fnss <- flooding_index_fnss_create()
+    flooding_fnss <- flooding_delta_method_fnss_create()
   }
 
   if (is.null(ponding_fnss)) {
-    ponding_fnss <- ponding_index_fnss_create()
+    ponding_fnss <- ponding_delta_method_fnss_create()
   }
 
   if (is.character(sacmex_fnss_creator)) {
@@ -262,8 +270,8 @@ megadapt_create <- function(
   resident_fnss = resident_fnss_create(
     value_function_config = value_function_config,
     mental_model_strategy = mental_models$resident_limit_strategy,
-    half_sensitivity_ab = params$half_sensitivity_ab,
-    half_sensitivity_d = params$half_sensitivity_d
+    resident_action_efficiency_potable = params$resident_action_efficiency_potable,
+    resident_action_efficiency_drainage = params$resident_action_efficiency_drainage
   )
   sacmex_fnss = sacmex_fnss_creator(
     value_function_config = value_function_config,
@@ -275,7 +283,10 @@ megadapt_create <- function(
     flooding_fnss = flooding_fnss,
     ponding_fnss = ponding_fnss
   )
-  water_scarcity_fnss = water_scarcity_index_fnss_create(value_function_config = value_function_config)
+  water_scarcity_index_sensitivity_fnss = water_scarcity_index_sensitivity_fnss_create(value_function_config = value_function_config)
+  water_scarcity_index_exposure_fnss = water_scarcity_index_exposure_fnss_create(value_function_config = value_function_config)
+
+
   megadapt_dtss_create(
     year = 2020,
     n_steps = params$n_steps,
@@ -285,7 +296,8 @@ megadapt_create <- function(
     ponding_fnss = ponding_fnss,
     resident_fnss = resident_fnss,
     sacmex_fnss = sacmex_fnss,
-    water_scarcity_fnss = water_scarcity_fnss
+    water_scarcity_index_sensitivity_fnss = water_scarcity_index_sensitivity_fnss,
+    water_scarcity_index_exposure_fnss = water_scarcity_index_exposure_fnss
   )
 }
 

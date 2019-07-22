@@ -32,7 +32,7 @@ repetitions = 5
 experiment = args.experiment_name
 climate_scenario = 1
 
-arguments_template = "\t--experiment %s --effectiveness_new_infra %0.2f --effectiveness_maintenance %0.2f --steps %s --infrastructure_decay %0.2f --budget %s --half_sensitivity_d %s --half_sensitivity_ab %s --climate_scenario %s --rep %s --key %s --mental_models %s --ponding_model %s --flooding_model %s --budget_model %s\n"
+arguments_template = "\t--experiment %s --effectiveness_new_infra %0.2f --effectiveness_maintenance %0.2f --steps %s --infrastructure_decay %0.2f --budget %s --resident_action_efficiency_drainage %s --resident_action_efficiency_potable %s --climate_scenario %s --rep %s --key %s --mental_models %s --ponding_model %s --flooding_model %s --budget_model %s\n"
 
 key = 0
 args_table = ""
@@ -41,16 +41,16 @@ for rep in range(repetitions):
         for effectiveness_maintenance in np.linspace(0.05, 0.1, 2):
             for infrastructure_decay in np.linspace(0.05, 0.1, 2):
                 for budget in np.linspace(120, 1200, 5):
-                    for half_sensitivity_d in np.linspace(5, 10, 2):
-                        for half_sensitivity_ab in np.linspace(5, 10, 2):
+                    for resident_action_efficiency_drainage in np.linspace(5, 10, 2):
+                        for resident_action_efficiency_potable in np.linspace(5, 10, 2):
                             args_table += arguments_template % (experiment,
                                                                 effectiveness_new_infra,
                                                                 effectiveness_maintenance,
                                                                 steps,
                                                                 infrastructure_decay,
                                                                 budget,
-                                                                half_sensitivity_d,
-                                                                half_sensitivity_ab,
+                                                                resident_action_efficiency_drainage,
+                                                                resident_action_efficiency_potable,
                                                                 climate_scenario,
                                                                 rep,
                                                                 key,

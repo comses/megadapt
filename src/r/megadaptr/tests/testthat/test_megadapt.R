@@ -57,7 +57,8 @@ describe('a megadapt model', {
     results <- simulate(megadapt)
 
     it('should have a water scarcity index within [0, 1]', {
-      expect_between(results$scarcity_index, 0, 1)
+      expect_between(results$scarcity_index_exposure, 0, 1)
+      expect_between(results$scarcity_index_sensitivity, 0, 1)
     })
 
     it('should have a percent with potable water within [0, 1]', {
