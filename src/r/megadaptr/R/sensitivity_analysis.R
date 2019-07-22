@@ -62,7 +62,6 @@ createLinearMatrices <- function(SAConds, SAParams) {
 #' @param SAConditions sensivity analysis configuration object
 #' @param SAParams sensitivity analysis input parameter sample space
 #' @param oMetricNames outcomes variable name vector
-#' @param ABMats scaled sobol matrix for samples of the input space
 VBSA <- function(SAConditions, SAParams, oMetricNames) {
 
   ABMats <- createLinearMatrices(SAConditions, SAParams)
@@ -239,44 +238,12 @@ assign_values_param_names <- function(values, pnames, SAConditions) {
 modify_megadapt_params <- function (megadapt,
                                     params,
                                     sacmex_fnss_creator = sacmex_seperate_action_budgets_fnss_create) {
-  assert_shape(
-    params,
-    shape = list(
-      new_infrastructure_effectiveness_rate = function(x) checkmate::check_numeric(x, lower = 0, upper = 1),
-      maintenance_effectiveness_rate = function(x) checkmate::check_numeric(x, lower = 0, upper = 1),
-      n_steps = function(x) checkmate::check_int(x, lower = 0),
-      infrastructure_decay_rate = function(x) checkmate::check_numeric(0.01, lower = 0, upper = 1),
-      budget = function(x) checkmate::check_int(x, lower = 0),
-      half_sensitivity_ab = function(x) checkmate::check_int(x, lower = 1, upper = 20),
-      half_sensitivity_d = function(x) checkmate::check_int(x, lower = 1, upper = 20),
-      climate_scenario = function(x) checkmate::check_int(x, lower = 1, upper = 12)
-    ))
-
-  if (is.character(sacmex_fnss_creator)) {
-    checkmate::assert_choice(sacmex_fnss_creator, choices = c('sacmex_seperate_action_budgets_fnss_create', 'sacmex_fnss_create'))
-    sacmex_fnss_creator <- get(sacmex_fnss_creator)
-  }
-  mental_models <- mental_model_constant_strategies()
-
-  value_function_config <- value_function_config_default()
-  megadapt$climate_fnss <- climate_fnss_create(params$climate_scenario)
-  megadapt$resident_fnss = resident_fnss_create(
-    value_function_config = value_function_config,
-    mental_model_strategy = mental_models$resident_limit_strategy,
-    half_sensitivity_ab = params$half_sensitivity_ab,
-    half_sensitivity_d = params$half_sensitivity_d
-  )
-  megadapt$sacmex_fnss = sacmex_fnss_creator(
-    value_function_config = value_function_config,
-    sewer_mental_model_strategy = mental_models$sewer_water_sacmex_limit_strategy,
-    potable_water_mental_model_strategy = mental_models$potable_water_sacmex_limit_strategy,
-    params = params,
-    potable_water_budget = params$budget,
-    sewer_budget = params$budget,
-    flooding_fnss = megadapt$flooding_fnss,
-    ponding_fnss = megadapt$ponding_fnss
-  )
-  megadapt$water_scarcity_fnss = water_scarcity_index_fnss_create(value_function_config = value_function_config)
+  megadapt_create(params = params,
+                  flooding_fnss = megadapt$flooding_fnss,
+                  ponding_fnss = megadapt$ponding_fnss,
+                  mental_models = megadapt$mental_models,
+                  sacmex_fnss_creator = megadapt$sacmex_fnss_creator,
+                  study_area = megadapt$study_area)
 
   return(megadapt)
 }
@@ -480,6 +447,7 @@ appl_summary_statistics <- function(matr) {
 #' @param results_table results table in long form
 #' @param commun community (any of the 16 communities or "Global") from which to generate the convergence plots. Defaults to Global
 #' @param summ_stat summary statistic(s) from which to generate the convergence plots. Allows to reduce the number of subplots. Defaults to all the statistics in SAConditions$outStats
+#' @param logScale logs the sample size in the x axis of the convergence plots
 plotSAConvergence <-
   function(
     results_table,

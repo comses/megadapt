@@ -16,9 +16,8 @@ SAConditions <- list(
   onCluster=F,
   municip=T,
   outStats=c("mean","max","min"),
-  oMetricNames = c("household_potable_water_vulnerability","household_sewer_vulnerability","flooding_index","ponding_index","scarcity_index"),
-  # oMetricNames=c("potable_water_vulnerability_index","non_potable_water_vulnerability_index"),
-  # oMetricNames = c("non_potable_percent_lacking","potable_water_system_intervention_count","potable_water_infrastructure_age","potable_water_vulnerability_index","non_potable_water_vulnerability_index"),
+  oMetricNames = c("household_potable_water_vulnerability", "household_sewer_vulnerability", "flooding_index",
+                   "ponding_index","scarcity_index_exposure", "scarcity_index_sensitivity"),
   communities = c(
     "Azcapotzalco",
     "Coyoacan",
@@ -41,7 +40,7 @@ SAConditions <- list(
 )
 
 
-runMod <- F
+runMod <- T
 
 # Input Parameters and their Names
 noParams <- 4 #number of parameters to take into account

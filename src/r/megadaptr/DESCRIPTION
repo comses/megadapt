@@ -22,6 +22,7 @@ Imports:
     future.apply,
     future.batchtools,
     fs (>= 1.2.0),
+    ggplot2,
     glue,
     htmltools,
     jsonlite,

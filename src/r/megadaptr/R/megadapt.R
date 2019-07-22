@@ -122,6 +122,7 @@ params_create <-
 #' @param sacmex_fnss A SACMEX component.
 #' @param water_scarcity_index_exposure_fnss A water scarcity exposure component.
 #' @param water_scarcity_index_sensitivity_fnss A water scarcity sensitivity component.
+#' @param sacmex_fnss_creator The function used to construct a sacmex component from its parameters
 #' @return An object of the "megadapt_dtss" class
 megadapt_dtss_create <- function(
   year,
@@ -133,7 +134,8 @@ megadapt_dtss_create <- function(
   resident_fnss,
   sacmex_fnss,
   water_scarcity_index_sensitivity_fnss,
-  water_scarcity_index_exposure_fnss
+  water_scarcity_index_exposure_fnss,
+  sacmex_fnss_creator
 ) {
   config <- list(
     initial_year = year,
@@ -146,7 +148,8 @@ megadapt_dtss_create <- function(
     resident_fnss = resident_fnss,
     sacmex_fnss = sacmex_fnss,
     water_scarcity_index_sensitivity_fnss = water_scarcity_index_sensitivity_fnss,
-    water_scarcity_index_exposure_fnss = water_scarcity_index_exposure_fnss
+    water_scarcity_index_exposure_fnss = water_scarcity_index_exposure_fnss,
+    sacmex_fnss_creator = sacmex_fnss_creator
   )
   prepend_class(config, 'megadapt_dtss')
 }
@@ -297,7 +300,8 @@ megadapt_create <- function(
     resident_fnss = resident_fnss,
     sacmex_fnss = sacmex_fnss,
     water_scarcity_index_sensitivity_fnss = water_scarcity_index_sensitivity_fnss,
-    water_scarcity_index_exposure_fnss = water_scarcity_index_exposure_fnss
+    water_scarcity_index_exposure_fnss = water_scarcity_index_exposure_fnss,
+    sacmex_fnss_creator = sacmex_fnss_creator
   )
 }
 
