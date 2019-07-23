@@ -17,7 +17,7 @@ resident_determine_infrastructure_suitability <-
         ycuts = c(1, 0.8, 0.6, 0.4, 0.2),
         xmax = max(study_data$urbangrowth, na.rm = T)
       )
-    # agua insuficiente
+    # Agua insuficiente
     vf_Agua_insu <- sapply(
       study_data$scarcity_index_sensitivity,
       FUN = convexa_decreciente,
@@ -202,7 +202,7 @@ resident_infrastructure_invest <-
           household_sewer_sensitivity[households_adapt_flooding] <-
             1 - (
               household_sewer_intervention_count[households_adapt_flooding] / step_in_years
-              )
+              ) ^ (1 - params$resident_action_efficiency_drainage)
 
           household_sewer_sensitivity
         },
@@ -215,7 +215,8 @@ resident_infrastructure_invest <-
           household_potable_water_sensitivity[households_adapt_water_scarcity] <-
             1 - (
               household_potable_water_invention_count[households_adapt_water_scarcity] / step_in_years
-            )
+            ) ^ (1 - params$resident_action_efficiency_potable)
+
           household_potable_water_sensitivity
         },
         household_water_storage_tank_percent := {
@@ -226,11 +227,13 @@ resident_infrastructure_invest <-
         household_resilience =ifelse(params$resilience_threshold <= resident_asset_index,
                                                    (1 - (params$resilience_threshold / resident_asset_index)) / (1 - params$resilience_threshold),
                                                    0),
-        household_potable_water_vulnerability = ((1 - scarcity_index_sensitivity) ^ (1 - household_potable_water_sensitivity)) ^ (1 + household_resilience),
-        household_sewer_vulnerability = ((1- flooding_index) ^ (1 - household_sewer_sensitivity)) ^ (1 + household_resilience)
+        household_potable_water_vulnerability = ((1 - scarcity_index_exposure) ^ (1 - household_potable_water_sensitivity)) ^ (1 + household_resilience),
+
+        household_sewer_vulnerability = ((1 - flooding_index) ^ (1 - household_sewer_sensitivity)) ^ (1 + household_resilience)
       ) %>%
       dplyr::select(
         censusblock_id,
+        household_resilience,
         household_sewer_intervention_count,
         household_sewer_sensitivity,
         household_potable_water_invention_count,
@@ -247,6 +250,7 @@ resident_infrastructure_invest <-
 resident_initialize <- function(resident_fnss, study_data) {
   study_data %>%
     dplyr::mutate(
+      household_resilience = 0,
       household_potable_water_invention_count = 0L,
       household_sewer_intervention_count = 0L,
       household_potable_water_sensitivity = 1,

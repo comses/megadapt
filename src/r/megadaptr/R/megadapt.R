@@ -99,7 +99,7 @@ params_create <-
            budget = 1200,
            resident_action_efficiency_potable = 0.5,
            resident_action_efficiency_drainage = 0.5,
-           resilience_threshold = 0.5,
+           resilience_threshold = 0.3,
            climate_scenario=1) {
     list(
       new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
