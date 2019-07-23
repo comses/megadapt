@@ -223,11 +223,11 @@ resident_infrastructure_invest <-
           household_water_storage_tank_percent[households_adapt_water_scarcity] + (params$resident_action_efficiency_potable / 10) # this menas that for an resident action efficiency of 1, in one step 10% of residents get a new tank (discuss it with the team!)
           household_water_storage_tank_percent
         },
-        household_potable_water_resilience =ifelse(params$resilience_threshold <= resident_asset_index,
+        household_resilience =ifelse(params$resilience_threshold <= resident_asset_index,
                                                    (1 - (params$resilience_threshold / resident_asset_index)) / (1 - params$resilience_threshold),
                                                    0),
-        household_potable_water_vulnerability = ((1 - scarcity_index_sensitivity) ^ (1 - household_potable_water_sensitivity)) ^ (1 + household_potable_water_resilience),
-        household_sewer_vulnerability = ((1- flooding_index) ^ (1 - household_sewer_sensitivity)) ^ (1 + resident_asset_index)
+        household_potable_water_vulnerability = ((1 - scarcity_index_sensitivity) ^ (1 - household_potable_water_sensitivity)) ^ (1 + household_resilience),
+        household_sewer_vulnerability = ((1- flooding_index) ^ (1 - household_sewer_sensitivity)) ^ (1 + household_resilience)
       ) %>%
       dplyr::select(
         censusblock_id,
