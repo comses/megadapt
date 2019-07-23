@@ -87,6 +87,7 @@ value_function_config_default <- function() {
 #' infrastructure)
 #' @param resident_action_efficiency_potable sensitivity to fresh water access
 #' @param resident_action_efficiency_drainage sensitivity to ponding and flooding
+#' @param resilience_threshold A threhold to define the resilient of residents
 #' @param climate_scenario the climate scenario id used to lookup the climate
 #' scenario
 #' @return a parameter list used to configure a megadapt model
@@ -98,6 +99,7 @@ params_create <-
            budget = 1200,
            resident_action_efficiency_potable = 0.5,
            resident_action_efficiency_drainage = 0.5,
+           resilience_threshold = 0.5,
            climate_scenario=1) {
     list(
       new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
@@ -107,6 +109,7 @@ params_create <-
       budget = budget,
       resident_action_efficiency_potable = resident_action_efficiency_potable,
       resident_action_efficiency_drainage = resident_action_efficiency_drainage,
+      resilience_threshold = resilience_threshold,
       climate_scenario = climate_scenario
     )
   }
@@ -244,6 +247,7 @@ megadapt_create <- function(
       budget = function(x) checkmate::check_int(x, lower = 0),
       resident_action_efficiency_potable = function(x) checkmate::check_numeric(x, lower = 0, upper = 1),
       resident_action_efficiency_drainage = function(x) checkmate::check_numeric(x, lower = 0, upper = 1),
+      resilience_threshold = function(x) checkmate::check_numeric(0.01, lower = 0, upper = 1),
       climate_scenario = function(x) checkmate::check_int(x, lower = 1, upper = 12)
     ))
 
@@ -274,7 +278,8 @@ megadapt_create <- function(
     value_function_config = value_function_config,
     mental_model_strategy = mental_models$resident_limit_strategy,
     resident_action_efficiency_potable = params$resident_action_efficiency_potable,
-    resident_action_efficiency_drainage = params$resident_action_efficiency_drainage
+    resident_action_efficiency_drainage = params$resident_action_efficiency_drainage,
+    resilience_threshold = params$resilience_threshold
   )
   sacmex_fnss = sacmex_fnss_creator(
     value_function_config = value_function_config,

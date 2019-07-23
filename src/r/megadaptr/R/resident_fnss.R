@@ -133,13 +133,15 @@ resident_fnss_create <-
   function(value_function_config,
            mental_model_strategy,
            resident_action_efficiency_potable,
-           resident_action_efficiency_drainage) {
+           resident_action_efficiency_drainage,
+           resilience_threshold) {
     config <- list(
       value_function_config = value_function_config,
       mental_model_strategy = mental_model_strategy,
       params = list(
         resident_action_efficiency_potable = resident_action_efficiency_potable,
-        resident_action_efficiency_drainage = resident_action_efficiency_drainage
+        resident_action_efficiency_drainage = resident_action_efficiency_drainage,
+        resilience_threshold = resilience_threshold
       )
     )
     prepend_class(config, 'resident_fnss')
