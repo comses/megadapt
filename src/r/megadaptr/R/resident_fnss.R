@@ -181,12 +181,12 @@ resident_infrastructure_invest <-
     )
 
     # find agebs that will adapt to reduce effects of flooding
-    HM_LL <-
+    households_adapt_flooding <-
       which(
         suitability$distance_ideal_House_mod_lluvia > suitability$distance_ideal_House_mod_agua
       )
     # find agebs that will adapt to reduce effects of water scarcity
-    HM_Agua <-
+    households_adapt_water_scarcity <-
       which(
         suitability$distance_ideal_House_mod_lluvia < suitability$distance_ideal_House_mod_agua
       )
@@ -194,36 +194,39 @@ resident_infrastructure_invest <-
     study_data %>%
       dplyr::mutate(
         household_sewer_intervention_count := {
-          household_sewer_intervention_count[HM_LL] <-
-            household_sewer_intervention_count[HM_LL] + 1
+          household_sewer_intervention_count[households_adapt_flooding] <-
+            household_sewer_intervention_count[households_adapt_flooding] + 1
           household_sewer_intervention_count
         },
         household_sewer_sensitivity := {
-          household_sewer_sensitivity[HM_LL] <-
+          household_sewer_sensitivity[households_adapt_flooding] <-
             1 - (
-              household_sewer_intervention_count[HM_LL] / step_in_years
+              household_sewer_intervention_count[households_adapt_flooding] / step_in_years
               )
 
           household_sewer_sensitivity
         },
         household_potable_water_invention_count := {
-          household_potable_water_invention_count[HM_Agua] <-
-            household_potable_water_invention_count[HM_Agua] + 1
+          household_potable_water_invention_count[households_adapt_water_scarcity] <-
+            household_potable_water_invention_count[households_adapt_water_scarcity] + 1
           household_potable_water_invention_count
         },
         household_potable_water_sensitivity := {
-          household_potable_water_sensitivity[HM_Agua] <-
+          household_potable_water_sensitivity[households_adapt_water_scarcity] <-
             1 - (
-              household_potable_water_invention_count[HM_Agua] / step_in_years
+              household_potable_water_invention_count[households_adapt_water_scarcity] / step_in_years
             )
           household_potable_water_sensitivity
         },
         household_water_storage_tank_percent := {
-          household_water_storage_tank_percent[HM_Agua] <-
-          household_water_storage_tank_percent[HM_Agua] + (params$resident_action_efficiency_potable / 10) # this menas that for an resident action efficiency of 1, in one step 10% of residents get a new tank (discuss it with the team!)
+          household_water_storage_tank_percent[households_adapt_water_scarcity] <-
+          household_water_storage_tank_percent[households_adapt_water_scarcity] + (params$resident_action_efficiency_potable / 10) # this menas that for an resident action efficiency of 1, in one step 10% of residents get a new tank (discuss it with the team!)
           household_water_storage_tank_percent
         },
-        household_potable_water_vulnerability = ((1 - scarcity_index_sensitivity) ^ (1 - household_potable_water_sensitivity)) ^ (1 + resident_asset_index),
+        household_potable_water_resilience =ifelse(params$resilience_threshold <= resident_asset_index,
+                                                   (1 - (params$resilience_threshold / resident_asset_index)) / (1 - params$resilience_threshold),
+                                                   0),
+        household_potable_water_vulnerability = ((1 - scarcity_index_sensitivity) ^ (1 - household_potable_water_sensitivity)) ^ (1 + household_potable_water_resilience),
         household_sewer_vulnerability = ((1- flooding_index) ^ (1 - household_sewer_sensitivity)) ^ (1 + resident_asset_index)
       ) %>%
       dplyr::select(
