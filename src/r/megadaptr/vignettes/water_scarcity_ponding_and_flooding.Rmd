@@ -5,8 +5,11 @@ date: "July 23, 2019"
 output: html_document
 ---
 
-\subsection{Índice de inundaciones}
+## Flooding Index
 
+English: The flooding index is obtained by a weigthed sum of value functions obtained from a set of criteria that describe the spatial variability in flooding risk. The set of criteria are: The historic frequency of flooding events, the valume of precipitation, the capacity of the sewer system, and the volume of runoff. Mathematically the index is defined as:
+
+Espan~ol: El índice de inundaciones se obtiene a partir de la combinación lineal ponderada de la función de valor de una serie de criterios que describen el fenómeno de inundaciones. Los criterios  son la frecuencia histórica de las inundaciones ($historic\_flooding\_freq$), el volumen de la precipitación ($prec\_v$), la capacidad de desalojo ($non\_potable\_capacity$) y el volumen de escorrentía ($v\_esc$). Matemáticamente se define como:
 \begin{eqnarray}
 flooding_{index} &=& w_{historic\_flooding\_freq}  fv_{historic\_flooding\_freq}\nonumber\\
 &+& w_{f\_prec\_v}  fv_{f\_prec\_v} \nonumber\\
@@ -18,12 +21,11 @@ flooding_{index} &=& w_{historic\_flooding\_freq}  fv_{historic\_flooding\_freq}
 p &=& \sum_{i=1}^{N_f} w_i x_i
 \end{eqnarray}
 
-El índice de inundaciones se obtiene a partir de la combinación lineal ponderada de la función de valor de una serie de criterios que describen el fenómeno de inundaciones. Los criterios  son la frecuencia histórica de las inundaciones ($historic\_flooding\_freq$), el volumen de la precipitación ($prec\_v$), la capacidad de desalojo ($non\_potable\_capacity$) y el volumen de escorrentía ($v\_esc$). Matemáticamente se define como
+
 donde $w_i$ representa la ponderación y $x_i$ la función de valor del estado del criterio $i$, para los $i=1, \dots, N_f$ criterios que intervienen en la descripción del índice de inundaciones.
 
-- Descripción de las funciones de valor-
 
-\subsection{Índice de encharcamientos}
+## Ponding index 
 
 \begin{eqnarray}
 ponding_{index} &=& w_{historic\_ponding\_freq} * fv_{historic\_ponding\_freq}\nonumber\\
@@ -32,13 +34,46 @@ ponding_{index} &=& w_{historic\_ponding\_freq} * fv_{historic\_ponding\_freq}\n
 &+& w_{f\_esc} * fv_{f\_esc}\nonumber
 \end{eqnarray}
 
-El índice de encharcamientos se obtiene a partir de la combinación lineal ponderada de la función de valor de una serie de criterios que describen el fenómeno de encharcamientos. Los criterios  involucrados son la frecuencia histórica de encharcamientos ($historic\_ponding\_freq$), el volumen de la precipitación ($prec\_v$), la capacidad de desalojo ($non\_potable\_capacity$) y la frecuencia de los eventos de escorrentía ($f\_esc$). Matemáticamente se define como
+
+English: To represent the risk associated to ponding and flooding a team of researchers developed, in consultation with Mexico CIty secretary of water management (SACMEX), indicators that take into consideration:
+
+1. The historic frequency of ponding and floding events.
+2. The volume of precipitation.
+3. The volume of runoff from mountain watershed, and
+4. The capacity of the sewer and storm water system.
+
+The index returns a value in each census block that should be interpreted as the frequency of events. Agents influence the capasity of the sewer and storm water system, and cliamte change can modify the vilume of precipitation and runoff. We therefore expect that this index will change over time in a simulation of the megadapt model for Mexico City.
+
+Espanol: El índice de encharcamientos se obtiene a partir de la combinación lineal ponderada de la función de valor de una serie de criterios que describen el fenómeno de encharcamientos. Los criterios  involucrados son la frecuencia histórica de encharcamientos ($historic\_ponding\_freq$), el volumen de la precipitación ($prec\_v$), la capacidad de desalojo ($non\_potable\_capacity$) y la frecuencia de los eventos de escorrentía ($f\_esc$). Matemáticamente se define como
 \begin{eqnarray}
 ponding_{index} &=& \sum_{i=1}^{N_p} w_i x_i
 \end{eqnarray}
+
 donde $w_i$ representa la ponderación y $x_i$ la función de valor del estado del criterio $i$, para los $i=1, \dots, N_p$ criterios que intervienen en la descripción del índice de inundaciones.
 
-\subsection{Índice de escasez (exposición)}
+## Water Scarcity Index
+
+English: The water scarcity index is constructed assuming that the risk of a census block to have potable water scarcity is a sum of a set of value functions associated to a set of criteria related to biophisical and infrastructure variables:
+1. The population size of the cencus blocks.
+
+2. The reports of the population associated to disruptions in the service.
+
+3. The socio-economic level of the census blocks, which is represented by the asset index in each cencus block.
+
+4. The proportion of houses without connetion to the potable water supply system.
+
+5. The critical areas for deliver potable water by the authority. The difficulties of the the authority has to provide potable to the census blocks.
+
+6. The level of adaptation of the resident, represented by the average number of tanks per resident in each census block.
+
+7. The potential of the censuc block to capture rainfall water.
+
+The index is divided between scarcity associated to the sensitivity of cencus block and to the exposure.
+
+### Exposure
+
+Espanol: Se representa como la combinación lineal ponderada de los $N_{s_e}$ criterios involucrados con la exposición: zonas críticas ($fv_{zonas\_crit}$), los días sin agua ($fv_{dias\_sagua}$), la edad de la infraestructura ($fv_{antiguedad}$), la proporción de viviendas sin conexión a la red de agua potable ($fv_{falta\_dist}$) y la presión hidráulica ($fv_{presion\_hid}$)
+
 
 \begin{eqnarray}
 scarcity\_exp_{index} &=&  (w_{zonas\_crit})(fv_{zonas\_crit}) + (w_{dias\_sagua})(fv_{dias\_sagua})\nonumber\\
@@ -46,20 +81,19 @@ scarcity\_exp_{index} &=&  (w_{zonas\_crit})(fv_{zonas\_crit}) + (w_{dias\_sagua
 &+& (w_{presion\_hid})(fv_{presion\_hid})\nonumber
 \end{eqnarray}
 
-Se representa como la combinación lineal ponderada de los $N_{s_e}$ criterios involucrados con la exposición: zonas críticas ($fv_{zonas\_crit}$), los días sin agua ($fv_{dias\_sagua}$), la edad de la infraestructura ($fv_{antiguedad}$), la proporción de viviendas sin conexión a la red de agua potable ($fv_{falta\_dist}$) y la presión hidráulica ($fv_{presion\_hid}$)
-\begin{eqnarray}
-scarcity\_exp_{index} &=& \sum_{i=1}^{N_{s_e}} w_i x_i
-\end{eqnarray}
 
 
-\subsection{Índice de escasez (sensibilidad)}
+### Sensitivity
+
+
+Espanol: Se representa como la combinación lineal ponderada de los $N_{s_s}$ criterios  involucrados con la sensibilidad: población por ageb ($fv_{pob\_ageb}$), el número total de cisternas por ageb ($fv_{num\_cisternas}$), el ingreso ($fv_{ingreso}$), la captura de agua($fv_{captura}$)
+
 
 \begin{eqnarray}
 scarcity\_sens_{index} &=& (w_{pob\_ageb})(fv_{pob\_ageb}) + (w_{num\_cisternas})(fv_{num\_cisternas})\nonumber\\
 &+& (w_{ingreso})(fv_{ingreso}) + (w_{captura})(fv_{captura})\nonumber
 \end{eqnarray}
 
-Se representa como la combinación lineal ponderada de los $N_{s_s}$ criterios  involucrados con la sensibilidad: población por ageb ($fv_{pob\_ageb}$), el número total de cisternas por ageb ($fv_{num\_cisternas}$), el ingreso ($fv_{ingreso}$), la captura de agua($fv_{captura}$)
 
 \begin{eqnarray}
 scarcity\_sens_{index} &=& \sum_{i=1}^{N_{s_s}} w_i x_i
