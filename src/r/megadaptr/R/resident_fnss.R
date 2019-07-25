@@ -67,7 +67,7 @@ resident_determine_infrastructure_suitability <-
       Valor_minimo_Y_en_X = max(study_data$garbage_index)
     )
     # Ponding
-    vf_pond <- study_data$ponding_index
+    vf_pond <- study_data$household_sewer_vulnerability
 
     # salud
     vf_H <-
@@ -199,10 +199,12 @@ resident_infrastructure_invest <-
           household_sewer_intervention_count
         },
         household_sewer_sensitivity := {
-          household_sewer_sensitivity[households_adapt_flooding] <-
-            1 - (
-              household_sewer_intervention_count[households_adapt_flooding] / step_in_years
-              ) ^ (1 - params$resident_action_efficiency_drainage)
+          household_sewer_sensitivity <- suitability$distance_ideal_House_mod_lluvia
+
+          #household_sewer_sensitivity[households_adapt_flooding] <-
+         #   1 - (
+          #    household_sewer_intervention_count[households_adapt_flooding] / step_in_years
+          #    ) ^ (1 - params$resident_action_efficiency_drainage)
 
           household_sewer_sensitivity
         },
@@ -212,10 +214,11 @@ resident_infrastructure_invest <-
           household_potable_water_invention_count
         },
         household_potable_water_sensitivity := {
-          household_potable_water_sensitivity[households_adapt_water_scarcity] <-
-            1 - (
-              household_potable_water_invention_count[households_adapt_water_scarcity] / step_in_years
-            ) ^ (1 - params$resident_action_efficiency_potable)
+          household_potable_water_sensitivity<- suitability$distance_ideal_House_mod_agua
+          #  household_potable_water_sensitivity[households_adapt_water_scarcity] <-
+        #    1 - (
+        #      household_potable_water_invention_count[households_adapt_water_scarcity] / step_in_years
+        #    ) ^ (1 - params$resident_action_efficiency_potable)
 
           household_potable_water_sensitivity
         },
