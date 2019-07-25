@@ -154,7 +154,7 @@ The residents are groups of people living in a neighborhood and taking actions w
 
 ### 4.4.1 Water scarcity Index
 
-The water scarcity index is constructed assuming that the risk of a census block to jave potable water scarcity is a multi-factor outcome that depends on:
+The water scarcity index is constructed assuming that the risk of a census block to have potable water scarcity is a sum of a set of value functions associated to a set of criteria related to biophisical and infrastructure variables:
 
 1. The adaptation of the population to water scarcity
 

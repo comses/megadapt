@@ -1,0 +1,13 @@
+---
+title: "Value Functions"
+date: "July 24, 2019"
+output: html_document
+---
+
+This procedure standardizes each criterion using normalization functions $x_{ijvt}^k$ needed to evaluate the distance to the ideal point of each census block $j$ related to each action $k$ and system or actor $v$. This procedure is called in every decision cycle to update the value of the criteria. 
+Different procedures are implemented to capture different functional forms. Generally, the procedures take the following notation:
+$$x_{i,j,v,t}^k = f(A_{i,j,t}, \rho_{i,v}^k)$$
+
+where $x_{i,j,v,t}^k$ is the perceived magnitude of stimulus defined by the value of attribute $i$ in census block $j$ at time $t$, $A_{i,j,t}$ and a set of control parameters  $\rho_{i,v}^k$ to ensure that $x_{i,j,v,t}^k \in [0,1],$ given the scale of the attributes and it relevance to each agent.  
+
+A set of empirical functions and its parameter values were obtained from a consultation with the water authority of Mexico City (SACMEX). For those functions without empirical information to obtain parameters and the type of function, expert knowledge was used. 

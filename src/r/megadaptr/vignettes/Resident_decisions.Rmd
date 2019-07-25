@@ -1,0 +1,15 @@
+---
+title: "Resident decision making process"
+author: "Andres Baeza"
+date: "July 24, 2019"
+output: html_document
+---
+
+In the current implementation, residents can take two actions: They can modify their houses to reduce their sensitivity to exposure to flooding events or they can modify their house to reduce the sensitity to the exposure of water sarcity.
+The residents calculate the distance to the ideal point. A meassure that is computed using the set of value functions that connect the action to a set of criteria from the Analitical Network Process model (ANP model).
+
+For each census block $j$ and action $k$, the calculation of the ideal point $d_{j,t}^k$ is done using the equation described in the document "site_selection_and_site_suitability.Rmd".
+
+Each time step $t$, the residents in census block $j$ ask the following question: Is $d_{j,t}^k1 >d_{j,t}^k1$?
+If, indeed $d_{j,t}^k1 >d_{j,t}^k1$, then the agent chooses action 1 (Reduce the sensitity to the exposure to flooding). If  instead $d_{j,t}^k1 < d_{j,t}^k1$ of action 2 (Reduce the sensitity to the exposure of water sarcity).
+
