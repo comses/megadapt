@@ -1,20 +1,25 @@
 #' Create possible input parameter combinations for running the sensitivity analysis
 #'
-#' @param SAConds sensitivity analysis configuration object
-#' @param SAParams sensitivity analysis input parameter sample space
+#' @param SA_conds sensitivity analysis configuration object
+#' @param SA_params sensitivity analysis input parameter sample space
 #' @return input parameter combinations as an N-dimensional array
-createLinearMatrices <- function(SAConds, SAParams) {
-  N <- 2 ^ SAConds$exp.max
-  k <- length(SAParams)
+createLinearMatrices <- function(SA_conds, SA_params) {
+  N <- 2 ^ SA_conds$exp_max
+  k <- length(SA_params)
+  param_names <- NULL
+  for (pname in 1:length(SA_params)) {
+    param_names[pname] <- SA_params[[pname]]$name
+  }
+  matrix_names <- c("A","B", param_names)
 
   interc <- rep(0, k)
   for (i in 1:k) {
-    interc[i] <- SAParams[[i]]$min
+    interc[i] <- SA_params[[i]]$min
   }
 
   slope <- rep(0, k)
   for (j in 1:k) {
-    slope[j] <- (SAParams[[j]]$max - SAParams[[j]]$min)
+    slope[j] <- (SA_params[[j]]$max - SA_params[[j]]$min)
   }
 
 
@@ -23,19 +28,22 @@ createLinearMatrices <- function(SAConds, SAParams) {
   for (i in 1:(2 * k)) {
     if (i <= k) {
       S[, i] <- S[, i] * slope[i] + interc[i]
-      if (SAParams[[i]]$isInteger == T) {
+      if (SA_params[[i]]$isInteger == T) {
         S[, i] = round(S[, i])
       }
     } else {
       S[, i] = S[, i] * slope[i - k] + interc[i - k]
-      if (SAParams[[i - k]]$isInteger == T) {
+      if (SA_params[[i - k]]$isInteger == T) {
         S[, i] = round(S[, i])
       }
     }
   }
 
 
-  ABMats <- array(dim = c(N, k, (k + 2)))
+  ABMats <- array(dim = c(N, k, (k + 2)),
+                  dimnames = list("sample_number" = 1:N,
+                               "x_i" = param_names,
+                               "matrix_name" = matrix_names))
   ABMats[, , ] <- S[1:N, 1:k]
   ABMats[, , 2] <- S[1:(N), (k + 1):(2 * k)]
   for (j in 1:k) {
@@ -59,168 +67,372 @@ createLinearMatrices <- function(SAConds, SAParams) {
 
 #'Sensitivity Analysis. Produces two indexes (first-order and total-order) per variable studied.
 #'
-#' @param SAConditions sensivity analysis configuration object
-#' @param SAParams sensitivity analysis input parameter sample space
-#' @param oMetricNames outcomes variable name vector
-VBSA <- function(SAConditions, SAParams, oMetricNames) {
+#' @param model_f function that configures and runs the model to be analyzed
+#' @param SA_conditions sensivity analysis configuration object
+#' @param SA_params sensitivity analysis input parameter sample space
+VBSA <- function(model_f, SA_conditions, SA_params) {
 
-  ABMats <- createLinearMatrices(SAConditions, SAParams)
+  ABMats <- createLinearMatrices(SA_conditions, SA_params)
 
-  Y <- runSimulations(SAConditions, SAParams, ABMats)
+  Y <- runSimulations(model_f = model_f, SA_conditions = SA_conditions, SA_params = SA_params, ABMats = ABMats)
 
-  resultss <- calcSensitivityIndices(SAConditions, SAParams, Y)
+  resultss <- calcSensitivityIndices(SA_conditions = SA_conditions, SA_params = SA_params, Y = Y)
 
-  outt <- longFormThis(outs = Y, SA = resultss, SAConditions = SAConditions)
+  outt <- longFormThis(outs = Y, SA = resultss, SA_conditions = SA_conditions)
 
   return(outt)
 }
 
+
 ################################################################################################
 ################################################################################################
 
-runSimulations <- function (SAConditions, SAParams, ABMats) {
+runSimulations <- function (model_f, SA_params, SA_conditions, ABMats) {
 
-  if (SAConditions$onCluster) {
+  if (SA_conditions$on_cluster) {
     future::plan(future::multisession)
   } else {
     future::plan(future::sequential)
   }
 
-  exp.min <- SAConditions$exp.min
-  exp.max <- SAConditions$exp.max
-  maxN <- 2 ^ exp.max
-  k <- length(SAParams)
-  noStats <- length(SAConditions$outStats)
-  communities <- SAConditions$communities
-  oMetricNames <- SAConditions$oMetricNames
-  useThisFunction <- match.fun(SAConditions$whichmodel)
-
-  if (runMod) {
-    sample_number <- as.character(1:maxN)
-    AB_matrices_numbers <- paste("AB", 1:k, sep="")
-    matrix_names <- c("A","B", AB_matrices_numbers)
-
-    #Create array of results: number of rows corresponds to number of outcome variables, columns correspond to rows in ABMats (1<j<N), and 3rd dim corresponds to the matrices (1<i<k+2), where 1=A, 2=B, 3:end=ABi
-    Yi <- array(dim = c(length(oMetricNames), maxN, (dim(ABMats)[3])),
-                dimnames = list( oMetricNames,
-                                 sample_number,
-                                 matrix_names))
-    if (SAConditions$municip) {
-      # 2 dim now is 17 (number of mun + total), shifted the rest dims
-      Yi <-
-        array(dim = c(length(oMetricNames) * noStats,
-                      length(communities),
-                      maxN,
-                      (dim(ABMats)[3])),
-              dimnames = list(NULL,
-                              communities,
-                              sample_number,
-                              matrix_names))
-    }
-
-    #Create megadapt object
-    megadapt <- megadapt_create(params = params_create(n_steps = SAConditions$simyears))
-
-    param_names <- NULL
-    for (pname in 1:length(SAParams)) {
-      param_names[pname] <- SAParams[[pname]]$name
-    }
-
-    # Yi <- future.apply::future_apply(ABMats, c(1, 3), function(x) useThisFunction(x, megadapt, SAConditions, oMetricNames, param_names))
-
-    Yi <- apply(ABMats, c(1, 3), function(x) useThisFunction(x, megadapt, SAConditions, oMetricNames, param_names))
+  if (SA_conditions$run_model) {
+    # Yi <- future.apply::future_apply(ABMats, c(1, 3), function(x) model_f(x))
+    Yi <- apply(ABMats, c(1, 3), function(x) model_f(x))
+    # Yi <- readRDS("rreturn")
 
 
-    if (SAConditions$municip) {
-      Y <- array(unlist(Yi),
-                 dim = c(
-                   length(communities),
-                   length(oMetricNames) * noStats,
-                   maxN,
-                   (dim(ABMats)[3])),
-                 dimnames = list("community" = communities,
-                                 "target_statistic" = colnames(Yi[[1]]),
-                                 "number_of_sample" = sample_number,
-                                 "matrix_name" = matrix_names))
-      Y <- aperm(Y, c(3, 4, 1, 2))
-      saveRDS(Y, "modelOuts")
+    if (is.null(Yi[1,1][[1]]$dims)) {
 
-    } else if (length(oMetricNames) > 1) {
-      Y <- aperm(Yi, c(2, 3, 1))
-      dimnames(Y) <- list("number_of_sample" = sample_number,
-                          "matrix_name" = matrix_names,
-                          "target_statistic" = oMetricNames)
+      Y_dims <- c(length(Yi[,1]),
+                  length(Yi[1,]))
+      Y_dimnames <- dimnames(Yi)
 
-      saveRDS(Y, "modelOuts")
+      Yi_metrics <- list()
+      Yi_metrics_place <- 1
+      for (Y_row in 1:length(Yi[,1])) {
+        for (Y_col in 1:length(Yi[1,])) {
+          Yi_metrics[[Yi_metrics_place]] <- Yi[Y_row, Y_col][[1]]$metrics
+          Yi_metrics_place <- Yi_metrics_place + 1
+        }
+      }
+
+      Y <- array(unlist(Yi_metrics),
+                 dim = Y_dims,
+                 dimnames = Y_dimnames)
+
     } else {
-      Y <- Yi
+      Y_dims <- c(Yi[1,1][[1]]$dims,
+                  length(Yi[,1]),
+                  length(Yi[1,]))
+      Y_extra_dims <- dimnames(Yi[1,1][[1]]$metrics)
+      Y_dimnames <- c(Y_extra_dims,dimnames(Yi))
+
+      Yi_metrics <- list()
+      Yi_metrics_place <- 1
+      for (Y_row in 1:length(Yi[,1])) {
+        for (Y_col in 1:length(Yi[1,])) {
+          Yi_metrics[[Yi_metrics_place]] <- Yi[Y_row, Y_col][[1]]$metrics
+          Yi_metrics_place <- Yi_metrics_place + 1
+        }
+      }
+
+      Y <- array(unlist(Yi_metrics),
+                 dim = Y_dims,
+                 dimnames = Y_dimnames)
+
+      Y <- aperm(Y,c(3,4,1,2))
     }
+
+    saveRDS(Y, "modelOuts")
 
   } else {
     Y <- readRDS("modelOuts")
   }
 
   return(Y)
+
 }
 
+
+#
+#     max_N <-2^SA_conditions$exp_max
+#     sample_number <- as.character(1:max_N)
+#     param_names <- NULL
+#     for (pname in 1:length(SA_params)) {
+#       param_names[pname] <- SA_params[[pname]]$name
+#     }
+#     matrix_names <- c("A","B", param_names)
+#
+#
+#     Y <- array(unlist(Yi),
+#                dim = )
+#
+#     if (is.null(Yi[[1]]$Mun)) { # model_f is returning the same "muns" vector every time it is called by the apply() function. Any way to avoid this? It seems to create innecesary memory use (if multiplied by ~1000 when running a real SA)
+#       Y <- array(unlist(Yi),
+#                  dim = c(
+#                    length(Yi[,1]),
+#                    length(Yi[1,]),
+#                    length(Yi[[1]]$Mun),
+#                    length(namesYi[[1]][-1])
+#                  ))
+#       # Y <- aperm(Y, c(2, 3, 1))
+#       dimnames(Y) <- list("number_of_sample" = sample_number,
+#                           "matrix_or_param_name" = matrix_names,
+#                           "target_statistic" = colnames(Yi[[1]]))
+#
+#       saveRDS(Y, "modelOuts")
+#
+#     } else {
+#
+#       Y <- array(unlist(Yi$metrics),
+#                  dim = c(
+#                    length(Yi[,1]),
+#                    length(Yi[1,]),
+#                    length(Yi[[1]]$Mun),
+#                    length(names(Yi[[1]][-1]))
+#                    ),
+#                    # length(Yi[[1]][[1]]),
+#                    # length(Yi[[1]]),
+#                    # max_N,
+#                    # (dim(ABMats)[3])),
+#                  dimnames = list(dimnames(ABMats)[1],
+#                                  dimnames(ABMats)[3],
+#                                  "community" = Yi[[1]]$Mun,
+#                                  "target_statistic" = names(Yi[[1]][-1])
+#                                  ))
+#
+#       # Y <- aperm(Y, c(3, 4, 1, 2))
+#       saveRDS(Y, "modelOuts")
+#     }
+#
+#   } else {
+#     Y <- readRDS("modelOuts")
+#   }
+#
+#   return(Y)
+#
+# }
+
+
+#
+#   if (SA_conditions$onCluster) {
+#     future::plan(future::multisession)
+#   } else {
+#     future::plan(future::sequential)
+#   }
+#
+#   exp_min <- SA_conditions$exp_min
+#   exp_max <- SA_conditions$exp_max
+#   maxN <- 2 ^ exp_max
+#   k <- length(SA_params)
+#   noStats <- length(SA_conditions$outStats)
+#   communities <- SA_conditions$communities
+#   oMetricNames <- SA_conditions$oMetricNames
+#   useThisFunction <- match.fun(SA_conditions$whichmodel)
+#
+#   if (runMod) {
+#     sample_number <- as.character(1:maxN)
+#     AB_matrices_numbers <- paste("AB", 1:k, sep="")
+#     matrix_names <- c("A","B", AB_matrices_numbers)
+#
+#     #Create array of results: number of rows corresponds to number of outcome variables, columns correspond to rows in ABMats (1<j<N), and 3rd dim corresponds to the matrices (1<i<k+2), where 1=A, 2=B, 3:end=ABi
+#     Yi <- array(dim = c(length(oMetricNames), maxN, (dim(ABMats)[3])),
+#                 dimnames = list( oMetricNames,
+#                                  sample_number,
+#                                  matrix_names))
+#     if (SA_conditions$municip) {
+#       # 2 dim now is 17 (number of mun + total), shifted the rest dims
+#       Yi <-
+#         array(dim = c(length(oMetricNames) * noStats,
+#                       length(communities),
+#                       maxN,
+#                       (dim(ABMats)[3])),
+#               dimnames = list(NULL,
+#                               communities,
+#                               sample_number,
+#                               matrix_names))
+#       Y <- aperm(Y, c(3, 4, 1, 2))
+#       saveRDS(Y, "modelOuts")
+#     }
+#
+#     #Create megadapt object
+#     megadapt <- megadapt_create(params = params_create(n_steps = SA_conditions$simyears))
+#
+#     param_names <- NULL
+#     for (pname in 1:length(SA_params)) {
+#       param_names[pname] <- SA_params[[pname]]$name
+#     }
+#
+#     # Yi <- future.apply::future_apply(ABMats, c(1, 3), function(x) useThisFunction(x, megadapt, SA_conditions, oMetricNames, param_names))
+#
+#     Yi <- apply(ABMats, c(1, 3), function(x) useThisFunction(x, megadapt, SA_conditions, oMetricNames, param_names))
+#
+#
+#     if (SA_conditions$municip) {
+#       Y <- array(unlist(Yi),
+#                  dim = c(
+#                    length(communities),
+#                    length(oMetricNames) * noStats,
+#                    maxN,
+#                    (dim(ABMats)[3])),
+#                  dimnames = list("community" = communities,
+#                                  "target_statistic" = colnames(Yi[[1]]),
+#                                  "number_of_sample" = sample_number,
+#                                  "matrix_name" = matrix_names))
+#       Y <- aperm(Y, c(3, 4, 1, 2))
+#       saveRDS(Y, "modelOuts")
+#
+#     } else if (length(oMetricNames) > 1) {
+#       Y <- aperm(Yi, c(2, 3, 1))
+#       dimnames(Y) <- list("number_of_sample" = sample_number,
+#                           "matrix_name" = matrix_names,
+#                           "target_statistic" = oMetricNames)
+#
+#       saveRDS(Y, "modelOuts")
+#     } else {
+#       Y <- Yi
+#     }
+#
+#   } else {
+#     Y <- readRDS("modelOuts")
+#   }
+#
+#   return(Y)
+# }
+
+################################################################################################
+################################################################################################
+#
+# # Function that gets the summary statistic from the variables of interest
+# modelMetrics <- function(x, megadapt, SA_conditions, oMetricNames, param_names) {
+#   #Assign values to variables
+#   new_params <- assign_values_param_names(x, param_names, SA_conditions)
+#
+#   new_p_list <- do.call(params_create,new_params)
+#
+#   # Add parameters to the megadapt object
+#   megadapt <- modify_megadapt_model(megadapt, new_p_list)
+#
+#   #Run model and get results from last year
+#   results <- simulate(megadapt)
+#
+#   lastT <- max(results$year)
+#
+#   summary_funcs <- as.list(SA_conditions$outStats)
+#   names(summary_funcs) <- SA_conditions$outStats
+#
+#   if (SA_conditions$municip) {
+#     Vlast <-
+#       subset(results, year == lastT, select = c("geographic_id", oMetricNames))
+#     Vlast$Mun <-
+#       substr(Vlast$geographic_id, start = 1, stop = 5)
+#
+#     metrics <- dplyr::group_by(Vlast, Mun) %>% dplyr::summarise_at(oMetricNames, summary_funcs, na.rm=TRUE) %>%
+#       dplyr::select(-Mun) %>% dplyr::ungroup()
+#     total<-dplyr::summarise_at(Vlast, oMetricNames, summary_funcs, na.rm=TRUE)
+#     metrics<-rbind(metrics,total)
+#
+#   } else {
+#     Vlast <- subset(results, year == lastT, select = oMetricNames)
+#     metrics <- apply(Vlast, 2, function(x)
+#       mean(x, na.rm = T))
+#   }
+#
+#   return(metrics)
+# # }
+#
+# # Toy function to check everything else about SA makes sense
+# toyFunction <- function(x, megadapt, SA_conditions, oMetricNames, param_names) {
+#   Vlast <- matrix(c(x, x / 2), ncol = 2)
+#   means <- apply(Vlast, 2, function(x) mean(x, na.rm = T))
+#   return(means)
+# }
+#
+# # Example from book chapter to confirm we are getting same behavior (not getting exactly same values, maybe due to the use of a different Sobol generator)
+# bookEx <- function(x, megadapt, SA_conditions, oMetricNames, param_names) {
+#   y = 3 * (x[1] ^ 2) + 2 * (x[1] * x[2]) - 2 * x[3]
+#   return(y)
+# }
+#
+
 ################################################################################################
 ################################################################################################
 
-# Function that gets the summary statistic from the variables of interest
-modelMetrics <- function(x, megadapt, SAConditions, oMetricNames, param_names) {
-  #Assign values to variables
-  new_params <- assign_values_param_names(x, param_names, SAConditions)
+megadapt_superficial_params_simulator <- function(megadapt_conds, SA_params) {
 
-  new_p_list <- do.call(params_create,new_params)
+  megadapt <- megadapt_create(params = params_create(n_steps = megadapt_conds$sim_years))
 
-  # Add parameters to the megadapt object
-  megadapt <- modify_megadapt_params(megadapt, new_p_list)
-
-  #Run model and get results from last year
-  results <- simulate(megadapt)
-
-  lastT <- max(results$year)
-
-  summary_funcs <- as.list(SAConditions$outStats)
-  names(summary_funcs) <- SAConditions$outStats
-
-  if (SAConditions$municip) {
-    Vlast <-
-      subset(results, year == lastT, select = c("geographic_id", oMetricNames))
-    Vlast$Mun <-
-      substr(Vlast$geographic_id, start = 1, stop = 5)
-
-    metrics <- dplyr::group_by(Vlast, Mun) %>% dplyr::summarise_at(oMetricNames, summary_funcs, na.rm=TRUE) %>%
-      dplyr::select(-Mun) %>% dplyr::ungroup()
-    total<-dplyr::summarise_at(Vlast, oMetricNames, summary_funcs, na.rm=TRUE)
-    metrics<-rbind(metrics,total)
-
-  } else {
-    Vlast <- subset(results, year == lastT, select = oMetricNames)
-    metrics <- apply(Vlast, 2, function(x)
-      mean(x, na.rm = T))
+  param_names <- NULL
+  for (pname in 1:length(SA_params)) {
+    param_names[pname] <- SA_params[[pname]]$name
   }
 
-  return(metrics)
+  summary_funcs <- as.list(megadapt_conds$out_stats)
+  names(summary_funcs) <- megadapt_conds$out_stats
+  out_metric_names <- megadapt_conds$out_metric_names
+
+  function(x) {
+
+    #Assign values to variables
+    new_params <- assign_values_param_names(x, param_names, megadapt_conds)
+
+    new_p_list <- do.call(params_create,new_params)
+
+    # Add parameters to the megadapt object
+    megadapt <- modify_megadapt_model(megadapt, new_p_list)
+
+    #Run model and get results from last year
+    results <- simulate(megadapt)
+
+    lastT <- max(results$year)
+
+    if (megadapt_conds$municip) {
+      Vlast <- subset(results, year == lastT, select = c("geographic_id", out_metric_names))
+      Vlast$Mun <- substr(Vlast$geographic_id, start = 1, stop = 5)
+
+      metrics <- dplyr::group_by(Vlast, Mun) %>% dplyr::summarise_at(out_metric_names, summary_funcs, na.rm=TRUE)
+      total <- dplyr::summarise_at(Vlast, out_metric_names, summary_funcs, na.rm=TRUE)
+      total$Mun <- "Global"
+      metrics <- rbind(metrics,total)
+      # muns <- metrics$Mun
+      muns <- community_names()
+      metrics <- dplyr::select(metrics, -Mun)
+      metrics_a <- simplify2array(metrics)
+      dimnames(metrics_a) <- list("communities" = muns,
+                                 "target_statistic" = colnames(metrics))
+      # out_metrics <- list(metrics = metrics,
+      #                     muns = muns)
+
+    } else {
+      Vlast <- subset(results, year == lastT, select = out_metric_names)
+      metrics <- apply(Vlast, 2, function(x) mean(x, na.rm = T))
+      metrics_a <- metrics
+      # out_metrics <- list(metrics = metrics,
+      #                     muns = NULL)
+    }
+
+    rreturn <- list(metrics = metrics_a,
+                    dims = dim(metrics_a))
+    saveRDS(rreturn,"rreturn")
+    return(rreturn)
+  }
+
+
 }
 
-# Toy function to check everything else about SA makes sense
-toyFunction <- function(x, megadapt, SAConditions, oMetricNames, param_names) {
-  Vlast <- matrix(c(x, x / 2), ncol = 2)
-  means <- apply(Vlast, 2, function(x) mean(x, na.rm = T))
-  return(means)
-}
+book_example_simulator <- function() {
+  function(x) {
+    y = 3 * (x[1] ^ 2) + 2 * (x[1] * x[2]) - 2 * x[3]
 
-# Example from book chapter to confirm we are getting same behavior (not getting exactly same values, maybe due to the use of a different Sobol generator)
-bookEx <- function(x, megadapt, SAConditions, oMetricNames, param_names) {
-  y = 3 * (x[1] ^ 2) + 2 * (x[1] * x[2]) - 2 * x[3]
-  return(y)
+    return(list(metrics = y,
+                dims = dim(y)))
+  }
 }
 
 ################################################################################################
 ################################################################################################
 
-assign_values_param_names <- function(values, pnames, SAConditions) {
+assign_values_param_names <- function(values, pnames, megadapt_conditions) {
 
   custom_params <- list()
   param_ind <- 1
@@ -230,12 +442,12 @@ assign_values_param_names <- function(values, pnames, SAConditions) {
     }
     param_ind <- param_ind + 1
   }
-  custom_params$n_steps <- SAConditions$simyears
+  custom_params$n_steps <- megadapt_conditions$sim_years
 
   return(custom_params)
 }
 
-modify_megadapt_params <- function (megadapt,
+modify_megadapt_model <- function (megadapt,
                                     params,
                                     sacmex_fnss_creator = sacmex_seperate_action_budgets_fnss_create) {
   megadapt_create(params = params,
@@ -248,95 +460,120 @@ modify_megadapt_params <- function (megadapt,
   return(megadapt)
 }
 
+community_names <- function() {
+  muns <- c("Azcapotzalco",
+            "Coyoacan",
+            "Cuajimalpa_de_Morelos",
+            "Gustavo_A_Madero",
+            "Iztacalco",
+            "Iztapalapa",
+            "La_Magdalena_Contreras",
+            "Milpa_Alta",
+            "Alvaro_Obregon",
+            "Tlahuac",
+            "Tlalpan",
+            "Xochimilco",
+            "Benito_Juarez",
+            "Cuauhtemoc",
+            "Miguel_Hidalgo",
+            "Venustiano_Carranza",
+            "Global")
 
-#' Modify an existing megadapt model
-#'
-#' @export
-#' @param model megadapt model
-#' @param params parameters to override from prototype model
-modify_megadapt_model <- function(model, params) {
-  model$params <- do.call(create_params, params)
-  model
+  muns
 }
 
 ################################################################################################
 ################################################################################################
 
-calcSensitivityIndices <- function(SAConditions, SAParams, Y) {
+calcSensitivityIndices <- function(SA_conditions, SA_params, Y) {
 
-  exp.min <- SAConditions$exp.min
-  exp.max <- SAConditions$exp.max
-  maxN <- 2 ^ exp.max
-  k <- length(SAParams)
-  noStats <- length(SAConditions$outStats)
-  communities <- SAConditions$communities
-  oMetricNames <- SAConditions$oMetricNames
+  exp_min <- SA_conditions$exp_min
+  exp_max <- SA_conditions$exp_max
+  maxN <- 2 ^ exp_max
+  k <- length(SA_params)
+  # noStats <- length(SA_conditions$outStats)
+  # communities <- SA_conditions$communities
+  # oMetricNames <- SA_conditions$oMetricNames
 
 
   param <- NULL
-  for (i in 1:length(SAParams)) {
-    param[i] <- SAParams[[i]]$name
+  for (i in 1:length(SA_params)) {
+    param[i] <- SA_params[[i]]$name
   }
-  sample_size <- as.character(2^(exp.min:exp.max))
-
-  if (SAConditions$municip) {
-    #rows<->parameters, columns<->N, third<->Si or STi, fourth <-> communities, fifth <-> outcome variables
-    resultss <-
-      array(dim = c(k,
-                    (exp.max - exp.min + 1),
-                    2,
-                    length(communities),
-                    length(dimnames(Y)[[4]])),
-            dimnames = list("input_parameter" = param,
-                            "sample_size" = sample_size,
-                            "outcome_name" = c("first_order_sensitivity_i","total_order_sensitivity_i"),
-                            "community" = communities,
-                            "target_statistic" = dimnames(Y)[[4]]))
-  } else {
-    #rows<->parameters, columns<->N, third<->Si or STi, fourth <-> outcome variables
-    resultss <-
-      array(dim = c(k,
-                    (exp.max - exp.min + 1),
-                    2,
-                    length(oMetricNames)),
-            dimnames = list("input_parameter" = param,
-                            "sample_size" = sample_size,
-                            "outcome_name" = c("first_order_sensitivity_i","total_order_sensitivity_i"),
-                            "target_statistic" = oMetricNames))
-  }
+  sample_size <- as.character(2^(exp_min:exp_max))
 
 
+#
+#   if (Y_dims == 4) {
+#     #rows<->parameters, columns<->N, third<->Si or STi, fourth <-> communities, fifth <-> outcome variables
+#     resultss <-
+#       array(dim = c(k,
+#                     (exp_max - exp_min + 1),
+#                     2,
+#                     length(dimnames(Y)[[3]]),
+#                     length(dimnames(Y)[[4]])),
+#             dimnames = list("input_parameter" = param,
+#                             "sample_size" = sample_size,
+#                             "outcome_name" = c("first_order_sensitivity_i","total_order_sensitivity_i"),
+#                             "community" = dimnames(Y)[[3]],
+#                             "target_statistic" = dimnames(Y)[[4]]))
+#   } else if (Y_dims == 3 ) {
+#     #rows<->parameters, columns<->N, third<->Si or STi, fourth <-> outcome variables
+#     resultss <-
+#       array(dim = c(k,
+#                     (exp_max - exp_min + 1),
+#                     2,
+#                     length(dimnames(Y)[[3]])),
+#             dimnames = list("input_parameter" = param,
+#                             "sample_size" = sample_size,
+#                             "outcome_name" = c("first_order_sensitivity_i","total_order_sensitivity_i"),
+#                             "target_statistic" = dimnames(Y)[[3]]))
+#   }
 
-  if (length(oMetricNames) == 1 && SAConditions$municip == FALSE) {
-    for (i in exp.min:exp.max) {
+  Y_dims<-dim(Y)
+
+  results_si <- array()
+  results_sti <-array()
+
+  margins_to_apply <- 1:length(Y_dims)
+  margins_to_apply <- margins_to_apply[-1:-2]
+
+  if (length(margins_to_apply) == 0) {
+    for (i in exp_min:exp_max) {
       N <- 2 ^ i
 
       Sis <- calc.Si(Y, N, k)
       STis <- calc.STi(Y, N, k)
-      resultss[1:k, (i - exp.min + 1), ] <- c(Sis, STis)
-    }
-  } else if (SAConditions$municip)  {
-    for (i in exp.min:exp.max) {
-      N <- 2 ^ i
-      Sis <- apply(Y, c(3, 4), function(x)
-        calc.Si(x, N, k))
-      # print(Sis)
-      STis <- apply(Y, c(3, 4), function(x)
-        calc.STi(x, N, k))
-      resultss[1:k, (i - exp.min + 1), 1, 1:length(communities), 1:length(dimnames(Y)[[4]])] <- Sis
-      resultss[1:k, (i - exp.min + 1), 2, 1:length(communities), 1:length(dimnames(Y)[[4]])] <- STis
+      results_si[1:k, (i - exp_min + 1)] <-Sis
+      results_sti[1:k, (i - exp_min + 1)] <-STis
     }
   } else {
-    for (i in exp.min:exp.max) {
+    result_arrays_dims <- c(k, Y_dims[-1:-2])
+    results_si <- array(dim = result_arrays_dims)
+    results_sti <- array(dim = result_arrays_dims)
+
+    N <- 2 ^ exp_min
+    Sis <- apply(Y, margins_to_apply, function(x) calc.Si(x, N, k))
+    STis <- apply(Y, margins_to_apply, function(x) calc.STi(x, N, k))
+    results_si <- Sis
+    results_sti <- STis
+
+    for (i in (exp_min + 1):exp_max) {
       N <- 2 ^ i
-      Sis <- apply(Y, c(3), function(x) calc.Si(x, N, k))
+      Sis <- apply(Y, margins_to_apply, function(x) calc.Si(x, N, k))
       # print(Sis)
-      STis <- apply(Y, c(3), function(x) calc.STi(x, N, k))
-      resultss[1:k, (i - exp.min + 1), 1, 1:length(oMetricNames)] <- Sis
-      resultss[1:k, (i - exp.min + 1), 2, 1:length(oMetricNames)] <- STis
+      STis <- apply(Y, margins_to_apply, function(x) calc.STi(x, N, k))
+      # resultss[1:k, (i - exp_min + 1), 1, 1:length(communities), 1:length(dimnames(Y)[[4]])] <- Sis
+      # resultss[1:k, (i - exp_min + 1), 2, 1:length(communities), 1:length(dimnames(Y)[[4]])] <- STis
+      results_si <- abind::abind(results_si, Sis, along = 0)
+      results_sti <- abind::abind(results_sti, STis, along = 0)
+      # results_si[1:k, (i - exp_min + 1),,] <- Sis
+      # results_sti[1:k, (i - exp_min + 1),,] <- STis
     }
+    dimnames(results_si)[1] <- list("sample_size" = sample_size)
+    dimnames(results_sti)[1] <- list("sample_size" = sample_size)
   }
-  return(resultss)
+  return(list(results_si,results_sti))
 }
 
 ################################################################################################
@@ -351,8 +588,7 @@ calc.Si <- function(y, N, k) {
   # print(vhat)
   Ares <- y[1:N, 1]
   Bres <- y[1:N, 2]
-  vis <- apply(y[1:N, 3:(k + 2)], 2, function(x)
-    calc.Vi(x, N, Ares, Bres))
+  vis <- apply(y[1:N, 3:(k + 2)], 2, function(x) calc.Vi(x, N, Ares, Bres))
   # print(vis)
   si <- vis / vhat
   si # returns a matrix where rows are the k parameters, columns are the metrics used as model output
@@ -393,8 +629,8 @@ calc.Vhat <- function(y, N) {
 #'
 #' @param outs array with results from each simulation
 #' @param SA array with first and total order indices for each target statistic requested
-#' @param SAConditions list of the SA Conditions established for the run
-longFormThis <- function(outs, SA, SAConditions) {
+#' @param SA_conditions list of the SA Conditions established for the run
+longFormThis <- function(outs, SA, SA_conditions) {
   # The table produced has the following columns (example):
   # input_parameter (budget)
   # community (Iztapalapa, All of Mexico City)
@@ -403,39 +639,39 @@ longFormThis <- function(outs, SA, SAConditions) {
   # target_statistic (mean vulnerability, etc)
   # value (some floating point value)
 
-  longSA <- reshape2::melt(SA)
+  Si_SA <- reshape2::melt(SA[[1]])
+  Si_SA$outcome_name <- "first_order_sensitivity_index"
+  STi_SA <- reshape2::melt(SA[[2]])
+  STi_SA$outcome_name <- "total_order_sensitivity_index"
+  long_SA <- rbind(Si_SA, STi_SA)
+  names(long_SA)[1:5] <- c("sample_size","input_parameter","communities","target_statistic","value")
   # longSA <- dplyr::select(longSA, -sample_size)
 
   apply_margin <- 3:length(dim(outs))
 
-  summaryOuts <- apply(outs, apply_margin, appl_summary_statistics)
+  summary_outs <- apply(outs, apply_margin, function(x) appl_summary_statistics(x,SA_conditions$summary_stats))
 
-  if (SAConditions$municip) {
-    dimnames(summaryOuts) <- list("outcome_name" = SAConditions$outStats,
-                                  "community" = dimnames(outs)$community,
-                                  "target_statistic" = dimnames(outs)$target_statistic)
-  } else {
-    dimnames(summaryOuts) <- list("outcome_name" = SAConditions$outStats,
-                                  "target_statistic" = oMetricNames)
-  }
+  long_outs <- reshape2::melt(summary_outs)
+  names(long_outs)[1] <- "outcome_name"
 
-  longOuts <- reshape2::melt(summaryOuts)
+  long_outs$input_parameter <- "All"
+  long_outs$sample_size <- 2^(SA_conditions$exp_max)
 
-  longOuts$input_parameter <- "All"
-  longOuts$sample_size <- 2^(SAConditions$exp.max)
-
-  long <- rbind(longSA, longOuts)
+  long <- rbind(long_SA, long_outs)
 
 
   return(long)
 }
 
-appl_summary_statistics <- function(matr) {
-  meann <- mean(matr)
-  maxx <- max(matr)
-  minn <- min(matr)
+appl_summary_statistics <- function(matr, summ_stats) {
+  summary_out <- NULL
+  for (stat in 1:length(summ_stats)) {
+    summary_out[stat] <- match.fun(summ_stats[stat])(matr)
+  }
 
-  return(c(meann, maxx, minn))
+  names(summary_out) <- summ_stats
+
+  return(summary_out)
 }
 
 ################################################################################################
@@ -446,7 +682,7 @@ appl_summary_statistics <- function(matr) {
 #'
 #' @param results_table results table in long form
 #' @param commun community (any of the 16 communities or "Global") from which to generate the convergence plots. Defaults to Global
-#' @param summ_stat summary statistic(s) from which to generate the convergence plots. Allows to reduce the number of subplots. Defaults to all the statistics in SAConditions$outStats
+#' @param summ_stat summary statistic(s) from which to generate the convergence plots. Allows to reduce the number of subplots. Defaults to all the statistics in SA_conditions$outStats
 #' @param logScale logs the sample size in the x axis of the convergence plots
 plotSAConvergence <-
   function(
@@ -454,6 +690,7 @@ plotSAConvergence <-
     commun = "Global",
     summ_stat = levels(results_table$outcome_name)[-c(1,2)],
     logScale=F)
+    # work in progress
   {
     sens_inidices <- subset(results_table, outcome_name=="first_order_sensitivity_i" | outcome_name=="total_order_sensitivity_i")
     Ns <- unique(sens_inidices$sample_size)
@@ -532,8 +769,8 @@ plotSAConvergence <-
 
   #
   #   #Plots both Si and STi vs N (Maximum of 5 metrics)
-  #   Ns <- seq(SAConditions$exp.min, SAConditions$exp.max)
-  #   numberPlots <- SAConditions$oMetricNames
+  #   Ns <- seq(SA_conditions$exp_min, SA_conditions$exp_max)
+  #   numberPlots <- SA_conditions$oMetricNames
   #   par(mfrow = c(ceiling(numberPlots / 2), 2))
   #   paramcolors <-
   #     c(
@@ -579,9 +816,9 @@ plotSAConvergence <-
   # }
 
 plotPieCharts <- function(x, expon, metric) {
-  n <- expon - SAConditions$exp.min + 1
+  n <- expon - SA_conditions$exp_min + 1
   if (n < 1) {
-    stop("Exponent has to be equal or greater than exp.min")
+    stop("Exponent has to be equal or greater than exp_min")
   }
   metrOfInterest <- match(metric, oMetricNames)
   jump <- (dim(x)[3]) / 2

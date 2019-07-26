@@ -3,49 +3,52 @@ source('../scenarios/util.R')
 
 ################################################################################################
 ################################################################################################
+#
+# city_communities <- c(
+#   "Azcapotzalco",
+#   "Coyoacan",
+#   "Cuajimalpa_de_Morelos",
+#   "Gustavo_A_Madero",
+#   "Iztacalco",
+#   "Iztapalapa",
+#   "La_Magdalena_Contreras",
+#   "Milpa_Alta",
+#   "Alvaro_Obregon",
+#   "Tlahuac",
+#   "Tlalpan",
+#   "Xochimilco",
+#   "Benito_Juarez",
+#   "Cuauhtemoc",
+#   "Miguel_Hidalgo",
+#   "Venustiano_Carranza",
+#   "Global"
+# )
 
-#(Originally in file VBSAConvergence.R)
-#Convergence of Si and STi indices
+
+megadapt_conds <- list(
+  sim_years = 2,
+  municip = T,
+  out_stats = c("mean","max","min"),
+  out_metric_names = c("household_potable_water_vulnerability", "household_sewer_vulnerability", "flooding_index",
+                   "ponding_index","scarcity_index_exposure", "scarcity_index_sensitivity")
+  # communities = city_communities
+)
 
 # SA Conditions
-SAConditions <- list(
-  simyears=2,
-  exp.min=1,
-  exp.max=2,
-  whichmodel="modelMetrics", # other options are: "toyFunction" and "bookEx"
-  onCluster=F,
-  municip=T,
-  outStats=c("mean","max","min"),
-  oMetricNames = c("household_potable_water_vulnerability", "household_sewer_vulnerability", "flooding_index",
-                   "ponding_index","scarcity_index_exposure", "scarcity_index_sensitivity"),
-  communities = c(
-    "Azcapotzalco",
-    "Coyoacan",
-    "Cuajimalpa_de_Morelos",
-    "Gustavo_A_Madero",
-    "Iztacalco",
-    "Iztapalapa",
-    "La_Magdalena_Contreras",
-    "Milpa_Alta",
-    "Alvaro_Obregon",
-    "Tlahuac",
-    "Tlalpan",
-    "Xochimilco",
-    "Benito_Juarez",
-    "Cuauhtemoc",
-    "Miguel_Hidalgo",
-    "Venustiano_Carranza",
-    "Global"
-  )
+SA_conditions <- list(
+  exp_min = 1,
+  exp_max = 2,
+  # whichmodel="modelMetrics", # other options are: "toyFunction" and "bookEx"
+  run_model = T,
+  on_cluster = F,
+  summary_stats = c("mean","max","min")
 )
 
 
-runMod <- T
 
 # Input Parameters and their Names
-noParams <- 4 #number of parameters to take into account
 
-SAParams <- list(
+SA_params <- list(
   p1 = list(
     name = "new_infrastructure_effectiveness_rate",
     min = 0.01,
@@ -78,49 +81,51 @@ SAParams <- list(
   )
 )
 
-
-SAParams <- SAParams[1:noParams]
-
-
-
-
-
-if (SAConditions$whichmodel == "book") {
-  noParams <- 3 #number of parameters to take into account
-  SAParams <- list(
-    p1 = list(
-      name = "effectivity_newInfra",
-      min = 0,
-      max = 1,
-      isInteger = F
-    ),
-    p2 = list(
-      name = "effectivity_mantenimiento",
-      min = 0,
-      max = 1,
-      isInteger = F
-    ),
-    p3 = list(
-      name = "decay_infra",
-      min = 0,
-      max = 1,
-      isInteger = F
-    )
+book_SA_params <- list(
+  p1 = list(
+    name = "x1",
+    min = 0,
+    max = 1,
+    isInteger = F
+  ),
+  p2 = list(
+    name = "x2",
+    min = 0,
+    max = 1,
+    isInteger = F
+  ),
+  p3 = list(
+    name = "x3",
+    min = 0,
+    max = 1,
+    isInteger = F
   )
-  SAParams <- SAParams[1:noParams]
-  # Output metrics
-  SAConditions$oMetricNames <- c("vulnerability_Ab")
+)
 
-  SAConditions$municip = FALSE
-}
+noParams <- 4 #number of parameters to take into account
+SA_params <- SA_params[1:noParams]
+
+# if (SA_conditions$whichmodel == "book") {
+#
+#   # Output metrics
+#   SA_conditions$oMetricNames <- c("vulnerability_Ab")
+#
+#   SA_conditions$municip = FALSE
+# }
 
 ################################################################################################
 ################################################################################################
 
+model_f <- megadaptr:::megadapt_superficial_params_simulator(megadapt_conds, SA_params)
 
-resultsss <- megadaptr:::VBSA(SAConditions, SAParams)
+# model_f <- megadaptr:::book_example_simulator()
+
+resultsss <- megadaptr:::VBSA(model_f, SA_conditions, SA_params)
 
 # saveRDS(resultsold, "results")
 
-print(SAConditions)
+# print(SA_conditions)
+
+
+
 
