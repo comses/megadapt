@@ -3,17 +3,18 @@ title: "PresentationOutline"
 author: "Andres Baeza, Calvin Pritchard"
 date: "May 22, 2019"
 output: html_document
+bibliography: bibliography.bib
 ---
 
 # Introduction
 
-The infrastructure investment decisions of municipal goverments and residents impact the environment and resident well-being in the municpality and surrounding area. Potable water infrastructure coverage and quality determines. Sewer and stormwater infrastructure quality and coverage influences ponding and flooding rates as well as water borne disease rates.
+The infrastructure investment decisions of municipal goverments and residents impact the environment and resident well-being in the municpality and surrounding area. Potable water infrastructure coverage and quality influences health and private infrastructure investment. Sewer and stormwater infrastructure quality and coverage influences ponding and flooding rates as well as water borne disease rates.
 
-Megadapt is a spatial microsimulation model made for determining the impact of public and private potable water and sewer infrastructure investment on residents and the environment. The megadapt model could be used to determine the determine the impacts of different policy decisions such as budget levels, initial sewer infrastructure capacity, landuse and municipal investment decisions as well as changing environmental conditions. The example shown is this whitepaper is about how the budget for potable water and sewer infrastructure influences household vulnerability in Mexico City. 
+Megadapt is a spatial microsimulation model made for determining the impact of public and private potable water and sewer infrastructure investment on residents and the environment. The megadapt model could be used to determine the determine the impacts of different policy decisions such as budget levels, initial sewer infrastructure capacity, landuse and municipal investment decisions as well as changing environmental conditions.
 
-# Setting up a model
+`megadaptr` is an R package that implements the Megadapt model. This vignette goes over how to use the Megadapt model to explore scenarios, visualize results and determine the sensitivity of parameters to outcomes. Package functionality is shown by conducting an simple experiment where only budget and initial capacity vary.
 
-In order to run the Megadapt model in your municipality some data is required.
+# Model Overview
 
 The Megadapt model is composed of different subcomponents. Each subcomponent has its own data requirements to function. The climate component requires a panel of precipitation and runoff data by census block. The flooding and ponding models depends on the climate data as well as infrastructure capacity per census block. The water scarcity model depends infrastructure information (such as water pressure), demographic information, infrastructure failure reports and resident preference data. The resident investment model requires resident preference data (value functions and a mental model) as well as infrastructure data (private and public) and demographic data. The municipal model requires municipal sewer and potable water department preferences, infrastructure data, climate data and demographic data.
 
@@ -75,9 +76,11 @@ digraph megadapt {
 
 There are few interesting timing take aways from the graph. The flooding and ponding models use climate data generated for the current year while the residential investment, municipal investment and residential water scarcity models use climate data from the previous year. All other input data used by the model components is either static or generated from the previous year.
 
+The `megadaptr` package implements the Megadapt with code organized around the subcomponents mentioned. There are components for flooding, ponding, residential investment, municipal investment, climate, water scarcity and the Megadapt model as a whole. All components except for the Megadapt model as whole are just functions. The Megadapt implementation has state to keep track of the current census state for that time year as well as the number of years the simulation has been run for. Components in the `megadaptr` package loosely follow the function specified system (FNSS) and discrete time system specifications (DTSS) given in Theory of Modeling and Simulation [-@zeigler2019] except that the model and simulator are not completely seperate.
+
 ## Model Components
 
-The Megadapt model is composed of weather, ponding, flooding, water scarcity, household investment, municipal investment and infrastructure depreciation components. Detailed information about individual model components is avaiable in the *megadaptr* docs.
+Detailed information about how the model components work and there data requirements are is described in this section. Information about calling and interacting with individual model components is available in the `megadaptr` package docs.
 
 ### Weather
 
@@ -92,11 +95,31 @@ The ponding model generates the number ponding events in a census block per year
 
 The flooding model generates the number flooding events in a census block per year
 
+### Residential Investment
+
+The residential investment model determines how much investment into private potable and sewer infrastructure takes place in a census block in a year. Residents in the census block can make two aggregate actions: they can modify their houses to reduce their sensitivity to exposure to flooding events or they can modify their house to reduce their sensitity to the exposure of water sarcity.
+
+Residents choose between options between sewer and potable water investment by attempting to minimize their distance from an ideal point. Their distance from the ideal point is computed using census block state and value functions that connect the action to a set of criteria from the Analytic Network Process model (ANP model).
+
+For each census block $j$ and action $k$, the calculation of the ideal point $d_{j,t}^k$ is done using the equation described in the document `site_selection_and_site_suitability.Rmd`.
+
+Each time step $t$, the residents in census block $j$ ask the following question: Is $d_{j,t}^k1 >d_{j,t}^k1$?
+If, indeed $d_{j,t}^k1 >d_{j,t}^k1$, then the agent chooses action 1 (Reduce the sensitity to the exposure to flooding). If  instead $d_{j,t}^k1 < d_{j,t}^k1$ of action 2 (Reduce the sensitity to the exposure of water sarcity).
+
+### Municipal Investment
+
+The municipal investment model determines how much investment into public potable and sewer infrastructure takes place in a census block in a year
+
+### Residential Water Scarcity
+
+The residential water scarcity model determines potable water access levels for a census block
+
 # Running the model
 
 The megadapt model constructor is flexible. It allows the replacement of the mental model, climate scenario, study area, flooding model, ponding model and municipal investment model. The simplest way to run the model is
 
 ```{r, eval=FALSE}
+library('megadaptr')
 megadapt <- megadapt_create(params_create())
 results <- simulate(megadapt)
 ```
@@ -112,6 +135,23 @@ megadapt2 <- megadapt_create(
   ponding_fnss = ponding_delta_method_fnss_create()
 )
 results2 <- simulate(megadapt)
+```
+
+# Determining an Experiment ro Run
+
+For experiments to be useful they need to vary parameters that substantively impact simulation run results. The importance of parameters on run results can be determined through sensitivity analysis.
+
+Variance-Based Sensitivity Analysis (VBSA) has the purpose of estimating the effect of certain input parameters on the uncertainty or variability of the model’s outputs. The analysis runs the model once per combination of input parameters and calculates two coefficients for each input and output of interest (seebelow for details about inputs and outputs). The first-order sensitivity coefficient measures the fraction of the model variance that is due to the changes of a single input, averaged over the variance caused by all the input parameters and their interactions. The total-order sensitivity coefficient shows the fraction of the variance that is caused bychanges to one input and its interactions with other input parameters, again averaged over the unconditional variance of the model.
+
+In this particular implementation, the sensitivity coefficients are estimated through the
+Monte Carlo method, according to the procedures explained by Saltelli et al. (2010).
+Sampling of the parameter space is done using the Sobol’ sequence. The resulting sets of
+parameters are used to run the different instances of the model and the estimated
+coefficients are calculated by using the formulas proposed in the publication cited above.
+
+
+```{r, eval=FALSE}
+# Example Running Sensitivity Analysis on HPC goes here
 ```
 
 # Interpreting Experiment Results
@@ -137,6 +177,7 @@ experiment_map_plot <- function(experiment_df, study_area) {
     geom_map(data=experiment_df, map=fortified,
              aes(fill=statistic_value, map_id=censusblock_id)) +
     expand_limits(x=fortified$long, y=fortified$lat) +
+    
     scale_fill_viridis_c() +
     facet_grid(cols = vars(budget), rows = vars(statistic_name)) +
     labs(fill = 'Intervention Count')
@@ -148,3 +189,5 @@ experiment_df <- megadaptr:::experiment_map_df(results, params, facets = rlang::
 study_area <- megadaptr::study_area_read('../inst/rawdata/censusblocks/megadapt_wgs84_v5.gpkg')
 experiment_map_plot(experiment_df, study_area)
 ```
+
+# References
