@@ -128,52 +128,6 @@ p &=& \sum_{i=1}^{N_f} w_i x_i
 where $w_i$ represents the weigth of the criterio and $x_i$ is a value function of the state of the criterion $i$, for the $i=1, \dots, N_f$ criteria that influence flooding risk.
 
 
-### Residential Investment
-
-The residential investment model determines how much investment into private potable and sewer infrastructure takes place in a census block in a year. Residents in the census block can make two aggregate actions: they can modify their houses to reduce their sensitivity to exposure to flooding events or they can modify their house to reduce their sensitity to the exposure of water sarcity.
-
-Residents choose between options between sewer and potable water investment by attempting to minimize their distance from an ideal point. Their distance from the ideal point is computed using census block state and value functions that connect the action to a set of criteria from the Analytic Network Process model (ANP model).
-
-For each census block $j$ and action $k$, the calculation of the ideal point $d_{j,t}^k$ is done using the equation described in the document `site_selection_and_site_suitability.Rmd`.
-
-Each time step $t$, the residents in census block $j$ ask the following question: Is $d_{j,t}^k1 >d_{j,t}^k1$?
-If, indeed $d_{j,t}^k1 >d_{j,t}^k1$, then the agent chooses action 1 (Reduce the sensitity to the exposure to flooding). If  instead $d_{j,t}^k1 < d_{j,t}^k1$ of action 2 (Reduce the sensitity to the exposure of water sarcity).
-
-### Institutional Investments
-
-The institutional investment model determines where (which census blocks) and how (what action) to invest resources into public potable and sewer infrastructure in a year. Currently the only institution represented in the megadapt model is the Secretary of Water of Management of Mexico City (SACMEX)
-
-The decisions of the institutional agent SACMEX is to select a subset of spatial units that maximized the satisfaction of the agent according to the goal of reducing the vulnerability of the city to water-related crisis. The investment decisions by the socio-institutional agents are accomplished in the model by two sub-routines: site suitability and site selection. Site suitability informs the socio-institutional agent as to the best spatial units for investment, based on the criteria and alternatives of the MCDA model. The site selection procedure then evaluates the different alternatives of spatial units in order to identify the set of spatial units that minimized the dissatisfaction after the investment. These investments involve a set of possible actions taken by the socio-institutional agents, $k={k_1,..,k_m}$. Formally, an investment is defined as a Boolean variable, $y_{jt}^k={0,1}$, where the value $y_{jt}^k=1$ represents that an investment associated with action $k$ has been made in the spatial unit $j$ at time $t$. SACMEX decides in which spatial units to allocate investments associated with infrastructure systems to reduce the risk of exposure to hazards at time $t$ in spatial unit $j$.
-
-
-##Site Suitability
-
-An assessment of the census blocks that are prioritized for actions is obtained through multicriteria evaluation of the distance of each census block from an “ideal point,” or utopian state, defined as a set of decision-making criteria and the relative importance of each criterion for the decision makers (Bojórquez-Tapia et al., 2011). Formally, we calculate a distance d_jvt^k, such that:
-
-$$d_{jt}^{k}={[\alpha^\rho \sum_{i}^{I} w_i^{\rho}  (1-x_{ijt}^{k})^\rho]}^{\frac{1}{\rho}}$$   
-where $d_{jt}^{k}$ is the distance to the ideal point of census block $j$ with respect to action $k$; $w_i$ is the criterion weight of criterion $i$, $\alpha$ is the weight of action k; $x_{ijt}$ is the normalized value in a census block $j$ of the attribute corresponding to criterion $i$, with respect to action $k$; $x_{ijt}$ is the departure of an alternative from the ideal point for a criterion. This variable is the standardized score $x_{ijt}$, which represents a judgment about the importance of an observable stimulus (census block attribute value) in the water authority’s decision; $i, j, k, t$, are indices for criteria, census blocks, action, time, respectively. Finally, parameter \rho  is the compensatory parameter that define the metric to compute the distance. With $\rho=2$, the metric is Euclidian. 
-
-## Site selection
-
-Every year site selection is invoked by the manager for choosing investments y_v^k, in action k in system v, in a specific number of census blocks, established by budgetary constraints B_k. Formally, this involves using a 0-1 (or binary) programming model (Dykstra 1984) in which the objective function maximizes d_jvt^k. In this way, the model simulates a preference for investing in the census blocks where investment in infrastructure system v is most needed. Formally:
-
-
-
-\begin{equation*}
-\begin{aligned}
-& \underset{x}{\text{maximize}}
-& & F(y_t^k)=\sum_{j}^{J} d_{jt}^{k} y_{jt}^k \\
-& \text{subject to}
-& & \sum_j^{J} y_{jt}^k <B_k.
-\end{aligned}
-\end{equation*}
-
-
-
-where $B_k$ is the number of census-blocks where investment related to action k can take place; $y_{jt}^k$ is the 0-1 decision variable for action $k$ in census block $j$ at time $t$ ($y_{jt}^k=1$, if census block $j$ is selected for investment, or 0 otherwise). An implementation of other forms of maximization with a more complete set of constrains is underway.
-Budget $B$ represents a total capital or resources divided among census blocks. Thus when $B < J$  there is a limited among of resources to be divided in the city. The budget can be aggregated or disaggregated according to institutional rules. For instance, in CDMX the budget for drainage is separated from the budget for potable water system, and within each system, the budget is divided in actions. The optimization of the objective functions were done using a non-dominant sorting assessment (NDSA) that find solutions near the Pareto frontier.
-
-
 ### Residential Water Scarcity
 
 The residential water scarcity model determines an index of potable water access for a census block.
@@ -201,6 +155,50 @@ scarcity\_exp_{index} &=&  (w_{zonas\_crit})(fv_{zonas\_crit}) + (w_{dias\_sagua
 &+& (w_{antiguedad})(fv_{antiguedad}) + (w_{falta\_dist})(fv_{falta\_dist}) \nonumber\\
 &+& (w_{presion\_hid})(fv_{presion\_hid})\nonumber
 \end{eqnarray}
+
+
+### Residential Investment
+
+The residential investment model determines how much investment into private potable and sewer infrastructure takes place in a census block in a year. Residents in the census block can make two aggregate actions: they can modify their houses to reduce their sensitivity to exposure to flooding events or they can modify their house to reduce their sensitity to the exposure of water sarcity.
+
+Residents choose between options between sewer and potable water investment by attempting to minimize their distance from an ideal point. Their distance from the ideal point is computed using census block state and value functions that connect the action to a set of criteria from the Analytic Network Process model (ANP model).
+
+For each census block $j$ and action $k$, the calculation of the ideal point $d_{j,t}^k$ is done using the equation described in the document `site_selection_and_site_suitability.Rmd`.
+
+Each time step $t$, the residents in census block $j$ ask the following question: Is $d_{j,t}^k1 >d_{j,t}^k1$?
+If, indeed $d_{j,t}^k1 >d_{j,t}^k1$, then the agent chooses action 1 (Reduce the sensitity to the exposure to flooding). If  instead $d_{j,t}^k1 < d_{j,t}^k1$ of action 2 (Reduce the sensitity to the exposure of water sarcity).
+
+### Institutional Investments
+
+The institutional investment model determines where (which census blocks) and how (what action) to invest resources into public potable and sewer infrastructure in a year. Currently the only institution represented in the megadapt model is the Secretary of Water of Management of Mexico City (SACMEX)
+
+The decisions of the institutional agent SACMEX is to select a subset of spatial units that maximized the satisfaction of the agent according to the goal of reducing the vulnerability of the city to water-related crisis. The investment decisions by the socio-institutional agents are accomplished in the model by two sub-routines: site suitability and site selection. Site suitability informs the socio-institutional agent as to the best spatial units for investment, based on the criteria and alternatives of the MCDA model. The site selection procedure then evaluates the different alternatives of spatial units in order to identify the set of spatial units that minimized the dissatisfaction after the investment. These investments involve a set of possible actions taken by the socio-institutional agents, $k={k_1,..,k_m}$. Formally, an investment is defined as a Boolean variable, $y_{jt}^k={0,1}$, where the value $y_{jt}^k=1$ represents that an investment associated with action $k$ has been made in the spatial unit $j$ at time $t$. SACMEX decides in which spatial units to allocate investments associated with infrastructure systems to reduce the risk of exposure to hazards at time $t$ in spatial unit $j$.
+
+
+#### Site Suitability
+
+An assessment of the census blocks that are prioritized for actions is obtained through multicriteria evaluation of the distance of each census block from an “ideal point,” or utopian state, defined as a set of decision-making criteria and the relative importance of each criterion for the decision makers (Bojórquez-Tapia et al., 2011). Formally, we calculate a distance d_jvt^k, such that:
+
+$$d_{jt}^{k}={[\alpha^\rho \sum_{i}^{I} w_i^{\rho}  (1-x_{ijt}^{k})^\rho]}^{\frac{1}{\rho}}$$   
+where $d_{jt}^{k}$ is the distance to the ideal point of census block $j$ with respect to action $k$; $w_i$ is the criterion weight of criterion $i$, $\alpha$ is the weight of action k; $x_{ijt}$ is the normalized value in a census block $j$ of the attribute corresponding to criterion $i$, with respect to action $k$; $x_{ijt}$ is the departure of an alternative from the ideal point for a criterion. This variable is the standardized score $x_{ijt}$, which represents a judgment about the importance of an observable stimulus (census block attribute value) in the water authority’s decision; $i, j, k, t$, are indices for criteria, census blocks, action, time, respectively. Finally, parameter \rho  is the compensatory parameter that define the metric to compute the distance. With $\rho=2$, the metric is Euclidian. 
+
+#### Site selection
+
+Every year site selection is invoked by the manager for choosing investments y_v^k, in action k in system v, in a specific number of census blocks, established by budgetary constraints B_k. Formally, this involves using a 0-1 (or binary) programming model (Dykstra 1984) in which the objective function maximizes d_jvt^k. In this way, the model simulates a preference for investing in the census blocks where investment in infrastructure system v is most needed. Formally:
+
+\begin{equation*}
+\begin{aligned}
+& \underset{x}{\text{maximize}}
+& & F(y_t^k)=\sum_{j}^{J} d_{jt}^{k} y_{jt}^k \\
+& \text{subject to}
+& & \sum_j^{J} y_{jt}^k <B_k.
+\end{aligned}
+\end{equation*}
+
+where $B_k$ is the number of census-blocks where investment related to action k can take place; $y_{jt}^k$ is the 0-1 decision variable for action $k$ in census block $j$ at time $t$ ($y_{jt}^k=1$, if census block $j$ is selected for investment, or 0 otherwise). An implementation of other forms of maximization with a more complete set of constrains is underway.
+Budget $B$ represents a total capital or resources divided among census blocks. Thus when $B < J$  there is a limited among of resources to be divided in the city. The budget can be aggregated or disaggregated according to institutional rules. For instance, in CDMX the budget for drainage is separated from the budget for potable water system, and within each system, the budget is divided in actions. The optimization of the objective functions were done using a non-dominant sorting assessment (NDSA) that find solutions near the Pareto frontier.
+
+
 
 
 
