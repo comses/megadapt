@@ -247,6 +247,7 @@ coefficients are calculated by using the formulas proposed in the publication ci
 # Interpreting Experiment Results
 
 Megadapt model results can be plotted to show how outcomes of interest change in response to a particular input parameter. Package functionality is shown by conducting an simple experiment where only budget and initial capacity vary. 
+
 Since the experiment we just ran only changed budget values but left everything else constant it makes sense to plot different outcomes from varying the budget. Each budget value is sampled multiple times in order to determine the impact of weather variation on outcomes. Household vulnerability to potable and sewer water systems, household investments, municipal investments and infrastructure capacity are shown in plots faceted by budget level below. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -275,7 +276,7 @@ experiment_map_plot <- function(experiment_df, study_area) {
 }
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, eval=FALSE}
 experiment_df <- megadaptr:::experiment_map_df(results, params, facets = rlang::sym('budget'))
 study_area <- megadaptr::study_area_read('../inst/rawdata/censusblocks/megadapt_wgs84_v5.gpkg')
 experiment_map_plot(experiment_df, study_area)
