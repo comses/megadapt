@@ -8,15 +8,22 @@ bibliography: bibliography.bib
 
 # Introduction
 
+Megacities are confronted with multiple stressors that influence the vulnerability of urban populations around the world. Some of these stressors are external and associated to regional forces, such as climate changes, and migration. Others are associated with the decision of influential actors, including residents, managers and policians. Many of these decisions are embedded in institutions that must invest resources to adaptation according to their mandate, resources, preferences and socio-political factors.
+
 The infrastructure investment decisions of municipal goverments and residents impact the environment and resident well-being in the municpality and surrounding area. Potable water infrastructure coverage and quality influences health and private infrastructure investment. Sewer and stormwater infrastructure quality and coverage influences ponding and flooding rates as well as water borne disease rates.
 
-Megadapt is a spatial microsimulation model made for determining the impact of public and private potable water and sewer infrastructure investment on residents and the environment. The megadapt model could be used to determine the determine the impacts of different policy decisions such as budget levels, initial sewer infrastructure capacity, landuse and municipal investment decisions as well as changing environmental conditions.
 
-`megadaptr` is an R package that implements the Megadapt model. This vignette goes over how to use the Megadapt model to explore scenarios, visualize results and determine the sensitivity of parameters to outcomes. Package functionality is shown by conducting an simple experiment where only budget and initial capacity vary.
+In MEGADAPT we construct computational models that allows the integration of system models and decision-making models to understand the vulnerabilities of megacities to climate change. It is applied to Mexico City but the approach was developed thinking about its applicability to other cities as well. The Megadapt model aims to be a participatory model where decision makers, residents and stakeholders can evaluate and self-reflect on the consequences of their decisions and actions. By integrating system models with decision-making models in a GIS platform, Megadapt aims to help in making explicit how decisions impact the spatial patterns of urban vulnerability. It also aim to help to spart discusss to validate and tranparent current practices and investments. Decision-makers can also evaluate the impact of their decisions on different regions, and can evaluate the tradeoffs that emerge from considering different priorities.
 
-# Model Overview
+Megadapt is a spatial-explicit microsimulation model made for determining the impact of public and private potable water and sewer infrastructure investment on residents and the environment. The megadapt model could be used to determine the determine the impacts of different policy decisions such as budget levels, initial sewer infrastructure capacity, land-use and municipal investment decisions as well as changing environmental conditions.
+
+
+
+# The MEGADAPTR Package and Model Overview
 
 The Megadapt model is composed of different subcomponents. Each subcomponent has its own data requirements to function. The climate component requires a panel of precipitation and runoff data by census block. The flooding and ponding models depends on the climate data as well as infrastructure capacity per census block. The water scarcity model depends infrastructure information (such as water pressure), demographic information, infrastructure failure reports and resident preference data. The resident investment model requires resident preference data (value functions and a mental model) as well as infrastructure data (private and public) and demographic data. The municipal model requires municipal sewer and potable water department preferences, infrastructure data, climate data and demographic data.
+
+`megadaptr` is an R package that implements the Megadapt model and its subcomponents. This vignette goes over how to use the Megadaptr to create a megadapt model, to explore scenarios, visualize results and determine the sensitivity of parameters to outcomes. 
 
 The relationships between components is shown below
 
@@ -78,22 +85,49 @@ There are few interesting timing take aways from the graph. The flooding and pon
 
 The `megadaptr` package implements the Megadapt with code organized around the subcomponents mentioned. There are components for flooding, ponding, residential investment, municipal investment, climate, water scarcity and the Megadapt model as a whole. All components except for the Megadapt model as whole are just functions. The Megadapt implementation has state to keep track of the current census state for that time year as well as the number of years the simulation has been run for. Components in the `megadaptr` package loosely follow the function specified system (FNSS) and discrete time system specifications (DTSS) given in Theory of Modeling and Simulation [-@zeigler2019] except that the model and simulator are not completely seperate.
 
-## Model Components
+##                           Model Components
 
 Detailed information about how the model components work and there data requirements are is described in this section. Information about calling and interacting with individual model components is available in the `megadaptr` package docs.
 
 ### Weather
 
-The weather component generates runoff and precipitation values by census block under
-a given climate and landuse scenario.
+The weather component generates runoff and precipitation values by census block under a given climate and landuse scenario.
 
 ### Ponding
 
-The ponding model generates the number ponding events in a census block per year
+The ponding model generates a ponding index in a census block per year to represent the risk associated to ponding. In consultation with Mexico CIty Secretary of Water Management (SACMEX), the index takes into consideration the following variables :
+
+1. The historic frequency of ponding and floding events.
+2. The volume of precipitation.
+3. The volume of runoff from mountain watershed, and
+4. The capacity of the sewer and storm water system.
+  
+\begin{eqnarray}
+ponding_{index} &=& \sum_{i=1}^{N_p} w_i x_i
+\end{eqnarray}  
+  
+where $w_i$ represents the weigth of the criterio and $x_i$ is a value function of the state of the criterion $i$, for the $i=1, \dots, N_f$ criteria that influence ponding risk.
+  
+The index returns a value in each census block that should be interpreted as the frequency of events. Agents influence the capasity of the sewer and storm water system, and cliamte change can modify the vilume of precipitation and runoff. We therefore expect that this index will change over time in a simulation of the megadapt model for Mexico City.
 
 ### Flooding
 
-The flooding model generates the number flooding events in a census block per year
+The flooding model generates an index of flooding risk in a census block per year. The flooding index is obtained by a weigthed sum of value functions obtained from a set of criteria that describe the spatial variability in flooding risk. The set of criteria are: The historic frequency of flooding events, the valume of precipitation, the capacity of the sewer system, and the volume of runoff. Mathematically the index is defined as:
+
+\begin{eqnarray}
+flooding_{index} &=& w_{historic\_flooding\_freq}  fv_{historic\_flooding\_freq}\nonumber\\
+&+& w_{f\_prec\_v}  fv_{f\_prec\_v} \nonumber\\
+&+& w_{fv\_non\_potable\_capacity} fv_{non\_potable\_capacity}\nonumber\\
+&+& w_{f\_esc} fv_{f\_esc}\nonumber
+\end{eqnarray}
+
+\begin{eqnarray}
+p &=& \sum_{i=1}^{N_f} w_i x_i
+\end{eqnarray}
+
+
+where $w_i$ represents the weigth of the criterio and $x_i$ is a value function of the state of the criterion $i$, for the $i=1, \dots, N_f$ criteria that influence flooding risk.
+
 
 ### Residential Investment
 
@@ -112,7 +146,33 @@ The municipal investment model determines how much investment into public potabl
 
 ### Residential Water Scarcity
 
-The residential water scarcity model determines potable water access levels for a census block
+The residential water scarcity model determines an index of potable water access for a census block.
+
+The water scarcity index is constructed assuming that the risk of a census block to have potable water scarcity is a sum of a set of value functions associated to a set of criteria related to biophisical and infrastructure variables:
+
+1. The population size of the cencus blocks.
+
+2. The reports of the population associated to disruptions in the service.
+
+3. The socio-economic level of the census blocks, which is represented by the asset index in each cencus block.
+
+4. The proportion of houses without connetion to the potable water supply system.
+
+5. The critical areas for deliver potable water by the authority. The difficulties of the the authority has to provide potable to the census blocks.
+
+6. The level of adaptation of the resident, represented by the average number of tanks per resident in each census block.
+
+7. The potential of the censuc block to capture rainfall water.
+
+The index is divided between scarcity associated to the sensitivity of cencus block and to the exposure.
+
+\begin{eqnarray}
+scarcity\_exp_{index} &=&  (w_{zonas\_crit})(fv_{zonas\_crit}) + (w_{dias\_sagua})(fv_{dias\_sagua})\nonumber\\
+&+& (w_{antiguedad})(fv_{antiguedad}) + (w_{falta\_dist})(fv_{falta\_dist}) \nonumber\\
+&+& (w_{presion\_hid})(fv_{presion\_hid})\nonumber
+\end{eqnarray}
+
+
 
 # Running the model
 
@@ -156,7 +216,8 @@ coefficients are calculated by using the formulas proposed in the publication ci
 
 # Interpreting Experiment Results
 
-Megadapt model results can be plotted to show how outcomes of interest change in response to a particular input parameter. Since the experiment we just ran only changed budget values but left everything else constant it makes sense to plot different outcomes from varying the budget. Each budget value is sampled multiple times in order to determine the impact of weather variation on outcomes. Household vulnerability to potable and sewer water systems, household investments, municipal investments and infrastructure capacity are shown in plots faceted by budget level below.
+Megadapt model results can be plotted to show how outcomes of interest change in response to a particular input parameter. Package functionality is shown by conducting an simple experiment where only budget and initial capacity vary. 
+Since the experiment we just ran only changed budget values but left everything else constant it makes sense to plot different outcomes from varying the budget. Each budget value is sampled multiple times in order to determine the impact of weather variation on outcomes. Household vulnerability to potable and sewer water systems, household investments, municipal investments and infrastructure capacity are shown in plots faceted by budget level below. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 conn <- DBI::dbConnect(RSQLite::SQLite(), 'ex2.db')
