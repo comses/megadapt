@@ -57,7 +57,6 @@ digraph megadapt {
   study_data [label='study data']
 
   # several 'edge' statements
-  study_data->climate
   climate->apply_climate_changes
   study_data->apply_climate_changes
   apply_climate_changes->flooding
