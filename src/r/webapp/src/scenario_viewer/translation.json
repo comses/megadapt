@@ -3,16 +3,16 @@
   "languages": ["en", "es"],
   "translation": [
       {
-        "en": "Indicator",
-        "es": "Indicador"
+        "en": "Household Sewer Vulnerability",
+        "es": "Vulnerabilidad de alcantarillado doméstico"
       },
       {
         "en": "Choose from the parameters below to see simulation results",
         "es": "Elija entre los siguientes parámetros para ver los resultados de la simulación"
       },
       {
-        "en": "Budget scenarios",
-        "es": "Escenarios de presupuesto"
+        "en": "Budget Scenarios",
+        "es": "Escenarios de Presupuesto"
       },
             {
         "en": "Map Parameters",
@@ -57,7 +57,25 @@
       {
         "en": "All municipalities",
         "es": "Todos las delegaciones"
+      },
+            {
+        "en": "Household Potable Water Vulnerability",
+        "es": "Vulnerabilidad de agua potable en el hogar"
+      },
+            {
+        "en": "Resident Income Per Capita",
+        "es": "Ingreso residente per cápita"
+      },
+            {
+        "en": "Resident Income And Vulnerability",
+        "es": "Ingresos residentes y vulnerabilidad"
+      },
+            {
+        "en": "Climate Scenarios",
+        "es": "Escenario Climáticos"
       }
+
+
 
     ]
 }

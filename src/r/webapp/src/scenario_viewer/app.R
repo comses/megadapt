@@ -1,3 +1,13 @@
+#
+# This is a Shiny web application. You can run the application by clicking
+# the 'Run App' button above. You must have a dataframe loaded that contains the average of the model output runs
+# The language can be changed below by changing language choice to en or es
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+
 library("dplyr")
 library("ggplot2")
 library("leaflet")
@@ -6,120 +16,216 @@ library("rgeos")
 library("rgdal")
 library("shiny")
 library("shiny.i18n")
-
 library("shinydashboard")
 
 
-model_cache_env <- new.env()
-source("bootstrap.R", model_cache_env)
-megadapt <- model_cache_env$model_cache$megadapt
-cache <- model_cache_env$model_cache$cache
-budget <- model_cache_env$model_cache$budget
+#INPUT FILES
+megadapt_census_blocks <- readOGR(dsn = "censusblocks", layer = "megadapt_wgs84")
+names(megadapt_census_blocks@data)[1] <-"censusblock_id"
+megadapt_census_blocks <<- megadapt_census_blocks
+
 
 
 #LANGUAGE SETTINGS
-translator <- Translator$new(translation_json_path = "translation.json")
-translator$set_translation_language("en")
-
-#SHAPE FILES FOR MUNICIPALITIES
-municipalities <<- readOGR(dsn = "municipiosDFCenso3", layer = "municipiosDFCenso3")
-
-header <- dashboardHeader(
-  title = "Megadapt Model"
-)
-
-body <- dashboardBody(
-
-  tabItems(
-    tabItem("results_tab",
+translator <<- Translator$new(translation_json_path = "translation.json")
+language_choice <<- "es"
+translator$set_translation_language(language_choice)   ### en for english or es for spanish
 
 
-  fluidRow(
-    column(width = 8,
-            box(width = NULL, status = "warning",
-                uiOutput("factor_chooser")
-            ),
-           box(width = 910,height = 900, solidHeader = TRUE,
-               leafletOutput("map", height =870, width = 900)
-           )#,
 
-    ),
-    column(width = 4,
-           box(width = NULL, status = "warning",
-               uiOutput("municSelector"),
-               uiOutput("plot_view")
-           )
-   )
+#INPUT DATA
+#ponding_df <<- INPUT DATA
+ponding_df <<- as.data.frame(lapply(ponding_df, as.numeric))
+budgets.tested <- unique(ponding_df$budget)
+climate.tested <- unique(ponding_df$climate_scenario)
+
+
+#municipalities <- readOGR(dsn = "municipiosDFCenso3", layer = "municipiosDFCenso3")
+
+
+setStyle <- function(map, group, layerId, style) {
+  invokeMethod(
+    map = map,
+    data = NULL,
+    method = 'setStyle',
+    group,
+    layerId,
+    style
   )
-    ))
+}
 
 
-)
-
-dash <- dashboardSidebar(
-  width = 300, collapsed = FALSE,
-
-  sidebarMenu(
-    # Setting id makes input$tabs give the tabName of currently-selected tab
-    id = "tabs",
-    menuItem("Map Viewer", tabName = "results_tab", icon = icon("dashboard"))
-    #menuItem("More Information", icon = icon("th"), tabName = "info_tab")# , badgeLabel = "new", badgeColor = "green")
-
-    ),
-
-
-  #uiOutput("factor_chooser"),
-  #paste("This application shows the results of the agent-based model of the MEGADAPT project (Adaptation in a Megacity). The MEGADAPT model simulates the coupling
-  #      between biophysical processes and the decisions of residents and the water authority of Mexico City.
-  #      The aim of the model is to investigate with stakeholders the consequences of this coupling for the spatial distribution of socio-hydrological vulnerability in Mexico City." ),
-
-  uiOutput("mapUI"),
-  selectInput('selected_language',
-              "Language",
-              choices = list("English" = "en", "Espanol" = "es"))
-)
-
+# Define UI for application
 ui <- dashboardPage(
-  header,
-  dash, #dashboardSidebar(disable = TRUE),
-  body
+  dashboardHeader(title = "Index Viewer"),
+  dashboardSidebar(width = 350, sidebarMenu(
+    id = 'tabs',
+    menuItem(translator$t("Household Sewer Vulnerability"), tabName = 'household_sewer_vulnerability'),
+    menuItem(translator$t("Household Potable Water Vulnerability"), tabName = 'household_potable_water_vulnerability'),
+    menuItem(translator$t("Resident Income Per Capita"), tabName = 'resident_income_per_capita'),#,
+    menuItem(translator$t("Resident Income And Vulnerability"), tabName = 'resident_income_and_vulnerability')
+    #menuItem('Number of actions on sewer and drainage infrastructure', tabName = 'non_potable_water_system_intervention_count'),
+    #menuItem('Potable water infrastructure age', tabName = 'potable_water_infrastructure_age'),
+    #menuItem('Non potable water infrastructure age', tabName = 'non_potable_water_infrastructure_age'),
+    #menuItem('Days without potable water', tabName = 'days_no_potable_water')
+  ),
+  uiOutput("budgetUI"),
+  uiOutput("climateUI")
+  ),
+  dashboardBody(
+    tags$head(tags$script(src = 'leafletMonkeyPatch.js')),
+    tags$style(type = "text/css", "#map {height: calc(80vh - 80px) !important;}"),
+    fluidRow(
+      column(width = 11,
+        box(width = 910,height = 900, solidHeader = TRUE,leafletOutput('map', height =870, width = 900)),
+        box(width = 910,height = 900, solidHeader = TRUE,uiOutput('plot_view', height =870, width = 900))
+        #uiOutput("plot_view", height = 600, width = 800)
+        )#,
+     # column(width = 4,
+      # box(width = NULL, status = "warning",
+      #    uiOutput("municSelector")#,
+          #uiOutput("plot_view")
+      # )
+     # )
+
+      )
+    )
 )
 
-####-SERVER-####
 
-server <- function(input, output, session) {
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      setView(lat = 19.3326,
+              lng = -99.14,
+              zoom = 11) %>%
+      addPolygons(
+        data = megadapt_census_blocks,
+        layerId = ~ censusblock_id,
+        fillColor = '#F00',
+        fillOpacity = 0.9,
+        weight = 0.2,
+        color = '#444444',
+        group = 'censusblocks'
+      )
+  })
 
-  # Make a Plot based on annual values of selected factor
+  output$tabName <- reactive(paste0('Name: ', input$tabs))
+
+
+  observe({
+
+    layerId <- filteredData()$censusblock_id
+
+    if (identical(input$tabs,'household_sewer_vulnerability')){
+      plot.values <- filteredData()$household_sewer_vulnerability
+      pal <- colorNumeric(palette = "YlOrRd", domain = c(0, 800))
+      style <- data.frame(fillColor = pal(filteredData()$household_sewer_vulnerability))
+
+     }
+     if (identical(input$tabs,'resident_income_per_capita')){
+       plot.values <- filteredData()$resident_income_per_capita
+       pal <- colorNumeric(palette = "YlOrRd", domain = c(min(plot.values), max(plot.values)))
+       style <- data.frame(fillColor = pal(filteredData()$resident_income_per_capita))
+
+     }
+    if (identical(input$tabs,'household_potable_water_vulnerability')){
+      plot.values <- filteredData()$household_potable_water_vulnerability
+      pal <- colorNumeric(palette = "YlOrRd", domain = c(min(plot.values), max(plot.values)))
+      style <- data.frame(fillColor = pal(filteredData()$household_potable_water_vulnerability))
+    }
+    if (identical(input$tabs,'resident_income_and_vulnerability')){
+      plot.values <- vulnerabilityData()
+      pal <- colorNumeric(palette = "YlOrRd", domain = c(min(plot.values), max(plot.values)))
+      style <- data.frame(fillColor = pal(vulnerabilityData()))
+    }
+
+
+
+    leafletProxy('map') %>%
+      setStyle(group = 'censusblocks',
+               layerId = layerId,
+               style = style) %>%
+      clearControls() %>%
+      addLegend(
+        position = c('bottomleft'),
+        pal = pal,
+        values = plot.values,
+        title = input$tabs
+      )
+
+
+
+  })
+
+  filteredData <- reactive({
+
+    v.budget = input$select_budget
+    v.climate = input$select_climate
+    resultsdf <- ponding_df[ which(ponding_df$budget==v.budget) , ]
+    resultsdf <- resultsdf[ which(resultsdf$climate_scenario ==v.climate) , ]
+
+    subsetdf = resultsdf %>%
+      group_by(censusblock_id) %>%
+      summarise_all(funs(mean))
+
+    #Join the attribute tables
+    x <- megadapt_census_blocks
+    y <- subsetdf
+    x$sort_id <- 1:nrow(as(x, "data.frame"))  # Column containing original row order for later sorting
+    x.dat <- as(x, "data.frame")  # Create new data.frame object
+    x.dat <-as.data.frame(x.dat[,c(1,ncol(x.dat))])
+    x.dat2 <- merge(x.dat, y, by.x = "censusblock_id", by.y = "censusblock_id")  # Merge
+    x.dat2.ord <- x.dat2[order(x.dat2$sort_id), ]  # Reorder back to original
+    x2 <- x[x$sort_id %in% x.dat2$sort_id, ]  # Make new set of polygons, dropping those which arent in merge
+    x2.dat <- as(x2, "data.frame")  # Make update x2 into a data.frame
+    row.names(x.dat2.ord) <- row.names(x2.dat)  # Reassign row.names from original data.frame
+    x.dat2.ord$sort_id <- NULL
+    x.dat2.ord[is.na(x.dat2.ord)] <- 0
+    x.dat2.ord
+  })
+
+  vulnerabilityData <- reactive({
+    fdata <- filteredData()
+    # use potable water vulnerability
+    # some NA, ranges from 0.05 - 0.3
+    fdata$household_potable_water_vulnerability <- fdata$household_potable_water_vulnerability * 100
+    fdata[is.na(fdata)] <- 1
+    high.income <- max(fdata$resident_income_per_capita)
+    #income.values <- ((100 - (fdata$resident_income_per_capita / high.income)) * fdata$household_potable_water_vulnerability) + fdata$household_potable_water_vulnerability
+    income.values <- ((1 - (fdata$resident_income_per_capita / high.income)) * fdata$household_potable_water_vulnerability) + fdata$household_potable_water_vulnerability
+
+  })
+
+
   output$plot=renderPlot({
 
-    data.for.plot <- plotData()
-    title.list <- municipalityList()
-    title.list <- names(title.list)
-    plot.title <- title.list[as.numeric(input$select_municipality)]
-    label.values <- data.for.plot[,1]
-    label.values <- as.integer((label.values  / 2428) * 100)
-    label.values <- as.character(label.values)
-    label.values <- paste(label.values, "%", sep="")
+    data.for.plot <- filteredData()
+    cvgeo.split <- t(sapply(data.for.plot$geographic_id, function(x) substring(x, first=c(3), last=c(5))))#Split Municipality Numbers from Census ID
+    municipality <- as.numeric(cvgeo.split)
+    data.for.plot <- cbind(data.for.plot, municipality) #ADD Municipality Numbers from Census ID
+    subsetdf = data.for.plot %>%
+      group_by(municipality) %>%
+      summarise_all(funs(mean))
+
+    ggplot(subsetdf, aes(x= household_potable_water_vulnerability, y = scarcity_index, size = resident_income_per_capita)) +
+      geom_point(shape = 21, colour = "#000000", fill = "#40b8d0")+ geom_text(aes(label=municipality),hjust=0, vjust=0)
 
 
-    ggplot(data.for.plot, aes(x=data.for.plot[,1],y=data.for.plot[,2], group = 1))  +
-      geom_line()+
-      geom_point()+
-      labs(title= plot.title, x=i18n()$t("Budget scenarios"), y = factorName()) +
-      scale_x_continuous(breaks = data.for.plot[,1], labels = label.values)
 
   })
 
   # Reactive expression for the data subsetted to what the user selected
   plotData <- reactive({
 
-    budgets.tested <- cache[["index"]][["budget"]]
+    budgets.tested <- unique(ponding_df$budget)
 
     #Iterate through each Budget test and get the average value for the parameter selected
     values <- NULL
     for (val in budgets.tested){
       subsetdf = load_scenario(cache, budget == val)
-      cvgeo.split <- t(sapply(subsetdf$cvgeo, function(x) substring(x, first=c(3), last=c(5))))#Split Municipality Numbers from Census ID
+      cvgeo.split <- t(sapply(subsetdf$cvgeo, function(x) substring(x, first=c(8), last=c(9))))#Split Municipality Numbers from Census ID
       municipality <- as.numeric(cvgeo.split)
       subsetdf <- cbind(subsetdf, municipality) #ADD Municipality Numbers from Census ID
       subsetdf$cvgeo <- NULL # get rid of non-numeric data
@@ -132,7 +238,8 @@ server <- function(input, output, session) {
         subsetdf <- subsetdf[subsetdf$municipality == as.numeric(input$select_municipality), ]
       }
 
-      avg <- mean(subsetdf[[input$select_factor]], na.rm = TRUE)
+
+      avg <- mean(subsetdf[[input$tabs]], na.rm = TRUE)
       values <- c(values, avg)
       values
     }
@@ -143,47 +250,48 @@ server <- function(input, output, session) {
 
   })
 
-  moreInfo <- reactive({
-
-    paste("More Information about the municipality or the census block selected can be displayed here.")
-  })
-
-  output$choose_params <- renderText({
-    i18n()$t("Choose from the parameters below to see simulation results")
-  })
-
-
-  output$mapUI <- renderUI({
-
-    selectInput("select_budget", i18n()$t("Budget scenarios"), choices = budgetList(),
-    width = 150
-    )
-  })
-
-  output$factor_chooser<- renderUI({
-
-    tagList(
-      selectInput("select_factor", i18n()$t("Indicator"), choices = factorList(), width = 400
-      )
-    )
-  })
 
   output$plot_view <- renderUI({
-    plotOutput("plot", width = 400)
+    plotOutput("plot", width = 800)
   })
 
   output$municSelector <- renderUI({
-    selectInput("select_municipality", i18n()$t("Municipality"), choices = municipalityList(), width = 200
+    selectInput("select_municipality", translator$t("Municipality"), choices = municipalityList(), width = 200
     )
   })
 
-  output$more_info <- renderUI({
-    #textOutput(paste(moreInfo))
+  output$budgetUI <- renderUI({
+
+    selectInput("select_budget", translator$t("Budget Scenarios"), choices = budgetList(),
+                width = 150
+    )
+  })
+
+  output$climateUI <- renderUI({
+
+    selectInput("select_climate", translator$t("Climate Scenarios"), choices = climateList(),
+                width = 150
+    )
+  })
+
+  climateList <- reactive({
+    #climate.tested
+
+
+    as.list(climate.tested)
+  })
+
+  budgetList <- reactive({
+
+    pcts.tested <- as.integer((budgets.tested  / 2428) * 100) #2428 Is the total number of cenusus units, or AGEB_ID
+    pcts.tested <- as.character(pcts.tested)
+    pcts.tested <- paste(pcts.tested, "%", sep="")
+    names(budgets.tested) <- pcts.tested
+    as.list(budgets.tested)
   })
 
   municipalityList <- reactive({
-
-    places = list(i18n()$t("All municipalities"), "Azcapotzalco", "Coyoacán", "Cuajimalpa de Morelos", "Gustavo A. Madero", "Iztacalco",
+    places = list(translator$t("All municipalities"), "Azcapotzalco", "Coyoacán", "Cuajimalpa de Morelos", "Gustavo A. Madero", "Iztacalco",
                   "Iztapalapa","La Magdalena Contreras","Milpa Alta","Álvaro Obregón","Tláhuac","Tlalpan",
                   "Xochimilco","Benito Juárez","Cuauhtémoc","Miguel Hidalgo","Venustiano Carranza")
     listvalues = (1:17)
@@ -192,244 +300,12 @@ server <- function(input, output, session) {
 
   })
 
-  budgetList <- reactive({
-
-    budgets.tested <- cache[["index"]][["budget"]]
-    pcts.tested <- as.integer((budgets.tested  / 2428) * 100) #2428 Is the total number of cenusus units, or AGEB_ID
-    pcts.tested <- as.character(pcts.tested)
-    pcts.tested <- paste(pcts.tested, "%", sep="")
-    names(budgets.tested) <- pcts.tested
-    as.list(budgets.tested)
-  })
-
-  i18n <- reactive({
-
-    selected <- input$selected_language
-
-    if (length(selected) > 0) { # && selected %in% SUPPORTED_LANGUAGES
-      translator$set_translation_language(selected)
-    } else {
-      translator$set_translation_language("en")
-    }
-    translator
-  })
-
-  factorName <- reactive({
-
-    if(length(input$select_factor) < 1){
-      name.of.factor = i18n()$t("Vulnerability of residents to potable water scarcity")
-    }
-    else{
-      if (identical(input$select_factor, "potable_water_vulnerability_index")){name.of.factor = i18n()$t("Vulnerability indicator of residents to potable water scarcity")}
-      if (identical(input$select_factor, "non_potable_water_vulnerability_index")){name.of.factor = i18n()$t("Vulnerability indicator of residents to flooding")}
-      if (identical(input$select_factor, "potable_water_system_intervention_count")){name.of.factor = i18n()$t("Number of actions on potable water infrastructure")}
-      if (identical(input$select_factor, "non_potable_water_system_intervention_count")){name.of.factor = i18n()$t("Number of actions on sewer and drainage infrastructure")}
-      if (identical(input$select_factor,"potable_water_infrastructure_age")){name.of.factor = i18n()$t("Potable water infrastructure age")}
-      if (identical(input$select_factor, "non_potable_water_infrastructure_age")){name.of.factor = i18n()$t("Non potable water infrastructure age")}
-      if (identical(input$select_factor,"days_no_potable_water")){name.of.factor = i18n()$t("Days without potable water")}
-    }
-    name.of.factor
-
-  })
-
-  factorList <- reactive({
-
-    factor.names = list(i18n()$t("Vulnerability indicator of residents to potable water scarcity"),i18n()$t("Vulnerability indicator of residents to flooding"),i18n()$t("Number of actions on potable water infrastructure"),
-                        i18n()$t("Number of actions on sewer and drainage infrastructure"),i18n()$t("Potable water infrastructure age") ,i18n()$t("Non Potable water infrastructure age"),i18n()$t("Days without potable water"))
-    choices = list("potable_water_vulnerability_index","non_potable_water_vulnerability_index", "potable_water_system_intervention_count","non_potable_water_system_intervention_count",
-                   "potable_water_infrastructure_age","non_potable_water_infrastructure_age", "days_no_potable_water")
-
-    names(choices) <- factor.names
-    as.list(choices)
-
-  })
-
-
-  # Reactive expression for the data subsetted to what the user selected
-  filteredData <- reactive({
-
-    if(length(input$select_factor) < 1){
-      budgets.tested <- cache[["index"]][["budget"]]
-      subsetdf <- load_scenario(cache, budget == budgets.tested [1])
-    }
-    else{
-      subsetdf <- load_scenario(cache, budget == input$select_budget)
-    }
-
-
-    subsetdf$cvgeo <- NULL # get rid of non-numeric data
-
-    subsetdf = subsetdf %>%
-      group_by(censusblock_id) %>%
-      summarise_all(funs(mean))
-
-    #Join the attribute tables
-    x <- megadapt[["study_area"]]
-    y <- subsetdf
-    x$sort_id <- 1:nrow(as(x, "data.frame"))  # Column containing original row order for later sorting
-    x.dat <- as(x, "data.frame")  # Create new data.frame object
-    x.dat <-as.data.frame(x.dat[,c(1,ncol(x.dat))])
-    x.dat2 <- merge(x.dat, y, by.x = "censusblock_id", by.y = "censusblock_id")  # Merge
-    x.dat2.ord <- x.dat2[order(x.dat2$sort_id), ]  # Reorder back to original
-    x2 <- x[x$sort_id %in% x.dat2$sort_id, ]  # Make new set of polygons, dropping those which arent in merge
-    x2.dat <- as(x2, "data.frame")  # Make update x2 into a data.frame
-    row.names(x.dat2.ord) <- row.names(x2.dat)  # Reassign row.names from original data.frame
-    x.dat2.ord$sort_id <- NULL
-    x2@data <- x.dat2.ord  # Assign to shapefile the new data.frame
-    studyArea_CVG.4.display <<- x2
-
-  })
-
-  # This reactive expression represents the palette function,
-  # which changes as the user makes selections in UI.
-  colorpal <- reactive({
-    #Use one parameter for the color
-    #colorNumeric("YlOrRd", studyArea_CVG.4.display@data[[input$select_factor]] )
-    if(length(input$select_factor) < 1){
-      colorBin("YlOrRd", studyArea_CVG.4.display@data[["potable_water_vulnerability_index"]], bins = 7)
-    }
-    else{
-      colorBin("YlOrRd", studyArea_CVG.4.display@data[[input$select_factor]] , bins = 7)
-    }
-
-
-
-
-  })
-
-  municipalityShapeColor <- reactive({
-    all.values <- municipalities@data[["mun_num"]]
-    all.values <- as.numeric(all.values)
-    test = 1:20
-    if(length(input$select_factor) < 1){
-      colorBin("YlOrRd", all.values, bins = 5)
-    }
-    else{
-      if (input$select_municipality > 1) {
-        colorBin("YlOrRd", as.numeric(input$select_municipality), bins = 2)
-      }else{
-        colorBin("YlOrRd", all.values, bins = 17)
-      }
-    }
-
-    #add a new column and return it
-
-
-
-    # mypalette = colorNumeric( palette="viridis", domain=municipalities@data$mun_num, na.color="transparent")
-    # if (input$select_municipality > 1) {
-    #   mypalette = colorNumeric( palette="viridis", domain=input$select_municipality, na.color="transparent")
-    # }
-    # mypalette
-
-
-  })
-
-  municipalityData <- reactive({
-    # value = 14 #input$select_municipality
-    # m.df = municipalities
-    #
-    #
-    # spot <- which((m.df@data[["mun_num"]]) == value)
-    # m.df@data[,"color"] <- NA
-    # m.df@data[spot,"color"] <- value
-    m.df <- municipalities
-    if (length(input$select_factor)) {
-      if (input$select_municipality > 1) {
-        m.df <- municipalities[municipalities$mun_num==input$select_municipality, ]
-      }
-    }
-    m.df
-  })
-
-
-  output$map <- renderLeaflet({
-
-    subsetdf <- load_scenario(cache, budget == 1200)
-    subsetdf$cvgeo <- NULL
-    subsetdf = subsetdf %>%
-      group_by(censusblock_id) %>%
-      summarise_all(funs(mean))
-    x <- megadapt[["study_area"]]
-    y <- subsetdf
-    x$sort_id <- 1:nrow(as(x, "data.frame"))  # Column containing original row order for later sorting
-    x.dat <- as(x, "data.frame")  # Create new data.frame object
-    x.dat <-as.data.frame(x.dat[,c(1,ncol(x.dat))])
-    x.dat2 <- merge(x.dat, y, by.x = "censusblock_id", by.y = "censusblock_id")  # Merge
-    x.dat2.ord <- x.dat2[order(x.dat2$sort_id), ]  # Reorder back to original
-    x2 <- x[x$sort_id %in% x.dat2$sort_id, ]  # Make new set of polygons, dropping those which arent in merge
-    x2.dat <- as(x2, "data.frame")  # Make update x2 into a data.frame
-    row.names(x.dat2.ord) <- row.names(x2.dat)  # Reassign row.names from original data.frame
-    x.dat2.ord$sort_id <- NULL
-    x2@data <- x.dat2.ord  # Assign to shapefile the new data.frame
-    studyArea_CVG.4.display <<- x2
-
-    cat("Running renderLeaflet")
-    # Use leaflet() here, and only include aspects of the map that
-    # won't need to change dynamically (at least, not unless the
-    # entire map is being torn down and recreated).
-
-    leaflet() %>% addTiles() %>%
-      setView(lat = 19.3326, lng =-99.14, zoom = 11)
-
-
-  })
-
-  # Incremental changes to the map should be performed in
-  # an observer. Each independent set of things that can change
-  # should be managed in its own observer.
-  observe({
-    pal <- colorpal()
-    if(length(input$select_factor) < 1){
-      values.4.fill = studyArea_CVG.4.display@data[["potable_water_vulnerability_index"]]
-    }
-    else{
-      values.4.fill =  studyArea_CVG.4.display@data[[input$select_factor]]
-    }
-
-    #leafletProxy("map", data = filteredData()) %>%
-    leafletProxy("map") %>%
-      clearShapes() %>%
-      addPolygons(data = filteredData(), color = "#444444", weight = 1, smoothFactor = 1.0,
-                  opacity = 1.0, fillOpacity = 1.0,
-                  #label = studyArea_CVG.4.display@data[["ageb_id"]],
-                  #popup = paste(studyArea_CVG.4.display@data[["ageb_id"]]),
-                  fillColor = ~pal(values.4.fill )
-                  #highlightOptions = highlightOptions(color = "white", weight = 2, bringToFront = TRUE)
-      )%>%
-      addPolygons(data = municipalityData(), color = "#444444", weight = 3, smoothFactor = 1.0,
-                  opacity = 0.1, fillOpacity = 0.01, fillColor = municipalities@data[["mun_num"]],#~pal( munic.values), #municipalityShapeColor()
-                  #popup = paste(municipalities@data[["ageb_id"]]),
-                  highlightOptions = highlightOptions(color = "white", weight = 2,bringToFront = TRUE))
-
-
-
-  })
-
-
-  # Use a separate observer to recreate the legend as needed.
-  observe({
-    proxy <- leafletProxy("map", data = studyArea_CVG.4.display)
-
-
-    # Remove any existing legend, and create a new one.
-    proxy %>% clearControls()
-    pal <- colorpal()
-    if(length(input$select_factor) < 1){
-      values.4.legend = studyArea_CVG.4.display@data[["potable_water_vulnerability_index"]]
-    }
-    else{
-      values.4.legend =  studyArea_CVG.4.display@data[[input$select_factor]]
-    }
-
-    proxy %>% addLegend(position = "bottomright", title = factorName(),
-                        pal = pal, values = values.4.legend, labels = c("Low", "","","Medium","", "High")
-    )
-
-  })
-
-
 
 }
 
-shinyApp(ui = ui, server = server)
+# Run the application
+shinyApp(
+  ui = ui,
+  server = server,
+  options = list(port = "5601", host = "0.0.0.0")
+)
