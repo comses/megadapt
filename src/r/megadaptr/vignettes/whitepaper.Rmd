@@ -1,6 +1,6 @@
 ---
-title: "PresentationOutline"
-author: "Andres Baeza, Calvin Pritchard"
+title: "`megadaptr`: An Overview"
+author: "Andres Baeza, Calvin Pritchard, Manuela Vanegas Ferro, Sean Bergin"
 date: "May 22, 2019"
 output: html_document
 bibliography: bibliography.bib
@@ -8,18 +8,14 @@ bibliography: bibliography.bib
 
 # Introduction
 
-Megacities are confronted with multiple stressors that influence the vulnerability of urban populations around the world. Some of these stressors are external and associated to regional forces, such as climate changes, and migration. Others are associated with the decision of influential actors, including residents, managers and policians. Many of these decisions are embedded in institutions that must invest resources to adaptation according to their mandate, resources, preferences and socio-political factors.
+Megadapt is a spatially explicit microsimulation model made for determining the impact of public and private potable water and sewer infrastructure investment on residents and the environment under different climate scenarios. The Megadapt model could be used to determine the impacts of different policy decisions such as budget levels, initial sewer infrastructure capacity, land-use and municipal investment decisions as well as changing environmental conditions.
 
+Municipal and residential infrastructure investment decisions impact resident health,
 The infrastructure investment decisions of municipal goverments and residents impact the environment and resident well-being in the municpality and surrounding area. Potable water infrastructure coverage and quality influences health and private infrastructure investment. Sewer and stormwater infrastructure quality and coverage influences ponding and flooding rates as well as water borne disease rates.
 
+In Megadapt we construct computational models that allows the integration of system models and decision-making models to understand the vulnerabilities of megacities to climate change. It is applied to Mexico City but the approach was developed thinking about its applicability to other cities as well. The Megadapt model aims to be a participatory model where decision makers, residents and stakeholders can evaluate and self-reflect on the consequences of their decisions and actions. By integrating system models with decision-making models in a GIS platform, Megadapt aims to help in making explicit how decisions impact the spatial patterns of urban vulnerability. It also aim to help to spart discusss to validate and tranparent current practices and investments. Decision-makers can also evaluate the impact of their decisions on different regions, and can evaluate the tradeoffs that emerge from considering different priorities.
 
-In MEGADAPT we construct computational models that allows the integration of system models and decision-making models to understand the vulnerabilities of megacities to climate change. It is applied to Mexico City but the approach was developed thinking about its applicability to other cities as well. The Megadapt model aims to be a participatory model where decision makers, residents and stakeholders can evaluate and self-reflect on the consequences of their decisions and actions. By integrating system models with decision-making models in a GIS platform, Megadapt aims to help in making explicit how decisions impact the spatial patterns of urban vulnerability. It also aim to help to spart discusss to validate and tranparent current practices and investments. Decision-makers can also evaluate the impact of their decisions on different regions, and can evaluate the tradeoffs that emerge from considering different priorities.
-
-Megadapt is a spatial-explicit microsimulation model made for determining the impact of public and private potable water and sewer infrastructure investment on residents and the environment. The megadapt model could be used to determine the determine the impacts of different policy decisions such as budget levels, initial sewer infrastructure capacity, land-use and municipal investment decisions as well as changing environmental conditions.
-
-
-
-# The MEGADAPTR Package and Model Overview
+# `megadaptr`
 
 The Megadapt model is composed of different subcomponents. Each subcomponent has its own data requirements to function. The climate component requires a panel of precipitation and runoff data by census block. The flooding and ponding models depends on the climate data as well as infrastructure capacity per census block. The water scarcity model depends infrastructure information (such as water pressure), demographic information, infrastructure failure reports and resident preference data. The resident investment model requires resident preference data (value functions and a mental model) as well as infrastructure data (private and public) and demographic data. The municipal model requires municipal sewer and potable water department preferences, infrastructure data, climate data and demographic data.
 
@@ -45,6 +41,7 @@ digraph megadapt {
   water_scarcity [label='water scarcity']; 
   resident [label='resid invest']; 
   municipality [label='municip invest']
+  save_results [label='save results']
 
   node [shape = circle,
         fixedsize = true,
@@ -65,6 +62,7 @@ digraph megadapt {
   study_data->municipality
   study_data->resident
   study_data->water_scarcity
+  study_data->save_results
   
   climate->combine_data_changes
   flooding->combine_data_changes
@@ -84,7 +82,7 @@ There are few interesting timing take aways from the graph. The flooding and pon
 
 The `megadaptr` package implements the Megadapt with code organized around the subcomponents mentioned. There are components for flooding, ponding, residential investment, municipal investment, climate, water scarcity and the Megadapt model as a whole. All components except for the Megadapt model as whole are just functions. The Megadapt implementation has state to keep track of the current census state for that time year as well as the number of years the simulation has been run for. Components in the `megadaptr` package loosely follow the function specified system (FNSS) and discrete time system specifications (DTSS) given in Theory of Modeling and Simulation [-@zeigler2019] except that the model and simulator are not completely seperate.
 
-##                           Model Components
+## Model Components
 
 Detailed information about how the model components work and there data requirements are is described in this section. Information about calling and interacting with individual model components is available in the `megadaptr` package docs.
 
@@ -125,8 +123,23 @@ p &=& \sum_{i=1}^{N_f} w_i x_i
 \end{eqnarray}
 
 
-where $w_i$ represents the weigth of the criterio and $x_i$ is a value function of the state of the criterion $i$, for the $i=1, \dots, N_f$ criteria that influence flooding risk.
+where $w_i$ represents the weigth of the criterion and $x_i$ is a value function of the state of the criterion $i$, for the $i=1, \dots, N_f$ criteria that influence flooding risk.
 
+
+### Residential Investment
+
+The residential investment model determines how much investment into private potable and sewer infrastructure takes place in a census block in a year. Residents in the census block can make two aggregate actions: they can modify their houses to reduce their sensitivity to exposure to flooding events or they can modify their house to reduce their sensitity to the exposure of water sarcity.
+
+Residents choose between options between sewer and potable water investment by attempting to minimize their distance from an ideal point. Their distance from the ideal point is computed using census block state and value functions that connect the action to a set of criteria from the Analytic Network Process model (ANP model).
+
+For each census block $j$ and action $k$, the calculation of the ideal point $d_{j,t}^k$ is done using the equation described in the document `site_selection_and_site_suitability.Rmd`.
+
+Each time step $t$, the residents in census block $j$ ask the following question: Is $d_{j,t}^k1 >d_{j,t}^k1$?
+If, indeed $d_{j,t}^k1 >d_{j,t}^k1$, then the agent chooses action 1 (Reduce the sensitity to the exposure to flooding). If  instead $d_{j,t}^k1 < d_{j,t}^k1$ of action 2 (Reduce the sensitity to the exposure of water sarcity).
+
+### Municipal Investment
+
+The municipal investment model determines how much to investment into public potable and sewer infrastructure in a census block in a year given a budget. Equal costs for all census block investments are assumed. Budget is allocated by the municipalities preferences. 
 
 ### Residential Water Scarcity
 
@@ -156,6 +169,13 @@ scarcity\_exp_{index} &=&  (w_{zonas\_crit})(fv_{zonas\_crit}) + (w_{dias\_sagua
 &+& (w_{presion\_hid})(fv_{presion\_hid})\nonumber
 \end{eqnarray}
 
+## Calibrating the Model
+
+Calibration of the Megadapt model was performed using stakeholder and expert knowledge. Stakeholders were asked survey questions to determine the importance of different outcomes on well being and with the aid of visualization tools.
+
+The flooding and ponding models depend on wieghts assigned to runoff, precipitation, capacity and historical flooding and ponding to evolve flooding and ponding values over time. Since panel flooding and ponding data by census block with necessary explanatory variables was unavailable the flooding and ponding model parameters are estimated by visual inspection of flooding and ponding outcomes.
+
+The municipal investment model was calibrated using survey data and interactive value function calibration workshops. Survey data was used to estimate an analytic network process model of resident and municipality values. This is combined with value functions to give resident and municipality preferences.
 
 ### Residential Investment
 
@@ -196,11 +216,8 @@ Every year site selection is invoked by the manager for choosing investments y_v
 \end{equation*}
 
 where $B_k$ is the number of census-blocks where investment related to action k can take place; $y_{jt}^k$ is the 0-1 decision variable for action $k$ in census block $j$ at time $t$ ($y_{jt}^k=1$, if census block $j$ is selected for investment, or 0 otherwise). An implementation of other forms of maximization with a more complete set of constrains is underway.
+
 Budget $B$ represents a total capital or resources divided among census blocks. Thus when $B < J$  there is a limited among of resources to be divided in the city. The budget can be aggregated or disaggregated according to institutional rules. For instance, in CDMX the budget for drainage is separated from the budget for potable water system, and within each system, the budget is divided in actions. The optimization of the objective functions were done using a non-dominant sorting assessment (NDSA) that find solutions near the Pareto frontier.
-
-
-
-
 
 # Running the model
 
@@ -216,7 +233,7 @@ but if you want the change the municipalities budget, the ponding and flooding m
 
 ```{r, eval=FALSE}
 megadapt2 <- megadapt_create(
-  params_create(),
+  params_create(budget = 400),
   sacmex_fnss_creator = sacmex_fnss_create,
   mental_models = mental_model_constant_strategies(),
   flooding_fnss = flooding_delta_method_fnss_create(),
@@ -225,18 +242,13 @@ megadapt2 <- megadapt_create(
 results2 <- simulate(megadapt)
 ```
 
-# Determining an Experiment ro Run
+# Determining an Experiment to Run
 
 For experiments to be useful they need to vary parameters that substantively impact simulation run results. The importance of parameters on run results can be determined through sensitivity analysis.
 
-Variance-Based Sensitivity Analysis (VBSA) has the purpose of estimating the effect of certain input parameters on the uncertainty or variability of the model’s outputs. The analysis runs the model once per combination of input parameters and calculates two coefficients for each input and output of interest (seebelow for details about inputs and outputs). The first-order sensitivity coefficient measures the fraction of the model variance that is due to the changes of a single input, averaged over the variance caused by all the input parameters and their interactions. The total-order sensitivity coefficient shows the fraction of the variance that is caused bychanges to one input and its interactions with other input parameters, again averaged over the unconditional variance of the model.
+Variance-Based Sensitivity Analysis (VBSA) estimates the impact of input parameters on the uncertainty or variability of the model’s outputs. The analysis runs the model once per combination of input parameters and calculates two coefficients for each input and output of interest (seebelow for details about inputs and outputs). The first-order sensitivity coefficient measures the fraction of the model variance that is due to the changes of a single input, averaged over the variance caused by all the input parameters and their interactions. The total-order sensitivity coefficient shows the fraction of the variance that is caused bychanges to one input and its interactions with other input parameters, again averaged over the unconditional variance of the model.
 
-In this particular implementation, the sensitivity coefficients are estimated through the
-Monte Carlo method, according to the procedures explained by Saltelli et al. (2010).
-Sampling of the parameter space is done using the Sobol’ sequence. The resulting sets of
-parameters are used to run the different instances of the model and the estimated
-coefficients are calculated by using the formulas proposed in the publication cited above.
-
+In this particular implementation, the sensitivity coefficients are estimated using a Quasi Monte Carlo method, according to the procedures explained by Saltelli et al. (2010). Sampling of the parameter space is done using the Sobol’ sequence. The resulting sets of parameters are used to run the different instances of the model and the estimated coefficients are calculated by using the formulas proposed in the publication cited above.
 
 ```{r, eval=FALSE}
 # Example Running Sensitivity Analysis on HPC goes here
@@ -280,4 +292,46 @@ study_area <- megadaptr::study_area_read('../inst/rawdata/censusblocks/megadapt_
 experiment_map_plot(experiment_df, study_area)
 ```
 
-# References
+Interactive visualization of model results will be done using the `visualize` function (WIP). Below shows a visualization of the resident income and vulnerability index.
+
+```{r eval=FALSE}
+visualize(experiment_df)
+```
+
+![](images/megadaptr_result_visualization.png "Result Visualization")
+
+## Extending the Model
+
+Creating a new component for the megadapt model requires:
+
+### Constructor
+
+Model components in the package all have constructors. Constructors take some configuration and return an instance of model component with a particular class and superclasses. To reduce the number of S3 methods needed when creating the a model the `prepend_class` function is used. It takes a value and class name and adds the class name to beginning of the value's class list. This makes it possible to use S3 methods from the model's base class such as `print`.
+
+### Model Interface
+
+All models in the `megadaptr` package except the overall `megadapt` object implement the function specified system (FNSS) formalism. In FNSS a model component is stateless and returns an output given input. The `megadapt` model is based around the Moore discrete time specificied system specification (Moore-DTSS). The Moore-DTSS formalism is more complex since it deals with timing and state. It is given by
+
+The DTSS formalism has state and is given by
+
+$$
+\begin{align}
+X&:       \text{input set} \\
+Y&:       \text{output set} \\
+S&:       \text{state set} \\
+\lambda&: S \rightarrow Y \text{ is the output function }\\
+\delta&:  S \times X \rightarrow Y \text{ is the transition function}\\
+c&:       \text{constant time step size}
+\end{align}
+$$
+For the Megadapt model $X$ is the empty set, $Y$ is the set of all possible study area summaries, $S$ is the set of all possible study area states,  $\lambda$ is described by the data collector subcomponent, $\delta$ is combination of the  climate, flooding, ponding, municipal investment, residential investment and water scarcity models connected $c$ is a year, 
+
+### Study Area Initialization
+
+Model components have an optional study area initializer. Initialization of the overall `megadapt` model instance state requires initial values for some variables used in the model subcomponents such flooding, municipal investment etcetera. Where these values are not provided in the initial study area dataset they are initialized in a model component's initialization function. In order to keep code easy to read if two or more components require a particular variable it is better to that variable's initialization in the common Megadapt initializer.
+
+### Thread Component Changes Through Overall Megadapt Component
+
+Since the model component likely has configuration the `megadapt` model initializer, transition function and output function must be changed and created to accomodate the new model. These changes will involve adding calls to the initializer in the initialization function `megadapt_initialize`, adding calls to the component in the transition function `transition_dtss.megadapt_dtss` and summarizing any state from the model output in the data collector component for later analysis.
+
+## References
