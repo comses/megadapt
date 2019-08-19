@@ -3,48 +3,29 @@ source('../scenarios/util.R')
 
 ################################################################################################
 ################################################################################################
-#
-# city_communities <- c(
-#   "Azcapotzalco",
-#   "Coyoacan",
-#   "Cuajimalpa_de_Morelos",
-#   "Gustavo_A_Madero",
-#   "Iztacalco",
-#   "Iztapalapa",
-#   "La_Magdalena_Contreras",
-#   "Milpa_Alta",
-#   "Alvaro_Obregon",
-#   "Tlahuac",
-#   "Tlalpan",
-#   "Xochimilco",
-#   "Benito_Juarez",
-#   "Cuauhtemoc",
-#   "Miguel_Hidalgo",
-#   "Venustiano_Carranza",
-#   "Global"
-# )
-
 
 megadapt_conds <- list(
-  sim_years = 2,
+  sim_years = 40,
   municip = T,
   out_stats = c("mean","max","min"),
   out_metric_names = c("household_potable_water_vulnerability", "household_sewer_vulnerability", "flooding_index",
                    "ponding_index","scarcity_index_exposure", "scarcity_index_sensitivity")
-  # communities = city_communities
 )
 
 # SA Conditions
 SA_conditions <- list(
   exp_min = 1,
-  exp_max = 2,
-  # whichmodel="modelMetrics", # other options are: "toyFunction" and "bookEx"
+  exp_max = 4,
   run_model = T,
   on_cluster = F,
   summary_stats = c("mean","max","min")
 )
 
-
+batchtools_resources <- list(nnodes = 1,
+                             ntasks = 1,
+                             ncpus = 1,
+                             walltime = 3600,
+                             memory = 2000)
 
 # Input Parameters and their Names
 
@@ -105,26 +86,21 @@ book_SA_params <- list(
 noParams <- 4 #number of parameters to take into account
 SA_params <- SA_params[1:noParams]
 
-# if (SA_conditions$whichmodel == "book") {
-#
-#   # Output metrics
-#   SA_conditions$oMetricNames <- c("vulnerability_Ab")
-#
-#   SA_conditions$municip = FALSE
-# }
 
 ################################################################################################
 ################################################################################################
+
+print(SA_conditions)
 
 model_f <- megadaptr:::megadapt_superficial_params_simulator(megadapt_conds, SA_params)
 
 # model_f <- megadaptr:::book_example_simulator()
 
-resultsss <- megadaptr:::VBSA(model_f, SA_conditions, SA_params)
+resultsss <- megadaptr:::VBSA(model_f, SA_conditions, SA_params, batchtools_resources)
 
-# saveRDS(resultsold, "results")
+saveRDS(resultsss, "SAresults")
 
-# print(SA_conditions)
+
 
 
 
