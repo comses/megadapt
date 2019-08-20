@@ -22,28 +22,28 @@ library("shinydashboard")
 #INPUT FILES
 megadapt_census_blocks <- readOGR(dsn = "censusblocks", layer = "megadapt_wgs84")
 names(megadapt_census_blocks@data)[1] <-"censusblock_id"
-megadapt_census_blocks <<- megadapt_census_blocks
+megadapt_census_blocks <- megadapt_census_blocks
 
 #LANGUAGE SETTINGS
-translator <<- Translator$new(translation_json_path = "translation.json")
-language_choice <<- "es"
+translator <- Translator$new(translation_json_path = "translation.json")
+language_choice <- "es"
 translator$set_translation_language(language_choice)   ### en for english or es for spanish
 
 #INPUT DATA
 
-conn <- DBI::dbConnect(RSQLite::SQLite(), 'ex2.db')
 if (!fs::file_exists('ex2.db')) {
+  conn <- DBI::dbConnect(RSQLite::SQLite(), 'ex2.db')
   params_df <- megadaptr:::params_cartesian_create(megadaptr::params_create(budget=1:5*200))
   megadaptr:::params_table_create(conn, 'ex', params_df)
   megadaptr:::results_table_create(conn, 'ex', params_df)
+} else {
+  conn <- DBI::dbConnect(RSQLite::SQLite(), 'ex2.db')
 }
 
 params <- dplyr::tbl(conn, 'ex_params')
 input_data <- dplyr::tbl(conn, 'ex_results')
 
-
-#input_data <- ponding_df
-megadapt_results <<- as.data.frame(lapply(input_data, as.numeric))
+megadapt_results <- input_data %>% dplyr::collect()
 megadapt_results$vulnerability <- sample(100, size = nrow(megadapt_results), replace = TRUE)
 megadapt_results$resilience <- sample(100, size = nrow(megadapt_results), replace = TRUE)
 megadapt_results$sensitivity <- sample(100, size = nrow(megadapt_results), replace = TRUE)
