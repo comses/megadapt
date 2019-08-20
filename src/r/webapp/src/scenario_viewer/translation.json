@@ -70,6 +70,31 @@
         "en": "Resident Income And Vulnerability",
         "es": "Ingresos residentes y vulnerabilidad"
       },
+                  {
+        "en": "Vulnerability",
+        "es": "Vulnerabilidad"
+      },
+                  {
+        "en": "Resilience",
+        "es": "Resistencia"
+      },
+                  {
+        "en": "Simulation Factor",
+        "es": "Factor de simulacion"
+      },
+                        {
+        "en": "Sensitivity",
+        "es": "Sensibilidad"
+      },
+                              {
+        "en": "Number of Actions on Sewer and Drainage Infrastructure",
+        "es": "Número de acciones en infraestructura de alcantarillado y drenaje"
+      },
+                              {
+        "en": "Number of Actions on Potable Water Infrastructure",
+        "es": "Número de acciones en infraestructura de agua potable"
+      },
+
             {
         "en": "Climate Scenarios",
         "es": "Escenario Climáticos"
