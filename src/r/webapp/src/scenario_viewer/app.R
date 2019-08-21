@@ -48,6 +48,16 @@ megadapt_results$vulnerability <- sample(100, size = nrow(megadapt_results), rep
 megadapt_results$resilience <- sample(100, size = nrow(megadapt_results), replace = TRUE)
 megadapt_results$sensitivity <- sample(100, size = nrow(megadapt_results), replace = TRUE)
 
+if(!("budget" %in% colnames(megadapt_results)))
+{
+  megadapt_results$budget <- sample(5, size = nrow(megadapt_results), replace = TRUE)
+}
+if(!("climate_scenario" %in% colnames(megadapt_results)))
+{
+  megadapt_results$climate_scenario <- sample(5, size = nrow(megadapt_results), replace = TRUE)
+}
+
+
 #municipalities <- readOGR(dsn = "municipiosDFCenso3", layer = "municipiosDFCenso3")
 
 
