@@ -9,7 +9,7 @@ library(plyr)
 
 
 #path <- data_dir('censusblocks')
-path <- "/Users/fidel/tawa/src/r/megadaptr/inst/rawdata/censusblocks"
+path <- "/Users/fidel/Documents/GitHub/megadapt/src/r/megadaptr/inst/rawdata/censusblocks"
 sdf <- rgdal::readOGR(dsn = path,
                       layer = 'megadapt_wgs84',
                       stringsAsFactors = FALSE,
@@ -21,6 +21,32 @@ fortified$censusblock_id <- as.character(fortified$id)
 fortified$id <- fortified$censusblock_id
 
 
+
+
+long_df<- new_results %>% filter(year %in% c(2020, 2030, 2040, 2050, 2060))
+ll <- long_df %>% select(censusblock_id,
+                         year,
+                         household_potable_water_vulnerability)
+
+ww <- reshape(ll, idvar = "censusblock_id", timevar = "year", direction = "wide")
+
+map <- ggplot() +
+  geom_map(data=fortified, map=fortified,
+           aes(x=long, y=lat, map_id=censusblock_id),
+           color="#2b2b2b", size=0.1, fill=NA) +
+  geom_map(data=ll, map=fortified,
+           aes(fill=household_potable_water_vulnerability, map_id=censusblock_id)) +
+  scale_fill_viridis_c() +
+  theme(strip.text.x = element_text(size = 20))+
+  theme(strip.text.y = element_text(size = 20))+
+  facet_grid(.~year) +
+  labs(fill = 'Vulnerabilidad')
+
+
+
+
+
+map
 # Get data from split run
 
 drv <- dbDriver("PostgreSQL")

@@ -19,32 +19,32 @@ gaussian <- function(x, a, center, xmax, xmin) {
 }
 #######################################################################################################
 campana_invertida <- function(x, a, center, xmax, xmin) {
-  x <- max(c(x, xmin))
-  x <- min(c(x, xmax))
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
   return(1.0 - gaussian(x, a, center, xmax, xmin))
 }
 #######################################################################################################
 concava_decreciente <- function(x, gama, xmax, xmin) {
-  x <- max(c(x, xmin))
-  x <- min(c(x, xmax))
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
   return(((exp(gama * (100.0 - (100.0 * (x - xmin) / (xmax - xmin))))) - 1) / (exp(gama * 100) - 1))
 }
 #######################################################################################################
 concava_creciente <- function(x, gama, xmax, xmin) {
-  x <- max(c(x, xmin))
-  x <- min(c(x, xmax))
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
   return(((exp(gama * (100 * (x - xmin) / (xmax - xmin)))) - 1) / (exp(gama * 100) - 1))
 }
 #######################################################################################################
 convexa_decreciente <- function(x, gama, xmax, xmin) {
-  x <- max(c(x, xmin))
-  x <- min(c(x, xmax))
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
   return(1.0 - concava_creciente(x, gama, xmax, xmin))
 }
 #######################################################################################################
 convexa_creciente <- function(x, gama, xmax, xmin) {
-  x <- max(c(x, xmin))
-  x <- min(c(x, xmax))
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
   return(1.0 - concava_decreciente(x, gama, xmax, xmin))
 }
 #######################################################################################################
