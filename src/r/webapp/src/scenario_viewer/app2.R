@@ -25,42 +25,36 @@ names(megadapt_census_blocks@data)[1] <-"censusblock_id"
 megadapt_census_blocks <<- megadapt_census_blocks
 
 
-
 #LANGUAGE SETTINGS
 translator <<- Translator$new(translation_json_path = "translation.json")
 language_choice <<- "es"
 translator$set_translation_language(language_choice)   ### en for english or es for spanish
 
 
-
 #INPUT DATA
-#ponding_df <<- INPUT DATA
-ponding_df <<- as.data.frame(lapply(ponding_df, as.numeric))
-budgets.tested <- unique(ponding_df$budget)
-climate.tested <- unique(ponding_df$climate_scenario)
-
+#megadapt_results <<- INPUT DATA
+megadapt_results <<- ponding_df
+megadapt_results <<- as.data.frame(lapply(megadapt_results, as.numeric))
+cvgeo.split <- t(sapply(megadapt_results$geographic_id, function(x) substring(x, first=c(3), last=c(5))))#Split Municipality Numbers from Census ID
+municipality <- as.numeric(cvgeo.split)
+megadapt_results <- cbind(megadapt_results, municipality) #ADD Municipality Numbers from Census ID
 
 #municipalities <- readOGR(dsn = "municipiosDFCenso3", layer = "municipiosDFCenso3")
 
 
-setStyle <- function(map, group, layerId, style) {
-  invokeMethod(
-    map = map,
-    data = NULL,
-    method = 'setStyle',
-    group,
-    layerId,
-    style
-  )
-}
-
 
 # Define UI for application
 ui <- dashboardPage(
-  dashboardHeader(title = "Index Viewer"),
-  dashboardSidebar(width = 150,
+  dashboardHeader(title = "Megadapt Data Viewer"),
+  dashboardSidebar(width = 250, sidebarMenu(
+    id = 'tabs',
+    menuItem(translator$t("Outcomes"), tabName = 'relationship'),
+    menuItem(translator$t("Outcomes Through Time"), tabName = 'time')
+  ),
   uiOutput("budgetUI"),
-  uiOutput("climateUI")
+  uiOutput("climateUI"),
+  uiOutput("landuseUI")
+
   ),
   dashboardBody(
     #tags$head(tags$script(src = 'leafletMonkeyPatch.js')),
@@ -71,18 +65,18 @@ ui <- dashboardPage(
         ),
       column(width = 4,
              box(width = NULL, status = "warning",
-                 uiOutput("municSelector")
+                 uiOutput("data_selector")
              ),
              box(width = 475, status = "warning",
                  uiOutput("factor_chooser")#,
                 #selectInput("select_factor1", translator$t("Simulation Factor"), choices = factorList()
                 #),
                 #selectInput("select_factor2", "Simulation Factor",
-                #            colnames(ponding_df),
+                #            colnames(megadapt_results),
                 #            selected = 12
                 #),
                 #selectInput("select_factor3", "Simulation Factor",
-                #            colnames(ponding_df),
+                #            colnames(megadapt_results),
                 #            selected = 5
                 #)
                   #    selectInput('selected_language',
@@ -105,8 +99,8 @@ ui <- dashboardPage(
                  #       )
                  #     ),
                  #     actionButton("zoomButton", "Zoom to fit buses")
-             ),
-             box(width = NULL, status = "warning",
+             )#,
+            # box(width = NULL, status = "warning",
                  #uiOutput("more_info")
                  #     selectInput("interval", "Refresh interval",
                  #                 choices = c(
@@ -119,12 +113,12 @@ ui <- dashboardPage(
                  #                 selected = "60"
                  #     ),
                  #     uiOutput("timeSinceLastUpdate"),
-                      actionButton("refresh", "Refresh now")#,
+                  #    actionButton("refresh", "Refresh now")#,
                  #     p(class = "text-muted",
                  #       br(),
                  #       "Source data updates every 30 seconds."
                  #     )
-             )
+             #)
       )#
 
 
@@ -145,7 +139,7 @@ server <- function(input, output) {
 
     v.budget = input$select_budget
     v.climate = input$select_climate
-    resultsdf <- ponding_df[ which(ponding_df$budget==v.budget) , ]
+    resultsdf <- megadapt_results[ which(megadapt_results$budget==v.budget) , ]
     resultsdf <- resultsdf[ which(resultsdf$climate_scenario ==v.climate) , ]
 
     subsetdf = resultsdf %>%
@@ -168,50 +162,43 @@ server <- function(input, output) {
     x.dat2.ord
   })
 
-  vulnerabilityData <- reactive({
-    fdata <- filteredData()
-    # use potable water vulnerability
-    # some NA, ranges from 0.05 - 0.3
-    fdata$household_potable_water_vulnerability <- fdata$household_potable_water_vulnerability * 100
-    fdata[is.na(fdata)] <- 1
-    high.income <- max(fdata$resident_income_per_capita)
-    #income.values <- ((100 - (fdata$resident_income_per_capita / high.income)) * fdata$household_potable_water_vulnerability) + fdata$household_potable_water_vulnerability
-    income.values <- ((1 - (fdata$resident_income_per_capita / high.income)) * fdata$household_potable_water_vulnerability) + fdata$household_potable_water_vulnerability
-
-  })
-
 
   output$plot=renderPlot({
 
     v.budget = input$select_budget
     v.climate = input$select_climate
-    resultsdf <- ponding_df[ which(ponding_df$budget==v.budget) , ]
+    resultsdf <- megadapt_results[ which(megadapt_results$budget==v.budget) , ]
     data.for.plot <- resultsdf[ which(resultsdf$climate_scenario ==v.climate) , ]
 
-    cvgeo.split <- t(sapply(data.for.plot$geographic_id, function(x) substring(x, first=c(3), last=c(5))))#Split Municipality Numbers from Census ID
-    municipality <- as.numeric(cvgeo.split)
-    data.for.plot <- cbind(data.for.plot, municipality) #ADD Municipality Numbers from Census ID
-    subsetdf = data.for.plot %>%
-      group_by(municipality) %>%
-      summarise_all(funs(mean))
 
 
     if(length(input$select_factor1) < 1 || length(input$select_factor2) < 1 || length(input$select_factor3) < 1){
        plott <- ggplot(subsetdf, aes(x= household_potable_water_vulnerability, y = scarcity_index, size = resident_income_per_capita)) +
         #ggplot(subsetdf, aes(x= input$selectfactor1, y = input$select_factor2, size = input$select_factor3)) +
-        geom_point(shape = 21, colour = "#000000", fill = "#40b8d0")+ geom_text(aes(label=municipality),hjust=0, vjust=0)
+        geom_point(shape = 21, colour = "#000000", fill = "#40b8d0")
 
     }else{
-      #xval <<- subsetdf [[input$select_factor1]]
-      #yval <<-  subsetdf [[input$select_factor2]]
-      #zval <<-  subsetdf [[input$select_factor3]]
-      #subsetdf <- data.frame(xval, yval,zval)
-      #test.value <<- input$select_factor1
+      if (input$select_data_type == 1){
+        subsetdf = data.for.plot %>%
+          group_by(municipality) %>%
+          summarise_all(funs(mean))
 
-      #plott <- ggplot(subsetdf, aes(x= xval, y = yval, size = zval)) +
-       #plott <- ggplot(subsetdf, aes(x= household_potable_water_vulnerability, y = scarcity_index, size = resident_income_per_capita)) +
-      plott <-ggplot(subsetdf, aes_string(x= input$select_factor1, y = input$select_factor2, size = input$select_factor3)) +
-        geom_point(shape = 21, colour = "#000000", fill = "#40b8d0") + geom_text(aes(label=municipality),hjust=0, vjust=0)
+        plott <-ggplot(subsetdf, aes_string(x= input$select_factor1, y = input$select_factor2, size = input$select_factor3, fill= "municipality")) +
+          geom_point(shape = 21) + geom_text(aes(label=municipality),hjust=0, vjust=0)
+
+      }
+      if (input$select_data_type == 2){
+        subsetdf = data.for.plot %>%
+          group_by(geographic_id) %>%
+          summarise_all(funs(mean))
+
+        plott <-ggplot(subsetdf, aes_string(x= input$select_factor1, y = input$select_factor2, size = input$select_factor3, fill= "municipality")) +
+          #geom_point(shape = 21, color = "darkblue", fill = "#40b8d0", stroke = 0)
+          geom_point(shape = 21, stroke = 0)
+
+      }
+
+
 
     }
       plott
@@ -220,7 +207,7 @@ server <- function(input, output) {
   # Reactive expression for the data subsetted to what the user selected
   plotData <- reactive({
 
-    budgets.tested <- unique(ponding_df$budget)
+    budgets.tested <- unique(megadapt_results$budget)
 
     #Iterate through each Budget test and get the average value for the parameter selected
     values <- NULL
@@ -260,30 +247,45 @@ server <- function(input, output) {
     selectInput("select_municipality", translator$t("Municipality"), choices = municipalityList(), width = 200
     )
   })
+  output$data_selector <- renderUI({
+    selectInput("select_data_type", translator$t("Area Type"), choices = datatypeList(), width = 200
+    )
+  })
+
 
   output$budgetUI <- renderUI({
-
     selectInput("select_budget", translator$t("Budget Scenarios"), choices = budgetList(),
                 width = 150
     )
   })
 
   output$climateUI <- renderUI({
-
     selectInput("select_climate", translator$t("Climate Scenarios"), choices = climateList(),
                 width = 150
     )
   })
 
-  climateList <- reactive({
-    #climate.tested
+  output$landuseUI <- renderUI({
+    selectInput("select_landuse", translator$t("Landuse Scenarios"), choices = climateList(),
+                width = 150
+    )
+  })
 
+  climateList <- reactive({
+    climate.tested <- unique(megadapt_results$climate_scenario)
+
+    as.list(climate.tested)
+  })
+
+  landuseList <- reactive({
+    climate.tested <- unique(megadapt_results$climate_scenario)
 
     as.list(climate.tested)
   })
 
   budgetList <- reactive({
-
+    budgets.tested <- unique(megadapt_results$budget)
+    budgets.tested <- sort(budgets.tested)
     pcts.tested <- as.integer((budgets.tested  / 2428) * 100) #2428 Is the total number of cenusus units, or AGEB_ID
     pcts.tested <- as.character(pcts.tested)
     pcts.tested <- paste(pcts.tested, "%", sep="")
@@ -296,6 +298,14 @@ server <- function(input, output) {
                   "Iztapalapa","La Magdalena Contreras","Milpa Alta","Álvaro Obregón","Tláhuac","Tlalpan",
                   "Xochimilco","Benito Juárez","Cuauhtémoc","Miguel Hidalgo","Venustiano Carranza")
     listvalues = (1:17)
+    names(listvalues) <- places
+    as.list(listvalues)
+
+  })
+
+  datatypeList <- reactive({
+    places = list(translator$t("Municipality"), translator$t("Census Blocks") )
+    listvalues = (1:2)
     names(listvalues) <- places
     as.list(listvalues)
 
@@ -337,11 +347,11 @@ server <- function(input, output) {
   output$factor_chooser<- renderUI({
 
     tagList(
-      selectInput("select_factor1", translator$t("Simulation Factor"), choices = factorList(), selected = "vulnerability"
+      selectInput("select_factor1", translator$t("Simulation Factor: X"), choices = factorList(), selected = "vulnerability"
       ),
-      selectInput("select_factor2", translator$t("Simulation Factor"), choices = factorList(), selected = "resilience"
+      selectInput("select_factor2", translator$t("Simulation Factor: Y"), choices = factorList(), selected = "resilience"
       ),
-      selectInput("select_factor3", translator$t("Simulation Factor"), choices = factorList(), selected = "sensitivity"
+      selectInput("select_factor3", translator$t("Simulation Factor: Size"), choices = factorList(), selected = "sensitivity"
       )
       #selectInput("select_municipality", translator$t("Municipality to Display"), choices = municipalityList()
       #),

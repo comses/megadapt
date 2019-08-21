@@ -78,13 +78,42 @@
         "en": "Resilience",
         "es": "Resistencia"
       },
+                        {
+        "en": "Outcomes Through Time",
+        "es": "Resultados a través del tiempo"
+      },
+                        {
+        "en": "Outcomes",
+        "es": "Resultados"
+      },
+                        {
+        "en": "Landuse Scenarios",
+        "es": "Escenarios de uso del suelo"
+      },
                   {
         "en": "Simulation Factor",
         "es": "Factor de simulacion"
+      },{
+        "en": "Simulation Factor: X",
+        "es": "Factor de simulacion: X"
+      },{
+        "en": "Simulation Factor: Y",
+        "es": "Factor de simulacion: Y"
+      },{
+        "en": "Simulation Factor: Size",
+        "es": "Factor de simulacion: Tamaño"
       },
                         {
         "en": "Sensitivity",
         "es": "Sensibilidad"
+      },
+                              {
+        "en": "Area Type",
+        "es": "Tipo de área"
+      },
+                              {
+        "en": "Census Blocks",
+        "es": "Bloques Censales"
       },
                               {
         "en": "Number of Actions on Sewer and Drainage Infrastructure",

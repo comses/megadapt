@@ -75,7 +75,7 @@ setStyle <- function(map, group, layerId, style) {
 
 # Define UI for application
 ui <- dashboardPage(
-  dashboardHeader(title = "Index Viewer"),
+  dashboardHeader(title = "Megadapt"),
   dashboardSidebar(width = 350, sidebarMenu(
     id = 'tabs',
     menuItem(translator$t("Vulnerability"), tabName = 'vulnerability'),#NEW
@@ -91,7 +91,8 @@ ui <- dashboardPage(
     #menuItem('Days without potable water', tabName = 'days_no_potable_water')
   ),
   uiOutput("budgetUI"),
-  uiOutput("climateUI")
+  uiOutput("climateUI"),
+  uiOutput("landuseUI")
   ),
   dashboardBody(
     tags$head(tags$script(src = 'leafletMonkeyPatch.js')),
@@ -250,13 +251,27 @@ server <- function(input, output) {
     )
   })
 
+  output$landuseUI <- renderUI({
+    selectInput("select_landuse", translator$t("Landuse Scenarios"), choices = climateList(),
+                width = 150
+    )
+  })
+
   climateList <- reactive({
     climate.tested <- unique(megadapt_results$climate_scenario)
+
+    as.list(climate.tested)
+  })
+
+  landuseList <- reactive({
+    climate.tested <- unique(megadapt_results$climate_scenario)
+
     as.list(climate.tested)
   })
 
   budgetList <- reactive({
     budgets.tested <- unique(megadapt_results$budget)
+    budgets.tested <- sort(budgets.tested)
     pcts.tested <- as.integer((budgets.tested  / 2428) * 100) #2428 Is the total number of cenusus units, or AGEB_ID
     pcts.tested <- as.character(pcts.tested)
     pcts.tested <- paste(pcts.tested, "%", sep="")
