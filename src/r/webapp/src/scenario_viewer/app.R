@@ -139,9 +139,8 @@ server <- function(input, output) {
     layerId <- filteredData()$censusblock_id
 
     if (identical(input$tabs,'vulnerability')){
-      test.value <<- filteredData()
-      plot.values <<- filteredData()$vulnerability
-      pal <- colorNumeric(palette = "YlOrRd", domain = c(30, 70))
+      plot.values <- filteredData()$vulnerability
+      pal <- colorNumeric(palette = "YlOrRd", domain = c(0, 100))
       style <- data.frame(fillColor = pal(filteredData()$vulnerability))
       plot.title <- translator$t("Vulnerability")
     }
