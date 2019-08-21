@@ -1,0 +1,23 @@
+Bootstrap: docker
+From: rocker/r-ver:3.6.1
+
+%setup
+    mkdir -p ${SINGULARITY_ROOTFS}/opt
+    cp apt_install.sh ${SINGULARITY_ROOTFS}/opt
+    cp -r ../src/r/megadaptr ${SINGULARITY_ROOTFS}/opt
+    cp ../deploy/Rprofile.site ${SINGULARITY_ROOTFS}/usr/local/lib/R/etc/
+
+%post
+    apt-get update \
+      && apt-get install -y libcurl4-gnutls-dev libgit2-dev libssl-dev python3 \
+      && bash /opt/apt_install.sh
+    cd /opt
+    R -e "install.packages('devtools')"
+    R -e "devtools::install_deps('megadaptr')"
+    R -e "install.packages(c('roxygen2'))"
+    R -e "devtools::document('megadaptr')"
+    R CMD build --no-build-vignettes megadaptr \
+      && R CMD INSTALL megadaptr_0.1.0.tar.gz
+
+%runscript
+    R
