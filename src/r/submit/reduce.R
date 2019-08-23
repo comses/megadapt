@@ -9,6 +9,12 @@ megadapt_conds <- SA_config[[3]]
 
 Y <- readRDS("Ya")
 
+testing <- as.numeric(c(NA, NA, NA, NA))
+
+any_NA_rows <- apply(Y,c(1,3,4), function(x) identical(x,testing))
+
+if (any(any_NA_rows)) {print("Missed experiment(s)"}
+
 SA_indices <- calcSensitivityIndices(SA_conditions = SA_conds,
                                      SA_params = SA_params,
                                      Y = Y)
