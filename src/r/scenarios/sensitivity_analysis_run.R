@@ -15,7 +15,7 @@ megadapt_conds <- list(
 # SA Conditions
 SA_conditions <- list(
   exp_min = 1,
-  exp_max = 4,
+  exp_max = 2 ,
   run_model = T,
   on_cluster = F,
   summary_stats = c("mean","max","min")

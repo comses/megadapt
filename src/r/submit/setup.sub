@@ -1,0 +1,6 @@
+executable = setup.sh
+log = log/log.setup
+output = log/O.setup
+error = log/E.setup
+
+queue

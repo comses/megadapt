@@ -34,6 +34,7 @@ Imports:
     pscl,
     purrr,
     qrng,
+    R.rsp,
     readr,
     reshape2,
     rgdal,

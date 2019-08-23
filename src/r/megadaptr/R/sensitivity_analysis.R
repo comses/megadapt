@@ -80,7 +80,8 @@ VBSA <- function(model_f, SA_conditions, SA_params, batchtools_resources) {
                                      SA_params = SA_params,
                                      Y = Y)
 
-  outt <- longFormThis(outs = Y, SA = resultss,
+  outt <- longFormThis(outs = Y,
+                       SA = resultss,
                        SA_conditions = SA_conditions)
 
   return(outt)
@@ -225,6 +226,57 @@ megadapt_superficial_params_simulator <- function(megadapt_conds, SA_params) {
     return(rreturn)
   }
 
+
+}
+
+megadapt_superficial_params_simulator_alone <- function(params) {
+
+  megadapt_conds <- list(
+    sim_years = 40,
+    municip = T,
+    out_stats = c("mean","max","min"),
+    out_metric_names = c("household_potable_water_vulnerability", "household_sewer_vulnerability", "flooding_index",
+                         "ponding_index","scarcity_index_exposure", "scarcity_index_sensitivity")
+  )
+
+  megadapt <- megadapt_create(params = params_create(params))
+
+  # param_names <- NULL
+  # for (pname in 1:length(SA_params)) {
+  #   param_names[pname] <- SA_params[[pname]]$name
+  # }
+
+  summary_funcs <- as.list(megadapt_conds$out_stats)
+  names(summary_funcs) <- megadapt_conds$out_stats
+  out_metric_names <- megadapt_conds$out_metric_names
+
+  results <- simulate(megadapt)
+
+  lastT <- max(results$year)
+
+  if (megadapt_conds$municip) {
+    Vlast <- subset(results, year == lastT, select = c("geographic_id", out_metric_names))
+    Vlast$Mun <- substr(Vlast$geographic_id, start = 1, stop = 5)
+
+    metrics <- dplyr::group_by(Vlast, Mun) %>% dplyr::summarise_at(out_metric_names, summary_funcs, na.rm=TRUE)
+    total <- dplyr::summarise_at(Vlast, out_metric_names, summary_funcs, na.rm=TRUE)
+    total$Mun <- "Global"
+    metrics <- rbind(metrics,total)
+    # muns <- metrics$Mun
+    muns <- community_names()
+    metrics <- dplyr::select(metrics, -Mun)
+    metrics_a <- simplify2array(metrics)
+    dimnames(metrics_a) <- list("communities" = muns,
+                                "target_statistic" = colnames(metrics))
+  } else {
+    Vlast <- subset(results, year == lastT, select = out_metric_names)
+    metrics <- apply(Vlast, 2, function(x) mean(x, na.rm = T))
+    metrics_a <- metrics
+  }
+
+  rreturn <- list(metrics = metrics_a,
+                  dims = dim(metrics_a))
+  return(metrics_a)
 
 }
 
@@ -419,7 +471,7 @@ calc.Vhat <- function(y, N) {
 longFormThis <- function(outs, SA, SA_conditions) {
   # The table produced has the following columns (example):
   # input_parameter (budget)
-  # community (Iztapalapa, All of Mexico City)
+  # communities (Iztapalapa, All of Mexico City)
   # sample_size (8,16,32...)
   # outcome_name (first order sensitivity index, total order sensitivity index, min, max, mean)
   # target_statistic (mean vulnerability, etc)
@@ -431,6 +483,7 @@ longFormThis <- function(outs, SA, SA_conditions) {
   STi_SA$outcome_name <- "total_order_sensitivity_index"
   long_SA <- rbind(Si_SA, STi_SA)
   names(long_SA)[1:5] <- c("sample_size","input_parameter","communities","target_statistic","value")
+  long_SA$outcome_name <- as.factor(long_SA$outcome_name)
   # longSA <- dplyr::select(longSA, -sample_size)
 
   apply_margin <- 3:length(dim(outs))
@@ -471,21 +524,21 @@ appl_summary_statistics <- function(matr, summ_stats) {
 #' @param summ_stat summary statistic(s) from which to generate the convergence plots. Allows to reduce the number of subplots. Defaults to all the statistics in SA_conditions$outStats
 plotSAConvergence <-function(results_table,
                              commun = "Global",
-                             summ_stat = levels(results_table$outcome_name)[-c(1,2)])
+                             summ_stat = levels(results_table$outcome_name)[-c(1,5)])
 
   {
     sens_inidices <- subset(results_table, outcome_name=="first_order_sensitivity_i" | outcome_name=="total_order_sensitivity_i")
     Ns <- unique(sens_inidices$sample_size)
-    avail_stats <- levels(results_table$outcome_name)[-c(1,2)]
+    avail_stats <- levels(results_table$outcome_name)[-c(1,5)]
 
     if (!all(summ_stat %in% avail_stats)) {
-      stop("Summary statistic(s) were not used in this SA")
+      stop("Some requested summary statistic(s) were not used in this SA")
     }
 
     number_metrics <- length(levels(results_table$target_statistic)) / length(avail_stats)
     # par(mfrow = c(number_metrics,length(summ_stat)))
 
-    commun_sens_indices <- subset(sens_inidices, community == commun)
+    commun_sens_indices <- subset(sens_inidices, communities == commun)
 
     first_commun_sens_indices <- subset(commun_sens_indices, outcome_name=="first_order_sensitivity_i")
     total_commun_sens_indices <- subset(commun_sens_indices, outcome_name=="total_order_sensitivity_i")
@@ -494,8 +547,8 @@ plotSAConvergence <-function(results_table,
     total_commun_sens_indices$sample_size<-as.numeric(total_commun_sens_indices$sample_size)
 
     first<-ggplot2::ggplot(first_commun_sens_indices, ggplot2::aes(sample_size,
-                                                   value,
-                                                   colour = input_parameter)) +
+                                                                   value,
+                                                                   colour = input_parameter)) +
       ggplot2::geom_line() +
       ggplot2::geom_point(cex = 0.7) +
       ggplot2::facet_wrap(~target_statistic, ncol = number_metrics, nrow = length(summ_stat), scales = "free") +

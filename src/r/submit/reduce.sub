@@ -1,0 +1,6 @@
+executable = reduce.R
+log = log/log.reduce
+output = log/O.reduce
+error = log/E.reduce
+
+queue

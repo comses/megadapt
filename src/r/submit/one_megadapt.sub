@@ -1,0 +1,7 @@
+executable = one_megadapt.R
+arguments = $(params)
+log = log/log.megadapts
+output = log/O.megadapts
+error = log/E.megadapts
+
+queue
