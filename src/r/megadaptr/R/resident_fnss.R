@@ -230,7 +230,7 @@ resident_infrastructure_invest <-
         household_resilience := {
           reports_percapita <- resident_reports_potable_water_failure_count/resident_count
           resilience_reports <- convexa_creciente(reports_percapita,0.1525,max(reports_percapita),0)
-          resilience_lacking_infra <- concava_decreciente(household_potable_system_percent_lacking,0.01975,1,0)
+          resilience_lacking_infra <- concava_decreciente(household_potable_system_lacking_percent,0.01975,1,0)
           (0.5 * resilience_reports) + ( 0.5 * resilience_lacking_infra)
         },
         household_potable_water_vulnerability = ((1 - scarcity_index_exposure) ^ (1 - household_potable_water_sensitivity)) ^ (1 + household_resilience),
