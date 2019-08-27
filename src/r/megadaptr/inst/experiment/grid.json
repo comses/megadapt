@@ -1,0 +1,11 @@
+{
+  "name": "budget_climate",
+  "title": "Budget Climate Variation",
+  "description": "Budget and Climate Scenario Variation",
+  "author_name": "John Smith",
+  "strategy": "cartesian",
+  "levels": {
+    "budget": [500, 1000, 1500, 2000],
+    "climate_scenario": [1, 2, 3]
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "driver": "sqlite",
+  "file": "experiment.db"
+}
