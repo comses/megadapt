@@ -1,0 +1,12 @@
+executable = <%=executable%>
+
+Error = <%=experiment%>/row_$(Row).err
+Log = <%=experiment%>/row_$(Row).log
+
+Requirements = (Machine != "tawa.lancis.ecologia.unam.mx") && (Machine != "kat03.lancis.ecologia.unam.mx") && (Machine != "mong.lancis.ecologia.unam.mx")
+
+queue arugments from (
+  <% for (id in param_ids) { %>
+   run --experiment <%=experiment%> --id <%=id%> --study-area <%=study_area%> 
+  <% } %>
+)

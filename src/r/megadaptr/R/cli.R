@@ -16,6 +16,8 @@ cli_create <- function() {
 
   grid_setup <- grid_subparser$add_parser('setup', help = 'Setup a Grid Search experiment')
   grid_setup$add_argument('--experiment-config', help = 'JSON file describing the model setup', required=TRUE)
+  grid_setup$add_argument('--study-area', help = 'Path to study area data', default=data_dir('censusblocks', 'megadapt_wgs84_v5.gpkg'))
+
 
   vbsa_root <-
     subparser$add_parser('vbsa', help = 'Variable Based Sensitivity Analysis')
@@ -124,6 +126,11 @@ cli_grid_setup <- function(conn, experiment_config) {
   name <- config$name
   params_df <- params_cartesian_create(do.call(params_create, config$levels))
   params_table_create(conn = conn, experiment_name = name, df = params_df)
+  params_tbl <- dplyr::tbl(conn, glue::glue('{name}_param'))
+  result_condor_submit_create(executable = './megadaptr.sif',
+                              experiment_name = config$name,
+                              params_tbl = params_tbl,
+                              study_area_path = config$study_area)
 }
 
 cli_vbsa <- function(conn, args) {

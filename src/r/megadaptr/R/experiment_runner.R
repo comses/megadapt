@@ -53,6 +53,19 @@ params_run <- function(conn, experiment_name, id, study_area) {
   )
 }
 
+result_condor_submit_create <- function(executable, experiment_name, params_tbl, study_area_path) {
+  tmpl_path <- system.file(fs::path('hpc', 'condor'), package = 'megadaptr', mustWork = TRUE)
+  param_ids <- params_tbl %>% dplyr::select(id) %>% dplyr::collect() %>% .$id
+  R.rsp::rfile(
+    file = 'run.sub.rsp',
+    path = tmpl_path,
+    output = glue::glue('{experiment_name}.sub'),
+    args = list(
+      experiment = experiment_name,
+      param_ids = param_ids,
+      study_area = study_area_path))
+}
+
 results_table_create <- function(conn, name, param_df) {
   for (row_ind in seq(nrow(param_df))) {
     params <-

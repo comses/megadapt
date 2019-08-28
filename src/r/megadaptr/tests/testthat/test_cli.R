@@ -6,10 +6,14 @@ describe('a grid experiment', {
   experiment_config_path <- experiment_dir('grid.json')
   cli_root(c('--db-config', db_config_path, 'grid', 'setup', '--experiment-config', experiment_config_path))
 
-  it('should create an exeriment table and params table on setup', {
+  it('should create an experiment table and params table on setup', {
     tables <- DBI::dbListTables(conn)
     expect_true('experiment' %in% tables)
     expect_true('budget_climate_param' %in% tables)
+  })
+
+  it('should create a condor submit script', {
+    testthat::expect_true(fs::file_exists('budget_climate.sub'))
   })
 
   it('should allow running of param combinations given in the params table', {
@@ -26,4 +30,5 @@ describe('a grid experiment', {
 teardown({
   DBI::dbDisconnect(conn)
   fs::file_delete('experiment.db')
+  fs::file_delete('budget_climate.sub')
 })
