@@ -19,6 +19,7 @@ Imports:
     bindrcpp,
     checkmate,
     DBI,
+    dbplyr,
     dplyr (>= 0.8.0),
     future,
     future.apply,
@@ -40,6 +41,7 @@ Imports:
     rgdal,
     rlang,
     RPostgreSQL,
+    RSQLite,
     stringr,
     tibble,
     tidyr
