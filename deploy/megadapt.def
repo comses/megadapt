@@ -5,7 +5,8 @@ From: rocker/r-ver:3.6.1
     mkdir -p ${SINGULARITY_ROOTFS}/opt
     cp apt_install.sh ${SINGULARITY_ROOTFS}/opt
     cp -r ../src/r/megadaptr ${SINGULARITY_ROOTFS}/opt
-    cp ../deploy/Rprofile.site ${SINGULARITY_ROOTFS}/usr/local/lib/R/etc/
+    cp Rprofile.site ${SINGULARITY_ROOTFS}/usr/local/lib/R/etc/
+    cp cli_run.R ${SINGULARITY_ROOTFS}/opt/cli_run.R
 
 %post
     apt-get update \
@@ -20,4 +21,4 @@ From: rocker/r-ver:3.6.1
       && R CMD INSTALL megadaptr_0.1.0.tar.gz
 
 %runscript
-    R
+    Rscript /opt/cli_run.R $@
