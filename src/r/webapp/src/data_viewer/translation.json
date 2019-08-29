@@ -1,0 +1,135 @@
+{
+  "cultural_date_format": "%d-%m-%Y",
+  "languages": ["en", "es"],
+  "translation": [
+      {
+        "en": "Household Sewer Vulnerability",
+        "es": "Vulnerabilidad de alcantarillado doméstico"
+      },
+      {
+        "en": "Choose from the parameters below to see simulation results",
+        "es": "Elija entre los siguientes parámetros para ver los resultados de la simulación"
+      },
+      {
+        "en": "Budget Scenarios",
+        "es": "Escenarios de Presupuesto"
+      },
+            {
+        "en": "Map Parameters",
+        "es": "Parámetros del Mapa"
+      },
+      {
+        "en": "Vulnerability indicator of residents to potable water scarcity",
+        "es": "Indicador de vulnerabilidad de los residentes a la escasez de agua potable"
+      },
+      {
+        "en": "Vulnerability indicator of residents to flooding",
+        "es": "Indicador de vulnerabilidad de residentes a inundaciones"
+      },
+            {
+        "en": "Number of actions on potable water infrastructure",
+        "es": "Número de acciones en la infraestructura de agua potable"
+      },
+      {
+        "en": "Number of actions on sewer and drainage infrastructure",
+        "es": "Número de acciones en la infraestructura de alcantarillado y drenaje"
+      },
+      {
+        "en": "Potable water infrastructure age",
+        "es": "Antigüedad de la infraestructura de agua potable"
+      },
+      {
+        "en": "Non Potable water infrastructure age",
+        "es": "Infraestructura de agua no potable"
+      },
+      {
+        "en": "Days without potable water",
+        "es": "Días sin agua potable"
+      },
+      {
+        "en": "Municipality",
+        "es": "Alcaldias"
+      },
+      {
+        "en": "Budget",
+        "es": "Presupuesto"
+      },
+      {
+        "en": "All municipalities",
+        "es": "Todos las Alcaldias"
+      },
+            {
+        "en": "Household Potable Water Vulnerability",
+        "es": "Vulnerabilidad de agua potable en el hogar"
+      },
+            {
+        "en": "Resident Income Per Capita",
+        "es": "Ingreso residente per cápita"
+      },
+            {
+        "en": "Resident Income And Vulnerability",
+        "es": "Ingresos residentes y vulnerabilidad"
+      },
+                  {
+        "en": "Vulnerability",
+        "es": "Vulnerabilidad"
+      },
+                  {
+        "en": "Resilience",
+        "es": "Resistencia"
+      },
+                        {
+        "en": "Outcomes Through Time",
+        "es": "Resultados a través del tiempo"
+      },
+                        {
+        "en": "Outcomes",
+        "es": "Resultados"
+      },
+                        {
+        "en": "Landuse Scenarios",
+        "es": "Escenarios de uso del suelo"
+      },
+                  {
+        "en": "Simulation Factor",
+        "es": "Factor de simulacion"
+      },{
+        "en": "Simulation Factor: X",
+        "es": "Factor de simulacion: X"
+      },{
+        "en": "Simulation Factor: Y",
+        "es": "Factor de simulacion: Y"
+      },{
+        "en": "Simulation Factor: Size",
+        "es": "Factor de simulacion: Tamaño"
+      },
+                        {
+        "en": "Sensitivity",
+        "es": "Sensibilidad"
+      },
+                              {
+        "en": "Area Type",
+        "es": "Tipo de área"
+      },
+                              {
+        "en": "Census Blocks",
+        "es": "Bloques Censales"
+      },
+                              {
+        "en": "Number of Actions on Sewer and Drainage Infrastructure",
+        "es": "Número de acciones en infraestructura de alcantarillado y drenaje"
+      },
+                              {
+        "en": "Number of Actions on Potable Water Infrastructure",
+        "es": "Número de acciones en infraestructura de agua potable"
+      },
+
+            {
+        "en": "Climate Scenarios",
+        "es": "Escenario Climáticos"
+      }
+
+
+
+    ]
+}

@@ -29,7 +29,7 @@ translator <- Translator$new(translation_json_path = "translation.json")
 language_choice <- "es"
 translator$set_translation_language(language_choice)   ### en for english or es for spanish
 
-#INPUT DATA
+# #INPUT DATA
 
 if (!fs::file_exists('ex2.db')) {
   conn <- DBI::dbConnect(RSQLite::SQLite(), 'ex2.db')
@@ -43,7 +43,8 @@ if (!fs::file_exists('ex2.db')) {
 params <- dplyr::tbl(conn, 'ex_params')
 input_data <- dplyr::tbl(conn, 'ex_results')
 
-megadapt_results <- input_data %>% dplyr::collect()
+megadapt_results <- input_data %>% dplyr::inner_join(params, by=c("param_id"="id")) %>% dplyr::collect()
+#megadapt_results  <- ponding_df
 megadapt_results$vulnerability <- sample(100, size = nrow(megadapt_results), replace = TRUE)
 megadapt_results$resilience <- sample(100, size = nrow(megadapt_results), replace = TRUE)
 megadapt_results$sensitivity <- sample(100, size = nrow(megadapt_results), replace = TRUE)
@@ -143,6 +144,7 @@ server <- function(input, output) {
       plot.values <- filteredData()$vulnerability
       pal <- colorNumeric(palette = "YlOrRd", domain = c(0, 100))
       style <- data.frame(fillColor = pal(filteredData()$vulnerability))
+      testStyle <<-  data.frame(fillColor = pal(filteredData()$vulnerability))
       plot.title <- translator$t("Vulnerability")
     }
     if (identical(input$tabs,'resilience')){
@@ -205,9 +207,14 @@ server <- function(input, output) {
     resultsdf <- megadapt_results[ which(megadapt_results$budget==v.budget) , ]
     resultsdf <- resultsdf[ which(resultsdf$climate_scenario ==v.climate) , ]
 
+    options(warn=-1)
+
     subsetdf = resultsdf %>%
       group_by(censusblock_id) %>%
       summarise_all(funs(mean))
+
+    options(warn=0)
+
 
     #Join the attribute tables
     x <- megadapt_census_blocks
