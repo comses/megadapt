@@ -102,10 +102,10 @@ cli_grid <- function(conn, args) {
   if (args$grid_command != 'setup') {
     stop('Setup is the only valid grid command')
   }
-  cli_grid_setup(conn = conn, experiment_config = args$experiment_config)
+  cli_grid_setup(conn = conn, experiment_config = args$experiment_config, db_config = args$db_config)
 }
 
-cli_grid_setup <- function(conn, experiment_config) {
+cli_grid_setup <- function(conn, experiment_config, db_config) {
   if (!fs::file_exists(experiment_config)) {
     stop(glue::glue('File {experiment_config} does not exist'))
   }
@@ -124,13 +124,17 @@ cli_grid_setup <- function(conn, experiment_config) {
   }
 
   name <- config$name
-  params_df <- params_cartesian_create(do.call(params_create, config$levels))
+  levels <- do.call(params_create, config$levels)
+  levels$rep <- seq_len(config$n_reps)
+  params_df <- params_cartesian_create(levels)
+
   params_table_create(conn = conn, experiment_name = name, df = params_df)
   params_tbl <- dplyr::tbl(conn, glue::glue('{name}_param'))
-  result_condor_submit_create(executable = './megadaptr.sif',
+  result_condor_submit_create(executable = '/usr/local/bin/singularity',
                               experiment_name = config$name,
                               params_tbl = params_tbl,
-                              study_area_path = config$study_area)
+                              study_area_path = config$study_area,
+                              db_config = db_config)
 }
 
 cli_vbsa <- function(conn, args) {

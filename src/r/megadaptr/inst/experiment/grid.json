@@ -7,5 +7,6 @@
   "levels": {
     "budget": [500, 1000, 1500, 2000],
     "climate_scenario": [1, 2, 3]
-  }
+  },
+  "n_reps": 2
 }

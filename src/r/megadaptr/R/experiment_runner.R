@@ -20,7 +20,8 @@ experiment_table_append <-
       conn = conn,
       name = 'experiment',
       value = df,
-      append = TRUE
+      append = TRUE,
+      row.names = FALSE
     )
   }
 
@@ -34,14 +35,15 @@ params_table_create <- function(conn, experiment_name, df) {
   dbWriteTable(
     conn = conn,
     name = glue::glue('{experiment_name}_param'),
-    value = df
+    value = df,
+    row.names = FALSE
   )
 }
 
 params_run <- function(conn, experiment_name, id, study_area) {
   params_tbl <- dplyr::tbl(conn, glue::glue('{experiment_name}_param'))
   params_df <- params_tbl %>% dplyr::filter(id == !! id) %>% dplyr::collect()
-  params <- do.call(params_create, params_df %>% dplyr::select(-id))
+  params <- as.list(params_df %>% dplyr::select(-id, -rep))
   model <- megadapt_create(params = params, study_area = study_area)
   results <- simulate(model)
   results$param_id <- params_df$id
@@ -49,11 +51,12 @@ params_run <- function(conn, experiment_name, id, study_area) {
     conn = conn,
     name = glue::glue('{experiment_name}_result'),
     value = results,
-    append = TRUE
+    append = TRUE,
+    row.names = FALSE
   )
 }
 
-result_condor_submit_create <- function(executable, experiment_name, params_tbl, study_area_path) {
+result_condor_submit_create <- function(executable, experiment_name, params_tbl, study_area_path, db_config) {
   tmpl_path <- system.file(fs::path('hpc', 'condor'), package = 'megadaptr', mustWork = TRUE)
   param_ids <- params_tbl %>% dplyr::select(id) %>% dplyr::collect() %>% .$id
   R.rsp::rfile(
@@ -61,6 +64,8 @@ result_condor_submit_create <- function(executable, experiment_name, params_tbl,
     path = tmpl_path,
     output = glue::glue('{experiment_name}.sub'),
     args = list(
+      executable = executable,
+      db_config = db_config,
       experiment = experiment_name,
       param_ids = param_ids,
       study_area = study_area_path))

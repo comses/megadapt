@@ -5,8 +5,8 @@ Log = <%=experiment%>/row_$(Row).log
 
 Requirements = (Machine != "tawa.lancis.ecologia.unam.mx") && (Machine != "kat03.lancis.ecologia.unam.mx") && (Machine != "mong.lancis.ecologia.unam.mx")
 
-queue arugments from (
+queue arguments from (
   <% for (id in param_ids) { %>
-   run --experiment <%=experiment%> --id <%=id%> --study-area <%=study_area%> 
+   run megadapt.sif --db-config <%=db_config%> run --experiment <%=experiment%> --id <%=id%> --study-area <%=study_area%>
   <% } %>
 )
