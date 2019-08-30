@@ -32,4 +32,5 @@ teardown({
   DBI::dbDisconnect(conn)
   fs::file_delete('experiment.db')
   fs::file_delete('budget_climate.sub')
+  fs::dir_delete('budget_climate')
 })

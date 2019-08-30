@@ -69,6 +69,7 @@ result_condor_submit_create <- function(executable, experiment_name, params_tbl,
       experiment = experiment_name,
       param_ids = param_ids,
       study_area = study_area_path))
+  fs::dir_create(experiment_name)
 }
 
 results_table_create <- function(conn, name, param_df) {
