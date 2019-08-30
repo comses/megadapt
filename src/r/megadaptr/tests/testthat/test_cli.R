@@ -5,7 +5,7 @@ describe('a grid experiment', {
   db_config_path <- experiment_dir('db-sqlite.json')
   experiment_config_path <- experiment_dir('grid.json')
   study_area <- data_dir('censusblocks', 'megadapt_wgs84_v5.gpkg')
-  cli_root(c('--db-config', db_config_path, 'grid', 'setup', '--experiment-config', experiment_config_path, '--study-area', study_area))
+  cli_root(c('--db-config', db_config_path, 'grid', 'setup', '--experiment-config', experiment_config_path))
 
   it('should create an experiment table and params table on setup', {
     tables <- DBI::dbListTables(conn)

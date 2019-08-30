@@ -18,7 +18,6 @@ cli_create <- function() {
   grid_setup$add_argument('--experiment-config', help = 'JSON file describing the model setup', required=TRUE)
   grid_setup$add_argument('--study-area', help = 'Path to study area data', default=data_dir('censusblocks', 'megadapt_wgs84_v5.gpkg'))
 
-
   vbsa_root <-
     subparser$add_parser('vbsa', help = 'Variable Based Sensitivity Analysis')
   vbsa_subparser <-
@@ -102,10 +101,14 @@ cli_grid <- function(conn, args) {
   if (args$grid_command != 'setup') {
     stop('Setup is the only valid grid command')
   }
-  cli_grid_setup(conn = conn, experiment_config = args$experiment_config, db_config = args$db_config)
+  cli_grid_setup(
+    conn = conn,
+    experiment_config = args$experiment_config,
+    study_area = args$study_area,
+    db_config = args$db_config)
 }
 
-cli_grid_setup <- function(conn, experiment_config, db_config) {
+cli_grid_setup <- function(conn, experiment_config, study_area, db_config) {
   if (!fs::file_exists(experiment_config)) {
     stop(glue::glue('File {experiment_config} does not exist'))
   }
@@ -133,7 +136,7 @@ cli_grid_setup <- function(conn, experiment_config, db_config) {
   result_condor_submit_create(executable = '/usr/local/bin/singularity',
                               experiment_name = config$name,
                               params_tbl = params_tbl,
-                              study_area_path = config$study_area,
+                              study_area_path = study_area,
                               db_config = db_config)
 }
 
