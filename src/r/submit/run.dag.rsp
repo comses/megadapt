@@ -5,15 +5,15 @@
 <%=names(line[p+1])%>=<%=line[p+1]%><%-%>
 <% } %><%-%>
 <%-%>
-<% dag_template <- function(JobN, ABMats_line) { %>
+<% dag_template <- function(JobN, ABMats_line, row, slice) { %>
 JOB J<%=JobN%> one_megadapt.sub
-VARS J<%=JobN%> params="list(<%=write_vars_from(ABMats_line)%>)" jobN="<%=JobN%>"
+VARS J<%=JobN%> params="list(<%=write_vars_from(ABMats_line)%>)" row="<%=row%>" slice="<%=slice%>" jobN="<%=JobN%>"
 <% } %><%-%>
 <%-%>
 <% jobN <- 1 %><%-%>
 <% for (mslice in 1:dim(ABMats)[3]) {
   for (mrow in 1:dim(ABMats)[1]) {
-    dag_template(JobN = jobN, ABMats_line = ABMats[trow,,tslice])
+    dag_template(JobN = jobN, ABMats_line = ABMats[mrow,,mslice], row = mrow, slice = mslice)
     jobN <- jobN + 1
   }
 } %>

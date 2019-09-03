@@ -5,7 +5,7 @@ source('../scenarios/util.R')
 ################################################################################################
 
 megadapt_conds <- list(
-  sim_years = 40,
+  sim_years = 5,
   municip = T,
   out_stats = c("mean","max","min"),
   out_metric_names = c("household_potable_water_vulnerability", "household_sewer_vulnerability", "flooding_index",

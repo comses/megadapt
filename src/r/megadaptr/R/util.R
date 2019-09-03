@@ -41,21 +41,21 @@ check_shape <- function(x, shape, path = '') {
 
 assert_shape <- checkmate::makeAssertionFunction(check_shape)
 
-flatten_list_recursive <- function(x) {
-  kvs <- list()
-  flattener_ <- function(x, path = '') {
-    if (is.list(x)) {
-      ns <- names(x)
-      for (name in ns) {
-        flattener_(x[[name]], path = ifelse(path == '', name, paste0(path, '__', name)))
-      }
-    } else {
-      kvs[[path]] <<- x
-    }
-  }
-  flattener_(x)
-  kvs
-}
+# flatten_list_recursive <- function(x) {
+#   kvs <- list()
+#   flattener_ <- function(x, path = '') {
+#     if (is.list(x)) {
+#       ns <- names(x)
+#       for (name in ns) {
+#         flattener_(x[[name]], path = ifelse(path == '', name, paste0(path, '__', name)))
+#       }
+#     } else {
+#       kvs[[path]] <<- x
+#     }
+#   }
+#   flattener_(x)
+#   kvs
+# }
 
 prepend_class <- function(value, cls) {
   classes = c(cls, class(value))

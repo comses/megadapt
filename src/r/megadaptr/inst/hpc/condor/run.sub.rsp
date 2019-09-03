@@ -7,6 +7,6 @@ Requirements = (Machine != "tawa.lancis.ecologia.unam.mx") && (Machine != "kat03
 
 queue arguments from (
   <% for (id in param_ids) { %>
-   run megadapt.sif --db-config <%=db_config%> run --experiment <%=experiment%> --id <%=id%> --study-area <%=study_area%>
+   run megadapt.sif --db-config <%=db_config%> grid run --experiment <%=experiment%> --id <%=id%> --study-area <%=study_area%>
   <% } %>
 )

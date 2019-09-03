@@ -1,6 +1,10 @@
 executable = setup.sh
+arguments = $(cluster)
 log = log/log.setup
 output = log/O.setup
 error = log/E.setup
+
+notification = Always
+notify_user = mvanega1@asu.edu
 
 queue

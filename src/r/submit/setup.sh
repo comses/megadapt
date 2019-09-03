@@ -5,11 +5,6 @@ mv run.dag.rsp SAVErun.dag.rsp
 rm -f run.d*
 mv SAVErun.dag.rsp run.dag.rsp
 
-rm -f ABMats
-rm -f Ya
+Rscript create_config.R $1
 
-cd ../
-R CMD INSTALL --no-multiarch --with-keep.source megadaptr
-
-cd submit
-Rscript setup_megadapt.R
+singularity run ../../../deploy/megadapt.sif --db-config db-postgres.json vbsa setup --experiment-config config.json

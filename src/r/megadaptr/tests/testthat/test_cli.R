@@ -21,7 +21,7 @@ describe('a grid experiment', {
     if (Sys.getenv('R_INTEGRATION_TESTS') == '') {
       skip('skip running model with cli params')
     }
-    suppressWarnings(cli_root(c('--db-config', db_config_path, 'run', '--experiment', 'budget_climate', '--id', '1', '--study-area', study_area)))
+    suppressWarnings(cli_root(c('--db-config', db_config_path, 'grid', 'run', '--experiment', 'budget_climate', '--id', '1', '--study-area', study_area)))
     result_tbl <- dplyr::tbl(conn, 'budget_climate_result')
     years <- result_tbl %>% dplyr::select(year) %>% dplyr::distinct() %>% dplyr::collect() %>% .$year
     testthat::expect_length(years, 6)
@@ -30,7 +30,7 @@ describe('a grid experiment', {
 
 teardown({
   DBI::dbDisconnect(conn)
-  fs::file_delete('experiment.db')
-  fs::file_delete('budget_climate.sub')
-  fs::dir_delete('budget_climate')
+  # fs::file_delete('experiment.db')
+  # fs::file_delete('budget_climate.sub')
+  # fs::dir_delete('budget_climate')
 })

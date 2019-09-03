@@ -1,6 +1,9 @@
-executable = reduce.R
+executable = reduce.sh
 log = log/log.reduce
 output = log/O.reduce
 error = log/E.reduce
+
+notification = Always
+notify_user = mvanega1@asu.edu
 
 queue
