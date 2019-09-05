@@ -68,6 +68,38 @@ ponding_index_calculate <- function(weights, study_data) {
   ponding_index
 }
 
+ponding_deserialize = function(config) {
+  config <- do.call(ponding_config_create, config)
+
+  weights <- as.numeric(config$weights)
+  names(weights) <- names(config$weights)
+
+  index_weights <- as.numeric(config$index_weights)
+  names(index_weights) <- names(config$index_weights)
+
+  ponding_delta_method_fnss_create(
+    weights = weights,
+    index_weights = index_weights)
+}
+
+ponding_config_create <- function(
+  weights = list(
+    capacity = 0.1,
+    precipitation = 0.25,
+    runoff = 0.25
+  ),
+  index_weights = list(
+    capacity = 1,
+    ponding = 1,
+    precipitation = 1,
+    runoff = 1
+  )) {
+  list(
+    weights = weights,
+    index_weights = index_weights
+  )
+}
+
 ################################################
 
 #' Create an object of class "ponding_delta_method_fnss".

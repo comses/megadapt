@@ -1,10 +1,3 @@
-flooding_config_call <- function(name, args) {
-  checkmate::assert_subset(name, choices = c('flooding_index_fnss_create', 'flooding_delta_method_fnss_create'))
-  weights <- numeric(args)
-  names(weights) <- names(args)
-  get(name)(weights)
-}
-
 flooding_index_calculate <- function(weights, study_data) {
   w <- weights / sum(weights)
 
@@ -60,6 +53,37 @@ flooding_index_calculate <- function(weights, study_data) {
     (w_f_esc * fv_f_esc)
 
   flooding_index
+}
+
+flooding_deserialize <- function(config) {
+  config <- do.call(flooding_config_create, config)
+
+  weights <- as.numeric(config$weights)
+  names(weights) <- names(config$weights)
+
+  index_weights <- as.numeric(config$index_weights)
+  names(index_weights) <- names(config$index_weights)
+
+  flooding_delta_method_fnss_create(
+    weights = weights,
+    index_weights = index_weights)
+}
+
+flooding_config_create <- function(
+  weights = list(
+    capacity = 0.1,
+    precipitation = 0.25,
+    runoff = 0.25),
+  index_weights = list(
+    capacity = 1,
+    flooding = 1,
+    precipitation = 1,
+    runoff = 1)
+  ) {
+  list(
+    weights = weights,
+    index_weights = index_weights
+  )
 }
 
 #' Create a flooding delta model

@@ -710,6 +710,55 @@ call_fnss.sacmex_fnss <- function(fnss, year, study_data, ...) {
                                create_work_plan = sacmex_work_plan_sewer_potable_split)
 }
 
+sacmex_deserialize <- function(
+  config,
+  value_function_config,
+  sewer_mental_model_strategy,
+  potable_water_mental_model_strategy,
+  flooding_fnss,
+  ponding_fnss) {
+
+  config <- do.call(sacmex_config_create, config)
+
+  env <- new.env(parent = emptyenv())
+  env$action_budget <- sacmex_seperate_action_budgets_fnss_create
+  env$system_budget <- sacmex_fnss_create
+
+  constructor <- get(config$constructor, envir = env)
+
+  constructor(
+    value_function_config = value_function_config,
+    sewer_mental_model_strategy = sewer_mental_model_strategy,
+    potable_water_mental_model_strategy = potable_water_mental_model_strategy,
+    sewer_budget = config$budget,
+    potable_water_budget = config$budget,
+    params = list(
+      maintenance_effectiveness_rate = config$maintenance_effectiveness_rate,
+      new_infrastructure_effectiveness_rate = config$new_infrastructure_effectiveness_rate,
+      infrastructure_decay_rate = config$infrastructure_decay_rate
+    ),
+    flooding_fnss = flooding_fnss,
+    ponding_fnss = ponding_fnss
+  )
+}
+
+sacmex_config_create <- function(
+  constructor = c('action_budget', 'system_budget'),
+  budget = 1000,
+  maintenance_effectiveness_rate = 0.07,
+  new_infrastructure_effectiveness_rate = 0.07,
+  infrastructure_decay_rate = 0.01
+) {
+  constructor <- match.arg(constructor)
+  list(
+    constructor = constructor,
+    budget = budget,
+    maintenance_effectiveness_rate = maintenance_effectiveness_rate,
+    new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
+    infrastructure_decay_rate = infrastructure_decay_rate
+  )
+}
+
 #' Sacmex component initializer
 #'
 #' @param study_data A data frame with the spatial units and associated fields.

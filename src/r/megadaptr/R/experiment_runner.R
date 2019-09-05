@@ -25,8 +25,41 @@ experiment_table_append <-
     )
   }
 
-params_cartesian_create <- function(param_levels) {
-  df <- do.call(expand.grid, param_levels)
+config_flatten <- function(config) {
+  flatten <- function(config) {
+    if (!is.list(config)) list(config)
+    else unlist(c(lapply(config, flatten)), recursive = FALSE)
+  }
+  flattened <- flatten(config)
+  result <- list()
+  names(flattened) <- purrr::map_chr(names(flattened), function(name) stringr::str_replace_all(name, '\\.', '__'))
+  flattened
+}
+
+config_unflatten <- function(flattened, path = character()) {
+  build_list <- function(path, value) {
+    n <- length(path)
+    r <- list()
+    r[[path[n]]] <- value
+    for (p in rev(path[-n])) {
+      new_r <- list()
+      new_r[[p]] <- r
+      r <- new_r
+    }
+    r
+  }
+
+  result <- list()
+  for (key in names(flattened)) {
+    path <- stringr::str_split(key, '__')[[1]]
+    path_list <- build_list(path, flattened[[key]])
+    result <- modifyList(result, path_list)
+  }
+  result
+}
+
+params_cartesian_create <- function(flattened) {
+  df <- do.call(expand.grid, flattened)
   df$id <- 1:nrow(df)
   df
 }
@@ -40,11 +73,16 @@ params_table_create <- function(conn, experiment_name, df) {
   )
 }
 
-params_run <- function(conn, experiment_name, id, study_area) {
+params_run <- function(conn, experiment_name, id, study_area_path) {
   params_tbl <- dplyr::tbl(conn, glue::glue('{experiment_name}_param'))
   params_df <- params_tbl %>% dplyr::filter(id == !! id) %>% dplyr::collect()
   params <- as.list(params_df %>% dplyr::select(-id, -rep))
-  model <- megadapt_create(params = params, study_area = study_area)
+  config <- config_unflatten(params)
+  model <- megadapt_deserialize(
+    config,
+    study_area_path = study_area_path,
+    year = config$year,
+    n_steps = config$n_steps)
   results <- simulate(model)
   results$param_id <- params_df$id
   dbWriteTable(

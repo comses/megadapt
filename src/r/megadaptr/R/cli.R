@@ -89,12 +89,11 @@ cli_root <- function(args = commandArgs(TRUE)) {
 }
 
 cli_run <- function(conn, experiment, id, study_area) {
-  study_area <- study_area_read(study_area)
   params_run(
     conn = conn,
     experiment_name = experiment,
     id = id,
-    study_area = study_area)
+    study_area_path = study_area)
 }
 
 cli_grid <- function(conn, args) {
@@ -127,9 +126,14 @@ cli_grid_setup <- function(conn, experiment_config, study_area, db_config) {
   }
 
   name <- config$name
-  levels <- do.call(params_create, config$levels)
-  levels$rep <- seq_len(config$n_reps)
-  params_df <- params_cartesian_create(levels)
+  overrides <- config$overrides
+  params_config <- megadapt_config_create(overrides)
+  params_config$rep <- seq_len(config$n_reps)
+  params_config$year <- config$year
+  params_config$n_steps <- config$n_steps
+
+  flattened <- config_flatten(params_config)
+  params_df <- params_cartesian_create(flattened)
 
   params_table_create(conn = conn, experiment_name = name, df = params_df)
   params_tbl <- dplyr::tbl(conn, glue::glue('{name}_param'))

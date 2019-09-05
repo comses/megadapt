@@ -20,6 +20,22 @@ load_climate_scenario <- function(emissions_scenario = 8.5, urban_scenario = "ba
   readr::read_csv(path)
 }
 
+climate_deserialize <- function(config) {
+  config <- do.call(climate_config_create, config)
+  climate_fnss_create(id = config$id)
+}
+
+climate_config_create <- function(id = 1) {
+  list(
+    id = id
+  )
+}
+
+climate <- list(
+  create = climate_config_create,
+  from_partial = climate_deserialize
+)
+
 #' Climate a climate scenario model
 #'
 #' @export

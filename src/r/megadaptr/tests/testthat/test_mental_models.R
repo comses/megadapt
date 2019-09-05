@@ -58,3 +58,21 @@ describe('a file mental model update strategy', {
     expect(all(limit_df == mental_model$limit_df), "Picked wrong limit df")
   })
 })
+
+describe('a coupled mental model config', {
+  config <- list(strategy = 'coupled')
+
+  it('can be used to construct a strategy', {
+    strategy <- suppressWarnings(mental_model_deserialize(config))
+    testthat::expect_s3_class(strategy$sewer_water_sacmex_limit_strategy, 'mental_model_coupled')
+  })
+})
+
+describe('a constant mental model config', {
+  config <- list(strategy = 'constant')
+
+  it('can be used to construct a strategy', {
+    strategy <- suppressWarnings(mental_model_deserialize(config))
+    testthat::expect_s3_class(strategy$sewer_water_sacmex_limit_strategy, 'file_constant_mental_model')
+  })
+})

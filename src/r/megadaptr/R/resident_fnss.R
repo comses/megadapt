@@ -129,6 +129,29 @@ resident_determine_infrastructure_suitability <-
     )
   }
 
+resident_deserialize <- function(config, value_function_config, mental_model_strategy) {
+  config <- do.call(resident_config_create, config)
+  resident_fnss_create(
+    value_function_config = value_function_config,
+    mental_model_strategy = mental_model_strategy,
+    resident_action_efficiency_potable = config$resident_action_efficiency_potable,
+    resident_action_efficiency_drainage = config$resident_action_efficiency_drainage,
+    resilience_threshold = config$resilience_threshold
+  )
+}
+
+resident_config_create <- function(
+  resident_action_efficiency_potable = 0.5,
+  resident_action_efficiency_drainage = 0.5,
+  resilience_threshold = 0.3
+) {
+  list(
+    resident_action_efficiency_potable = resident_action_efficiency_potable,
+    resident_action_efficiency_drainage = resident_action_efficiency_drainage,
+    resilience_threshold = resilience_threshold
+  )
+}
+
 resident_fnss_create <-
   function(value_function_config,
            mental_model_strategy,

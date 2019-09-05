@@ -381,3 +381,19 @@ mental_model_sacmex_coupled_strategies <- function() {
     resident_limit_strategy = mental_model_file_constant_strategy_create(mm_file_path('resident_unweighted.csv'), cluster = resident_cluster)
   )
 }
+
+mental_model_deserialize <- function(config) {
+  config <- do.call(mental_model_config_create, config)
+  env <- new.env(parent = emptyenv())
+  env$coupled <- mental_model_sacmex_coupled_strategies
+  env$constant <- mental_model_constant_strategies
+  strategy <- get(config$strategy, envir = env)
+  strategy()
+}
+
+mental_model_config_create <- function(strategy = c('coupled', 'constant')) {
+  strategy <- match.arg(strategy)
+  list(
+    strategy = strategy
+  )
+}

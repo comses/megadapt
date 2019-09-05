@@ -35,3 +35,12 @@ describe('a flooding delta method fnss', {
     expect_lte(flooding_fnss_val, flooding_fnss_high_runoff)
   })
 })
+
+describe('a flooding config', {
+  config <- flooding_config_create()
+
+  it('can be used to construct a flooding model', {
+    flooding_fnss <- flooding_deserialize(config)
+    expect_s3_class(flooding_fnss, 'flooding_delta_method_fnss')
+  })
+})

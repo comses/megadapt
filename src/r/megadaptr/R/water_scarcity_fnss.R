@@ -1,3 +1,26 @@
+water_scarcity_exposure_deserialize <- function(config, value_function_config) {
+  config <- do.call(water_scarcity_exposure_config_create, config)
+  weights <- as.numeric(config$weights)
+  names(weights) <- names(config$weights)
+  water_scarcity_index_exposure_fnss_create(
+    weights = weights,
+    value_function_config = value_function_config)
+}
+
+water_scarcity_exposure_config_create <- function(
+  weights = list(
+    zonas_crit=0.2,
+    days_no_water=0.2,
+    age_infrastructure=0.2,
+    houses_without_water=0.2,
+    hydra_pressure=0.2
+  )
+) {
+  list(
+    weights = weights
+  )
+}
+
 #' Create an object of class "water_scarcity_index_fnss".
 #'
 #' @export
@@ -22,6 +45,25 @@ water_scarcity_index_exposure_fnss_create <- function(
   prepend_class(config, 'water_scarcity_index_exposure_fnss')
 }
 
+water_scarcity_sensitivity_deserialize <-
+  function(config, value_function_config) {
+    config <- do.call(water_scarcity_sensitivity_config_create, config)
+    weights <- as.numeric(config$weights)
+    names(weights) <- names(config$weights)
+    water_scarcity_index_sensitivity_fnss_create(weights = weights, value_function_config = value_function_config)
+  }
+
+water_scarcity_sensitivity_config_create <- function(
+  weights = list(
+    population=0.2,
+    tanks=0.2,
+    income=0.2  #add water capture
+  )
+) {
+  list(
+    weights = weights
+  )
+}
 
 water_scarcity_index_sensitivity_fnss_create <- function(
   weights = c(
@@ -37,8 +79,6 @@ water_scarcity_index_sensitivity_fnss_create <- function(
   )
   prepend_class(config, 'water_scarcity_index_sensitivity_fnss')
 }
-
-
 
 call_fnss.water_scarcity_index_exposure_fnss <- function(fnss, study_data, ...) {
   #' Water scarcity index calculation
@@ -97,14 +137,11 @@ call_fnss.water_scarcity_index_exposure_fnss <- function(fnss, study_data, ...) 
     xmin = hydraulic_pressure_failure$min
   )
 
-
   scarcity_index_exposure = weights["zonas_crit"]*fv_zonas_crit +
                     weights["days_no_water"]*fv_dias_sagua  +
                    weights["age_infrastructure"]*fv_Age_Infrastructure +
                 weights["houses_without_water"]*fv_viviendas_sagua +
                    weights["hydra_pressure"]*fv_hid_pressure
-  #
-
 
   tibble::tibble(
     censusblock_id = study_data$censusblock_id,

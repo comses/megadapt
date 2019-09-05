@@ -310,87 +310,90 @@ megadapt_create <- function(
   )
 }
 
-megdapt_config_serialize <- function(config) {
-  jsonlite::toJSON(config, auto_unbox = TRUE)
+megadapt_config_create <- function(overrides) {
+  config <- list()
+  subconfigs <- list(
+    climate = climate_config_create,
+    flooding = flooding_config_create,
+    mental_models = mental_model_config_create,
+    ponding = ponding_config_create,
+    resident = resident_config_create,
+    sacmex = sacmex_config_create,
+    water_scarcity_exposure = water_scarcity_exposure_config_create,
+    water_scarcity_sensitivity = water_scarcity_sensitivity_config_create
+  )
+  for (subconfig_name in names(subconfigs)) {
+    if (is.null(overrides[[subconfig_name]])) {
+      override <- list()
+    } else {
+      override <- overrides[[subconfig_name]]
+    }
+    config[[subconfig_name]] <- do.call(subconfigs[[subconfig_name]], override)
+  }
+  config
 }
 
-megadapt_config_deserialize <- function(config) {
-  caller_shape <- function(args) list(
-    name = checkmate::check_character,
-    args = args
+megadapt_deserialize <- function(config, study_area_path, year, n_steps) {
+  components <- list()
+  keys <- c(
+    'climate',
+    'flooding',
+    'mental_models',
+    'ponding',
+    'resident',
+    'sacmex',
+    'water_scarcity_exposure',
+    'water_scarcity_sensitivity'
   )
 
-  assert_shape(config$ponding_fnss, caller_shape(list(
-    weights = checkmate::check_numeric
-  )))
-  assert_shape(config$ponding_fnss, caller_shape(list(
-    weights = checkmate::check_numeric
-  )))
-  assert_shape(config$mental_models, caller_shape(list()))
-
-}
-
-megadapt_config_create <- function(
-  params = NULL,
-  flooding_fnss = NULL,
-  mental_models = NULL,
-  ponding_fnss = NULL,
-  sacmex_fnss_creator = NULL,
-  study_area = NULL
-) {
-  if (is.null(params)) {
-    params <- params_create()
+  for (key in keys) {
+    if (is.null(config[[key]])) {
+      config[[key]] <- list()
+    }
   }
 
-  if (is.null(flooding_fnss)) {
-    flooding_fnss <- list(
-      name = 'flooding_index_fnss_create',
-      args = as.list(flooding_index_fnss_create()))
-  }
+  value_function_config <- value_function_config_default()
 
-  if (is.null(ponding_fnss)) {
-    ponding_fnss <- list(
-      name = 'ponding_index_fnss_create',
-      args = as.list(ponding_index_fnss_create()))
-  }
+  study_area <- study_area_read(study_area_path)
 
-  if (is.null(mental_models)) {
-    mental_models <- list(
-      name = 'mental_model_constant_strategies',
-      args = list())
-  }
-
-  if (is.null(sacmex_fnss_creator)) {
-    sacmex_fnss_creator <- 'sacmex_seperate_action_budgets_fnss_create'
-  }
-
-  if (is.null(study_area)) {
-    study_area <- list(
-      name = 'study_area_read',
-      args = list(path = data_dir('censusblocks/megadapt_wgs84_v5.gpkg'))
-    )
-  }
-
-  list(
-    params = params,
+  climate_fnss <- climate_deserialize(config$climate)
+  flooding_fnss <- flooding_deserialize(config$flooding)
+  ponding_fnss <- ponding_deserialize(config$ponding)
+  mental_models <- mental_model_deserialize(config$mental_models)
+  resident_fnss <- resident_deserialize(
+    config$resident,
+    value_function_config = value_function_config,
+    mental_model_strategy = mental_models$resident_limit_strategy)
+  sacmex_fnss <- sacmex_deserialize(
+    config = config$sacmex,
+    value_function_config = value_function_config,
+    sewer_mental_model_strategy = mental_models$sewer_water_sacmex_limit_strategy,
+    potable_water_mental_model_strategy = mental_models$potable_water_sacmex_limit_strategy,
     flooding_fnss = flooding_fnss,
-    mental_models = mental_models,
-    ponding_fnss = ponding_fnss,
-    sacmex_fnss_creator = sacmex_fnss_creator,
-    study_area = study_area
+    ponding_fnss = ponding_fnss
   )
-}
+  water_scarcity_index_exposure_fnss <- water_scarcity_exposure_deserialize(
+    config = config$water_scarcity_exposure,
+    value_function_config = value_function_config
+  )
+  water_scarcity_index_sensitivity_fnss <- water_scarcity_sensitivity_deserialize(
+    config = config$water_scarcity_sensitivity,
+    value_function_config = value_function_config
+  )
 
-megadapt_from_config_load <- function(path) {
-  check_climate <- function(climate) {
-    checkmate::assert(
-      checkmate::check_names(climate, identical.to = 'id'),
-      checkmate::check_int(climate$id)
-    )
-  }
-
-  config <- jsonlite::fromJSON(file(path))
-  do.call(megadapt_create, config)
+  megadapt_dtss_create(
+    year = year,
+    n_steps = n_steps,
+    study_area = study_area,
+    climate_fnss = climate_fnss,
+    flooding_fnss = flooding_fnss,
+    ponding_fnss = ponding_fnss,
+    resident_fnss = resident_fnss,
+    sacmex_fnss = sacmex_fnss,
+    water_scarcity_index_sensitivity_fnss = water_scarcity_index_exposure_fnss,
+    water_scarcity_index_exposure_fnss = water_scarcity_index_sensitivity_fnss,
+    sacmex_fnss_creator = NULL # do I need this
+  )
 }
 
 #' Run the megadapt model

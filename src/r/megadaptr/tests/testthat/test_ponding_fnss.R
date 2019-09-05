@@ -35,3 +35,13 @@ describe('a ponding delta method fnss', {
     expect_lte(ponding_fnss_df$ponding_event_count[1], ponding_fnss_high_runoff_df$ponding_event_count[1])
   })
 })
+
+describe('a ponding config', {
+  config <- ponding_config_create()
+
+  it('can be used to construct a ponding model', {
+    flooding_fnss <- ponding_deserialize(config)
+    expect_s3_class(flooding_fnss, 'ponding_delta_method_fnss')
+  })
+})
+

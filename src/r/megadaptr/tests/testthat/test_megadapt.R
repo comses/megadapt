@@ -71,3 +71,25 @@ describe('a megadapt model', {
     })
   })
 })
+
+describe('a cartesian experiment', {
+  describe('with no overrides', {
+    config <- megadapt_config_create(list())
+    flattened <- config_flatten(config)
+    params_df <- megadaptr:::params_cartesian_create(flattened)
+
+    it('should return a single row', {
+      expect_equal(nrow(params_df), 1)
+    })
+  })
+
+  describe('with varying budget levels', {
+    config <- megadapt_config_create(list(sacmex = list(budget = c(100, 1000))))
+    flattened <- config_flatten(config)
+    params_df <- megadaptr:::params_cartesian_create(flattened)
+
+    it('should return a df with the number of rows equal to the number of budget levels', {
+      expect_equal(nrow(params_df), 2)
+    })
+  })
+})

@@ -23,3 +23,23 @@ describe('a water scarcity index', {
     water_scarcity_index_exposure <- call_fnss(water_scarcity_index_exposure_fnss, study_data)
   })
 })
+
+describe('water scarcity config', {
+  value_function_config <- value_function_config_default()
+
+  describe('a water scarcity exposure config', {
+    config <- water_scarcity_exposure_config_create()
+    it('can be used to construct a water scarcity exposure model', {
+      water_scarcity_exposure <- water_scarcity_exposure_deserialize(config, value_function_config)
+      expect_s3_class(water_scarcity_exposure, 'water_scarcity_index_exposure_fnss')
+    })
+  })
+
+  describe('a water scarcity sensitivity config', {
+    config <- water_scarcity_sensitivity_config_create()
+    it('can be used to construct a water scarcity sensitivity model', {
+      water_scarcity_sensitivity <- water_scarcity_sensitivity_deserialize(config, value_function_config)
+      expect_s3_class(water_scarcity_sensitivity, 'water_scarcity_index_sensitivity_fnss')
+    })
+  })
+})

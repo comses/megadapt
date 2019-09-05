@@ -143,3 +143,18 @@ describe('a split budget', {
     expect_equal(budget$sewer_water_maintenance, 50)
   })
 })
+
+describe('a sacmex config', {
+  config <- sacmex_config_create(constructor = 'system_budget')
+
+  it('can be used to create a sacmex model', {
+    sacmex_fnss <- sacmex_deserialize(
+      config = config,
+      value_function_config = NULL,
+      sewer_mental_model_strategy = NULL,
+      potable_water_mental_model_strategy = NULL,
+      flooding_fnss = NULL,
+      ponding_fnss = NULL)
+    expect_s3_class(sacmex_fnss, 'sacmex_fnss')
+  })
+})

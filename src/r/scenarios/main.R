@@ -2,11 +2,9 @@ library(megadaptr)
 library(magrittr)
 source('../scenarios/util.R')
 
-megadapt <- megadapt_create(
-  params_create(),
-  sacmex_fnss_creator = sacmex_fnss_create,
-  mental_models = mental_model_constant_strategies(),
-  flooding_fnss = flooding_delta_method_fnss_create(),
-  ponding_fnss = ponding_delta_method_fnss_create()
-)
+megadapt <- megadaptr:::megadapt_deserialize(
+  config = list(),
+  study_area_path = megadaptr:::data_dir('censusblocks', 'megadapt_wgs84_v5.gpkg'),
+  year = 2020,
+  n_steps = 5)
 new_results <- simulate(megadapt)

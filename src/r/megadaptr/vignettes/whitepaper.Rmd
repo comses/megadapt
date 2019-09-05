@@ -234,7 +234,19 @@ Variance-Based Sensitivity Analysis (VBSA) estimates the impact of input paramet
 
 In this particular implementation, the sensitivity coefficients are estimated using a Quasi Monte Carlo method, according to the procedures explained by Saltelli et al. (2010). Sampling of the parameter space is done using the Sobol’ sequence. The resulting sets of parameters are used to run the different instances of the model and the estimated coefficients are calculated by using the formulas proposed in the publication cited above.
 
-```{r, eval=FALSE}
+Experiments in megadapt are either done for grid search or VBSA. 
+
+```bash
+singularity build --fakeroot megadapt.sif megadapt.def
+scp megadapt.sif <server>:<path>
+```
+
+
+```bash
+# Build the grid search
+./megadapt.sif --db-condig db-postgres.json grid setup --experiment-config grid.json --study-area megadapt_wgs84_v5.gpkg
+# Run the grid search
+condor_submit climate_budget_reps.sub
 # Example Running Sensitivity Analysis on HPC goes here
 # Using HTCondor
 # Using SLURM
