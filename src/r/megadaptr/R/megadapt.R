@@ -7,7 +7,7 @@ PK_JOIN_EXPR = c("censusblock_id" = "censusblock_id")
 #' @return a study area
 study_area_read <- function(path) {
   sdf <- rgdal::readOGR(dsn = path,
-                 layer = 'megadapt_wgs84_v5',
+                 layer = 'megadapt_wgs84_v7',
                  stringsAsFactors = FALSE,
                  verbose = TRUE,
                  integer64 = 'warn.loss')

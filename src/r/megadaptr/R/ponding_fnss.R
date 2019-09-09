@@ -33,9 +33,11 @@ ponding_index_calculate <- function(weights, study_data) {
   fv_non_potable_capacity <- sapply(
     study_data$sewer_system_capacity,
     FUN = convexa_creciente,
-    xmax = 2064.34,
+    #xmax = 2064.34,
+    xmax = 237.81,
     xmin = 0,
-    gama = 0.197
+    #gama = 0.197
+    gama = 0.064
   )
 
   fv_f_esc <- sapply(

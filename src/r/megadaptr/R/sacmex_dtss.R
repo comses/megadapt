@@ -190,9 +190,11 @@ sacmex_determine_investment_suitability <-
     vf_Cap_D <- sapply(
       study_data$sewer_system_capacity,
       FUN = convexa_creciente,
-      xmax = 2064.34,
+      #xmax = 2064.34,
+      xmax = 237.81,
       xmin = 0,
-      gama = 0.197
+      #gama = 0.197
+      gama = 0.064
     )
 
     #plot(study_data$sewer_system_capacity,vf_Cap_D)
@@ -471,6 +473,10 @@ sacmex_implement_work_plan <-
     if (length(A3) > 0) {
       study_data$potable_water_infrastructure_age[A3] <-
         study_data$potable_water_infrastructure_age[A3] * (1 - params$maintenance_effectiveness_rate)
+      study_data$potable_system_pressure[A3] <- pmin(
+        study_data$potable_system_pressure[A3] * (1 + params$maintenance_effectiveness_rate),
+        study_data$potable_system_pressure_max[A3]
+      )
       study_data$sacmex_potable_maintenance_intervention_presence <- A3
     }
 
@@ -490,6 +496,8 @@ sacmex_depreciate_infrastructure <-
     study_data$potable_water_infrastructure_age <-
       study_data$potable_water_infrastructure_age + 1
 
+    study_data$potable_system_pressure <-
+      study_data$potable_system_pressure * (1 - infrastructure_decay_rate)
     # update_capacity of the system
     study_data$sewer_system_capacity <-
       study_data$sewer_system_capacity * (1 - infrastructure_decay_rate)
@@ -772,6 +780,7 @@ sacmex_initialize <- function(study_data) {
       sacmex_potable_new_infrastructure_intervention_presence = FALSE,
       sacmex_sewer_maintenance_intervention_presence = FALSE,
       sacmex_sewer_new_infrastructure_intervention_presence = FALSE,
-      sewer_system_capacity = 0.5 * sewer_system_capacity_max
+      sewer_system_capacity = 0.5 * sewer_system_capacity_max,
+      potable_system_pressure = 0.5 * potable_system_pressure_max
     )
 }
