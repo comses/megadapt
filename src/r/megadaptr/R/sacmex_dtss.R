@@ -751,13 +751,13 @@ sacmex_deserialize <- function(
 }
 
 sacmex_config_create <- function(
-  constructor = c('action_budget', 'system_budget'),
+  constructor = 'action_budget',
   budget = 1000,
   maintenance_effectiveness_rate = 0.07,
   new_infrastructure_effectiveness_rate = 0.07,
   infrastructure_decay_rate = 0.01
 ) {
-  constructor <- match.arg(constructor)
+  constructor <- intersect(constructor, c('action_budget', 'system_budget'))
   list(
     constructor = constructor,
     budget = budget,
@@ -766,6 +766,7 @@ sacmex_config_create <- function(
     infrastructure_decay_rate = infrastructure_decay_rate
   )
 }
+
 
 #' Sacmex component initializer
 #'
