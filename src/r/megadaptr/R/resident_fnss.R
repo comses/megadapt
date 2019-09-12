@@ -258,7 +258,7 @@ resident_infrastructure_invest <-
         },
         household_potable_water_vulnerability = ((1 - scarcity_index_exposure) ^ (1 - household_potable_water_sensitivity)) ^ (1 + household_resilience),
 
-        household_sewer_vulnerability = ((1 - flooding_index) ^ (1 - household_sewer_sensitivity)) ^ (1 + household_resilience)
+        household_sewer_vulnerability = ((1 - flooding_index) ^ (1 - household_sewer_sensitivity))
       ) %>%
       dplyr::select(
         censusblock_id,
