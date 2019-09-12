@@ -122,6 +122,7 @@ ponding_delta_method_fnss_create <- function(
     precipitation = 1,
     runoff = 1
   )) {
+  index_weights <- index_weights / sum(index_weights)
   checkmate::assert(
     checkmate::check_numeric(weights),
     checkmate::check_names(names(weights), permutation.of = c('capacity', 'precipitation', 'runoff')),

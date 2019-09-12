@@ -104,7 +104,7 @@ flooding_delta_method_fnss_create <-
              precipitation = 1,
              runoff = 1
            )) {
-    weights <- weights / sum(weights)
+    index_weights <- index_weights / sum(index_weights)
     prepend_class(list(weights = weights, index_weights = index_weights), 'flooding_delta_method_fnss')
   }
 
