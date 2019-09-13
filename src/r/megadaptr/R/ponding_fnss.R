@@ -86,9 +86,9 @@ ponding_deserialize = function(config) {
 
 ponding_config_create <- function(
   weights = list(
-    capacity = 0.1,
-    precipitation = 0.25,
-    runoff = 0.25
+    capacity = 0.5,
+    precipitation = 1,
+    runoff = 0.5
   ),
   index_weights = list(
     capacity = 1,
@@ -112,9 +112,9 @@ ponding_config_create <- function(
 #' @return An object of class 'ponding_delta_method_fnss' to be used as arguments into the ponding index using "call_fnss.ponding_delta_method_fnss".
 ponding_delta_method_fnss_create <- function(
   weights = c(
-    capacity = 0.1,
-    precipitation = 0.25,
-    runoff = 0.25
+    capacity = 0.5,
+    precipitation = 1,
+    runoff = 0.5
   ),
   index_weights = c(
     capacity = 1,
@@ -154,10 +154,10 @@ call_fnss.ponding_delta_method_fnss <- function(fnss, study_data, ...) {
   change_runoff <- (study_data$runoff_volume - runoff_mean)
   change_runoff <- (change_runoff - mean(change_runoff))/var(change_runoff)^0.5
   ponding_mean <- study_data$resident_reports_ponding_count_mean
-  ponding_event_count = ponding_mean -
+  ponding_event_count = ponding_mean(1 -
     w['capacity']*change_capacity +
     w['precipitation']*change_precipitation +
-    w['runoff']*change_runoff
+    w['runoff']*change_runoff)
   ponding_index = ponding_index_calculate(weights = index_weights, study_data = study_data)
   tibble::tibble(
     censusblock_id = study_data$censusblock_id,

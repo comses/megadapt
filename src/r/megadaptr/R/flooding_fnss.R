@@ -73,9 +73,9 @@ flooding_deserialize <- function(config) {
 
 flooding_config_create <- function(
   weights = list(
-    capacity = 0.1,
-    precipitation = 0.25,
-    runoff = 0.25),
+    capacity = 0.5,
+    precipitation = 1,
+    runoff = 0.5),
   index_weights = list(
     capacity = 1,
     flooding = 1,
@@ -95,9 +95,9 @@ flooding_config_create <- function(
 #' @param index_weights a vector of weight for calcutating the flooding index
 #' @return an object of weights of class 'flooding_delta_method_fnss'
 flooding_delta_method_fnss_create <-
-  function(weights = c(capacity = 0.1,
-                       precipitation = 0.25,
-                       runoff = 0.25),
+  function(weights = c(capacity = 0.5,
+                       precipitation = 1,
+                       runoff = 0.5),
            index_weights = c(
              capacity = 1,
              flooding = 1,
@@ -128,10 +128,10 @@ call_fnss.flooding_delta_method_fnss <-
     change_runoff <- (study_data$runoff_volume - runoff_mean)
     change_runoff <- (change_runoff - mean(change_runoff))/var(change_runoff)^0.5
     flooding_mean <- study_data$resident_reports_flooding_count_mean
-    flooding_event_count <- flooding_mean -
+    flooding_event_count <- flooding_mean(1 -
       w['capacity']*change_capacity +
       w['precipitation']*change_precipitation +
-      w['runoff']*change_runoff
+      w['runoff']*change_runoff)
     flooding_index = flooding_index_calculate(weights = index_weights, study_data = study_data)
 
     tibble::tibble(
