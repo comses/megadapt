@@ -391,8 +391,8 @@ mental_model_deserialize <- function(config) {
   strategy()
 }
 
-mental_model_config_create <- function(strategy = c('coupled', 'constant')) {
-  strategy <- match.arg(strategy)
+mental_model_config_create <- function(strategy = 'coupled') {
+  strategy <- intersect(strategy, c('coupled', 'constant'))
   list(
     strategy = strategy
   )
