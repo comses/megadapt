@@ -128,7 +128,7 @@ call_fnss.flooding_delta_method_fnss <-
     change_runoff <- (study_data$runoff_volume - runoff_mean)
     change_runoff <- (change_runoff - mean(change_runoff))/var(change_runoff)^0.5
     flooding_mean <- study_data$resident_reports_flooding_count_mean
-    flooding_event_count <- flooding_mean(1 -
+    flooding_event_count <- flooding_mean * (1 -
       w['capacity']*change_capacity +
       w['precipitation']*change_precipitation +
       w['runoff']*change_runoff)

@@ -154,7 +154,7 @@ call_fnss.ponding_delta_method_fnss <- function(fnss, study_data, ...) {
   change_runoff <- (study_data$runoff_volume - runoff_mean)
   change_runoff <- (change_runoff - mean(change_runoff))/var(change_runoff)^0.5
   ponding_mean <- study_data$resident_reports_ponding_count_mean
-  ponding_event_count = ponding_mean(1 -
+  ponding_event_count = ponding_mean * (1 -
     w['capacity']*change_capacity +
     w['precipitation']*change_precipitation +
     w['runoff']*change_runoff)
