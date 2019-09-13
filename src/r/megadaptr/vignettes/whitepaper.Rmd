@@ -209,20 +209,36 @@ The megadapt model constructor is flexible. It allows the replacement of the men
 
 ```{r, eval=FALSE}
 library('megadaptr')
-megadapt <- megadapt_create(params_create())
+megadapt <- megadaptr:::megadapt_deserialize(
+  config = list(),
+  study_area_path = megadaptr:::data_dir('censusblocks', 'megadapt_wgs84_v7.gpkg'),
+  year = 2020,
+  n_steps = 5)
 results <- simulate(megadapt)
 ```
 
 but if you want the change the municipalities budget, the ponding and flooding model and mental models you could also run the model with
 
 ```{r, eval=FALSE}
-megadapt2 <- megadapt_create(
-  params_create(budget = 400),
-  sacmex_fnss_creator = sacmex_fnss_create,
-  mental_models = mental_model_constant_strategies(),
-  flooding_fnss = flooding_delta_method_fnss_create(),
-  ponding_fnss = ponding_delta_method_fnss_create()
-)
+megadapt <- megadaptr:::megadapt_deserialize(
+  config = list(
+    sacmex = list(
+      budget = 400
+    ),
+    flooding = list(
+      weights = list(
+        capacity = 0.4
+      )
+    ),
+    ponding = list(
+      weights = list(
+        capacity = 0.3
+      )
+    )
+  ),
+  study_area_path = megadaptr:::data_dir('censusblocks', 'megadapt_wgs84_v7.gpkg'),
+  year = 2020,
+  n_steps = 5)
 results2 <- simulate(megadapt)
 ```
 
@@ -234,23 +250,67 @@ Variance-Based Sensitivity Analysis (VBSA) estimates the impact of input paramet
 
 In this particular implementation, the sensitivity coefficients are estimated using a Quasi Monte Carlo method, according to the procedures explained by Saltelli et al. (2010). Sampling of the parameter space is done using the Sobol’ sequence. The resulting sets of parameters are used to run the different instances of the model and the estimated coefficients are calculated by using the formulas proposed in the publication cited above.
 
-Experiments in megadapt are either done for grid search or VBSA. 
+Experiments in megadapt are either done for grid search or VBSA.
+
+A model run for grid search is shown below. First a singularity image and necessary config files are created. Then those files are copied to an HPC cluster using the HTCondor scheduler. Then experiment is setup and run. The configuration below assumes the existence of PostgreSQL tuned appropriately. On the cluster the experiments were ran on `max_connections` was modified to be 800 and `shared_buffers` was modified to 128mb. These adjustments are necessary so that many jobs finishing at the same time can successfully connect to the DB and submit their data.
 
 ```bash
+# Build the singularity image
+cd deploy
 singularity build --fakeroot megadapt.sif megadapt.def
-scp megadapt.sif <server>:<path>
+
+# Create a DB connection file
+echo '{
+  "driver": "postgres",
+  "name": "<dbname>",
+  "host": "<dbhost>",
+  "port": 5432,
+  "user": "<dbuser>"
+}' > db-postgres.json
+
+# Create an experiment run file
+echo '{
+  "name": "budget_split",
+  "title": "Action and System Budget Exp",
+  "description": "Action and System Budget Exp Test",
+  "author_name": "Calvin Pritchard",
+  "year": 2020,
+  "strategy": "cartesian",
+  "overrides": {
+    "sacmex": {
+      "constructor": ["action_budget", "system_budget"],
+      "budget": [500, 1000, 1500, 2000]
+    },
+    "climate": {
+      "id": [1, 2]
+    }
+  },
+  "n_reps": 2,
+  "n_steps": 5
+}' > grid.json
+
+# 
+
+# Copy the image to HPC
+scp megadapt.sif <server>:~/.
+scp db-postgres.json <server>:~/.
+scp grid.json <server>:~/.
+scp <study-area gpkg> <server>:~/.
+
+ssh <server>
+
+# Setup the experiment
+./megadapt.sif --db-config db-postgres.json grid setup --experiment-config grid.json --study-area <study-area gpkg>
+
+# Run the experiment
+condor_submit budget_split.sub
 ```
 
+An experiment run using variable based sensitivity analysis is shown below.
 
-```bash
-# Build the grid search
-./megadapt.sif --db-condig db-postgres.json grid setup --experiment-config grid.json --study-area megadapt_wgs84_v5.gpkg
-# Run the grid search
-condor_submit climate_budget_reps.sub
-# Example Running Sensitivity Analysis on HPC goes here
-# Using HTCondor
-# Using SLURM
-# Deployment to HPC
+```
+./megadapt.sif --db-config db-postgres.json vbsa setup --experiment-config grid.json --study-area <study-area gpkg>
+condor_dag_submit infra.dag
 ```
 
 ## Interpreting Experiment Results
@@ -335,6 +395,6 @@ Model components have an optional study area initializer. Initialization of the 
 
 ### Change or Create New Parent Megadapt Component
 
-Since the model component likely has configuration the `megadapt` model initializer, transition function and output function must be changed and created to accomodate the new model. These changes will involve adding calls to the initializer in the initialization function `megadapt_initialize`, adding calls to the component in the transition function `transition_dtss.megadapt_dtss` and summarizing any state from the model output in the data collector component for later analysis.
+Since the model component likely has configuration the `megadapt` model initializer, transition function and output function must be changed and created to accomodate the new model. These changes will involve adding calls to the initializer in the initialization function `megadapt_initialize`, adding calls to the component in the transition function `transition_dtss.megadapt_dtss` and summarizing any state from the model output in the data collector component for later analysis. A new component will also require the creation or modification of a deserializer and configuration creator so that the model setup can be configured from a json file.
 
 ## References
