@@ -6,6 +6,8 @@ CoMSES MEGADAPT repository for containerized megadapt models
 
 ## Setup
 
+### Development
+
 To create an interactive environment to work on developing megadapt run
 
 ```
@@ -26,6 +28,25 @@ Your R environment is now setup for you.
 
 Press `Ctnl+Shift+b` to build and reload from `megadaptr` package from rstudio.
 
+### High Performance Computing
+
+Build the singularity images
+
+```
+cd deploy
+singularity build --fakeroot megadapt-base.sif megadapt-base.def
+singularity build --fakeroot megadapt.sif megadapt.def
+
+```
+
+Then copy the final image to your hpc environment and run
+
+```
+scp megadapt.sif <server>:~/.
+```
+
+Detailed instructions are in the packages vignette.
+
 ## Code Organization
 
 - Scenarios folder (`src/r/scenarios`)
@@ -34,6 +55,8 @@ Press `Ctnl+Shift+b` to build and reload from `megadaptr` package from rstudio.
 - `megadaptr` folder (`src/r/megadaptr`)
 
   Contains generic code which should apply to many scenarios.
+
+- `deploy` contains configuration to build the development environment and deploy to hpc with singularity
 
 ## Resources
 
