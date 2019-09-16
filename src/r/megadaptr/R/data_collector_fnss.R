@@ -32,7 +32,11 @@ save_results <- function(study_data,
     "sacmex_potable_maintenance_intervention_presence",
     "sacmex_sewer_maintenance_intervention_presence",
     "sacmex_potable_new_infrastructure_intervention_presence",
-    "sacmex_sewer_new_infrastructure_intervention_presence"
+    "sacmex_sewer_new_infrastructure_intervention_presence",
+    "non_potable_maintenance",
+    "non_potable_new_infrastructure",
+    "potable_maintenance",
+    "potable_new_infrastructure"
   )
 
   df <- study_data %>%

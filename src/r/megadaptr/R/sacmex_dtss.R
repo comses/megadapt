@@ -316,6 +316,9 @@ sacmex_determine_investment_suitability <-
       potable_maintenance = distance_ideal_A1_Ab,
       potable_new_infrastructure = distance_ideal_A2_Ab
     )
+
+
+
   }
 
 #######################################################################################
@@ -647,7 +650,8 @@ sacmex_invest_and_depreciate <-
         sacmex_sewer_new_infrastructure_intervention_presence,
         sewer_system_capacity,
         household_potable_system_lacking_percent
-      )
+      ) %>% dplyr::inner_join(site_suitability, by = c("censusblock_id"="censusblock_id"))
+
   }
 
 #' Create a split action budget sacmex model
@@ -773,6 +777,7 @@ sacmex_config_create <- function(
 #' @param study_data A data frame with the spatial units and associated fields.
 #' @return a data frame with the new variables and their initial state.
 sacmex_initialize <- function(study_data) {
+
   study_data %>%
     dplyr::mutate(
       sewer_infrastructure_age = infrastructure_age,
@@ -782,6 +787,10 @@ sacmex_initialize <- function(study_data) {
       sacmex_sewer_maintenance_intervention_presence = FALSE,
       sacmex_sewer_new_infrastructure_intervention_presence = FALSE,
       sewer_system_capacity = 0.5 * sewer_system_capacity_max,
-      potable_system_pressure = 0.5 * potable_system_pressure_max
+      potable_system_pressure = 0.5 * potable_system_pressure_max,
+      non_potable_maintenance = 0,
+      non_potable_new_infrastructure = 0,
+      potable_maintenance = 0,
+      potable_new_infrastructure = 0
     )
 }
