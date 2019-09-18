@@ -159,7 +159,14 @@ call_fnss.ponding_delta_method_fnss <- function(fnss, study_data, ...) {
     w['precipitation']*change_precipitation +
     w['runoff']*change_runoff)
   #ponding_index = ponding_index_calculate(weights = index_weights, study_data = study_data)
-  ponding_index <- 1 - (ponding_event_count/12.34)
+  ponding_index <- sapply(
+    study_data$ponding_event_count,
+    FUN=logistica_invertida,
+    k=0.13,
+    center=3.1,
+    xmin=0,
+    xmax=13)
+
   tibble::tibble(
     censusblock_id = study_data$censusblock_id,
     ponding_event_count = pmax(ponding_event_count, 0),

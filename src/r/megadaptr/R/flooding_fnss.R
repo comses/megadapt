@@ -133,7 +133,14 @@ call_fnss.flooding_delta_method_fnss <-
       w['precipitation']*change_precipitation +
       w['runoff']*change_runoff)
     #flooding_index = flooding_index_calculate(weights = index_weights, study_data = study_data)
-    flooding_index <- 1 - (flooding_event_count/15.64)
+    flooding_index <- sapply(
+      study_data$flooding_event_count,
+      FUN=logistica_invertida,
+      k=0.13,
+      center=4,
+      xmin=0,
+      xmax=16)
+
     tibble::tibble(
       censusblock_id = study_data$censusblock_id,
       flooding_event_count = pmax(flooding_event_count, 0),
