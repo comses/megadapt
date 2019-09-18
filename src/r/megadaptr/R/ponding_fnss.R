@@ -160,7 +160,7 @@ call_fnss.ponding_delta_method_fnss <- function(fnss, study_data, ...) {
     w['runoff']*change_runoff)
   #ponding_index = ponding_index_calculate(weights = index_weights, study_data = study_data)
   ponding_index <- sapply(
-    study_data$ponding_event_count,
+    ponding_event_count,
     FUN=logistica_invertida,
     k=0.13,
     center=3.1,

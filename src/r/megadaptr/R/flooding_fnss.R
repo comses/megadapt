@@ -134,7 +134,7 @@ call_fnss.flooding_delta_method_fnss <-
       w['runoff']*change_runoff)
     #flooding_index = flooding_index_calculate(weights = index_weights, study_data = study_data)
     flooding_index <- sapply(
-      study_data$flooding_event_count,
+      flooding_event_count,
       FUN=logistica_invertida,
       k=0.13,
       center=4,
