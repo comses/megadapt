@@ -1,3 +1,58 @@
+create_config <- function(clusterID, config_name, exp_max) {
+  SA_params <- list(
+    p1 = list(
+      name = "new_infrastructure_effectiveness_rate",
+      min = 0.01,
+      max = 0.3
+    ),
+    p2 = list(
+      name = "maintenance_effectiveness_rate",
+      min = 0.1,
+      max = 0.3
+    ),
+    p3 = list(
+      name = "infrastructure_decay_rate",
+      min = 0.001,
+      max = 1
+    ),
+    p4 = list(
+      name = "budget",
+      min = 24,
+      max = 2428
+    )
+  )
+
+  megadapt_conds <- list(
+    exp_min = 1,
+    exp_max = exp_max,
+    sim_years = 40,
+    municip = T,
+    out_stats = c("mean","max","min"),
+    out_metric_names = c("household_potable_water_vulnerability", "household_sewer_vulnerability"))
+
+  ####### No need to modify the rest of the list
+
+  experiment_name <- paste("sa_exponent_",megadapt_conds$exp_max,"_id_",clusterID, sep = "")
+
+  description <- paste("Variance Based Sensitivity Analysis on", length(SA_params),"parameters and sample size of", (2^(megadapt_conds$exp_max)))
+
+  params_table <- paste("parameters_", experiment_name, sep = "")
+
+  results_table <- paste("results_", experiment_name, sep = "")
+
+  SA_config <- list(SA_params = SA_params,
+                    megadapt_conds = megadapt_conds,
+                    experiment_name = experiment_name,
+                    title = experiment_name,
+                    description = description,
+                    author_name = "Manuela Vanegas Ferro",
+                    params_table = params_table,
+                    results_table = results_table)
+
+  jsonlite::write_json(SA_config, config_name)
+
+}
+
 #' Create possible input parameter combinations for running the sensitivity analysis
 #'
 #' @param SA_conds sensitivity analysis configuration object
@@ -28,14 +83,8 @@ createLinearMatrices <- function(SA_conds, SA_params) {
   for (i in 1:(2 * k)) {
     if (i <= k) {
       S[, i] <- S[, i] * slope[i] + interc[i]
-      if (SA_params[[i]]$isInteger == T) {
-        S[, i] = round(S[, i])
-      }
     } else {
       S[, i] = S[, i] * slope[i - k] + interc[i - k]
-      if (SA_params[[i - k]]$isInteger == T) {
-        S[, i] = round(S[, i])
-      }
     }
   }
 
@@ -49,10 +98,10 @@ createLinearMatrices <- function(SA_conds, SA_params) {
   for (j in 1:k) {
     ABMats[, j, (j + 2)] <- S[1:(N), j + k]
   }
-  # ABMats[,,2] <- S[5:(N+4),(k+1):(2*k)] #Pairing A with B taken from 4 rows below (p.38 from book chapter)
-  # for (j in 1:k) {
-  #   ABMats[,j,(j+2)] <- S[5:(N+4),j+k]
-  # }
+  ABMats[,,2] <- S[5:(N+4),(k+1):(2*k)] #Pairing A with B taken from 4 rows below (p.38 from book chapter)
+  for (j in 1:k) {
+    ABMats[,j,(j+2)] <- S[5:(N+4),j+k]
+  }
 
   return(ABMats)
 
@@ -82,7 +131,8 @@ VBSA <- function(model_f, SA_conditions, SA_params, batchtools_resources) {
 
   outt <- longFormThis(outs = Y,
                        SA = resultss,
-                       SA_conditions = SA_conditions)
+                       SA_conditions = SA_conditions,
+                       megadapt_conds = megadapt_conds)
 
   return(outt)
 }
@@ -210,15 +260,11 @@ megadapt_superficial_params_simulator <- function(megadapt_conds, SA_params) {
       metrics_a <- simplify2array(metrics)
       dimnames(metrics_a) <- list("community" = muns,
                                  "target_statistic" = colnames(metrics))
-      # out_metrics <- list(metrics = metrics,
-      #                     muns = muns)
 
     } else {
       Vlast <- subset(results, year == lastT, select = out_metric_names)
       metrics <- apply(Vlast, 2, function(x) mean(x, na.rm = T))
       metrics_a <- metrics
-      # out_metrics <- list(metrics = metrics,
-      #                     muns = NULL)
     }
 
     rreturn <- list(metrics = metrics_a,
@@ -231,51 +277,15 @@ megadapt_superficial_params_simulator <- function(megadapt_conds, SA_params) {
 
 one_megadapt_superficial_params_simulator <- function(params, megadapt_conds) {
 
-  # megadapt_conds <- list(
-  #   sim_years = 4,
-  #   municip = T,
-  #   out_stats = c("mean","max","min"),
-  #   out_metric_names = c("household_potable_water_vulnerability", "household_sewer_vulnerability", "flooding_index",
-  #                        "ponding_index","scarcity_index_exposure", "scarcity_index_sensitivity")
-  # )
-
   params$n_steps <- megadapt_conds$sim_years
 
   params_list <- do.call(params_create, params)
 
   megadapt <- megadapt_create(params = params_list)
 
-  # param_names <- NULL
-  # for (pname in 1:length(SA_params)) {
-  #   param_names[pname] <- SA_params[[pname]]$name
-  # }
-
-  summary_funcs <- as.list(megadapt_conds$out_stats)
-  names(summary_funcs) <- megadapt_conds$out_stats
-  out_metric_names <- megadapt_conds$out_metric_names
-
   results <- simulate(megadapt)
 
-  lastT <- max(results$year)
-
-  Vlast <- subset(results, year == lastT, select = c("geographic_id", out_metric_names))
-  Vlast$Mun <- substr(Vlast$geographic_id, start = 1, stop = 5)
-
-  metrics <- dplyr::group_by(Vlast, Mun) %>% dplyr::summarise_at(out_metric_names, summary_funcs, na.rm=TRUE)
-  total <- dplyr::summarise_at(Vlast, out_metric_names, summary_funcs, na.rm=TRUE)
-  total$Mun <- "Global"
-  metrics <- rbind(metrics,total)
-  # muns <- metrics$Mun
-  muns <- community_names()
-  metrics <- dplyr::select(metrics, -Mun)
-  # metrics_a <- simplify2array(metrics)
-  # dimnames(metrics_a) <- list("communities" = muns,
-                              # "target_statistic" = colnames(metrics))
-  metrics_b <- as.data.frame(metrics)
-  metrics_b$community <- muns
-
-  return(metrics_b)
-
+  return(results)
 }
 
 book_example_simulator <- function() {
@@ -340,28 +350,6 @@ community_names <- function() {
   muns
 }
 
-assign_community_name <- function (comm_number) {
-  muns <- list("1" = "Azcapotzalco",
-            "2" = "Coyoacan",
-            "3" = "Cuajimalpa_de_Morelos",
-            "4" = "Gustavo_A_Madero",
-            "5" = "Iztacalco",
-            "6" = "Iztapalapa",
-            "7" = "La_Magdalena_Contreras",
-            "8" = "Milpa_Alta",
-            "9" = "Alvaro_Obregon",
-            "10" = "Tlahuac",
-            "11" = "Tlalpan",
-            "12" = "Xochimilco",
-            "13" = "Benito_Juarez",
-            "14" = "Cuauhtemoc",
-            "15" = "Miguel_Hidalgo",
-            "16" = "Venustiano_Carranza",
-            "17" = "Global")
-
-  return(switch(as.character(comm_number), muns))
-}
-
 ################################################################################################
 ################################################################################################
 
@@ -371,10 +359,6 @@ calcSensitivityIndices <- function(SA_conditions, SA_params, Y) {
   exp_max <- SA_conditions$exp_max
   maxN <- 2 ^ exp_max
   k <- length(SA_params)
-  # noStats <- length(SA_conditions$outStats)
-  # communities <- SA_conditions$communities
-  # oMetricNames <- SA_conditions$oMetricNames
-
 
   param <- NULL
   for (i in 1:length(SA_params)) {
@@ -420,14 +404,9 @@ calcSensitivityIndices <- function(SA_conditions, SA_params, Y) {
       for (i in (exp_min + 2):exp_max) {
         N <- 2 ^ i
         Sis <- apply(Y, margins_to_apply, function(x) calc_Si(x, N, k))
-        # print(Sis)
         STis <- apply(Y, margins_to_apply, function(x) calc_STi(x, N, k))
-        # resultss[1:k, (i - exp_min + 1), 1, 1:length(communities), 1:length(dimnames(Y)[[4]])] <- Sis
-        # resultss[1:k, (i - exp_min + 1), 2, 1:length(communities), 1:length(dimnames(Y)[[4]])] <- STis
         results_si <- abind::abind(results_si, Sis, along = 1)
         results_sti <- abind::abind(results_sti, STis, along = 1)
-        # results_si[1:k, (i - exp_min + 1),,] <- Sis
-        # results_sti[1:k, (i - exp_min + 1),,] <- STis
       }
     }
     dimnames(results_si)[1] <- list("sample_size" = sample_size)
@@ -488,7 +467,7 @@ calc_Vhat <- function(y, N) {
 #' @param outs array with results from each simulation
 #' @param SA array with first and total order indices for each target statistic requested
 #' @param SA_conditions list of the SA Conditions established for the run
-longFormThis <- function(outs, SA, SA_conditions) {
+longFormThis <- function(outs, SA, SA_conditions, megadapt_conds) {
   # The table produced has the following columns (example):
   # input_parameter (budget)
   # community (Iztapalapa, All of Mexico City)
@@ -504,11 +483,10 @@ longFormThis <- function(outs, SA, SA_conditions) {
   long_SA <- rbind(Si_SA, STi_SA)
   names(long_SA)[1:5] <- c("sample_size","input_parameter","community","target_statistic","value")
   long_SA$outcome_name <- as.factor(long_SA$outcome_name)
-  # longSA <- dplyr::select(longSA, -sample_size)
 
   apply_margin <- 3:length(dim(outs))
 
-  summary_outs <- apply(outs, apply_margin, function(x) appl_summary_statistics(x,SA_conditions$summary_stats))
+  summary_outs <- apply(outs, apply_margin, function(x) appl_summary_statistics(x,megadapt_conds$out_stats))
 
   long_outs <- reshape2::melt(summary_outs)
   names(long_outs)[1] <- "outcome_name"
@@ -517,7 +495,6 @@ longFormThis <- function(outs, SA, SA_conditions) {
   long_outs$sample_size <- 2^(SA_conditions$exp_max)
 
   long <- rbind(long_SA, long_outs)
-
 
   return(long)
 }
@@ -539,23 +516,31 @@ appl_summary_statistics <- function(matr, summ_stats) {
 
 #' Creates convergence plots, which should be used to confirm that the sample size chosen for the SA is big enough so the sensitivity estimators (Si and STi) converge to a certain number
 #'
+#' @export
 #' @param results_table results table in long form
 #' @param commun community (any of the 16 communities or "Global") from which to generate the convergence plots. Defaults to Global
+#' @param output_vars vector of output variables of interest. Defaults to household patable water and sewer vulnerability
+#' @param summary_stats summary statistics of interest, given as a vector of character strings. Defaults to mean.
 
 plotSAConvergence <-function(results_table,
-                             commun = "Global")
+                             commun = "Global",
+                             output_vars = c("household_potable_water_vulnerability", "household_sewer_vulnerability"),
+                             summary_stats = c("mean"))
 
   {
-    sens_inidices <- subset(results_table, outcome_name=="first_order_sensitivity_index" | outcome_name=="total_order_sensitivity_index")
-    Ns <- unique(sens_inidices$sample_size)
-    summ_stat <- levels(results_table$outcome_name)[order(levels(results_table$outcome_name))][-c(1,5)]
-    number_metrics <- length(levels(results_table$target_statistic)) / length(summ_stat)
-    # par(mfrow = c(number_metrics,length(summ_stat)))
+    statistics <- paste(rep(output_vars, each = length(summary_stats)), summary_stats, sep = "_")
 
-    commun_sens_indices <- subset(sens_inidices, community == commun)
+    if (!all(statistics %in% levels(results_table$target_statistic))) {
+      stop("Requested output variables or summary statistics are not present in the results table")
+    }
+    if (length(commun) > 1) {
+      stop("Please choose only one community")
+    }
 
-    first_commun_sens_indices <- subset(commun_sens_indices, outcome_name=="first_order_sensitivity_index")
-    total_commun_sens_indices <- subset(commun_sens_indices, outcome_name=="total_order_sensitivity_index")
+    number_metrics <- length(output_vars)
+
+    first_commun_sens_indices <- subset(results_table, target_statistic %in% statistics & community == commun & outcome_name=="first_order_sensitivity_index")
+    total_commun_sens_indices <- subset(results_table, target_statistic %in% statistics & community == commun & outcome_name=="total_order_sensitivity_index")
 
     first_commun_sens_indices$sample_size<-as.numeric(first_commun_sens_indices$sample_size)
     total_commun_sens_indices$sample_size<-as.numeric(total_commun_sens_indices$sample_size)
@@ -565,13 +550,15 @@ plotSAConvergence <-function(results_table,
                                                                    colour = input_parameter)) +
       ggplot2::geom_line() +
       ggplot2::geom_point(cex = 0.7) +
-      ggplot2::facet_wrap(~target_statistic, ncol = number_metrics, nrow = length(summ_stat), scales = "free") +
-      ggplot2::scale_color_discrete(name="Input Parameter") +
-      ggplot2::ggtitle("Fist Order Sensitivity")+
-      ggplot2::xlab("Sample Size")+
-      ggplot2::ylab("Sensitivity Index")+
+      ggplot2::facet_wrap(~target_statistic, nrow = number_metrics, ncol = length(summary_stats), scales = "free") +
+      ggplot2::scale_color_discrete(name="Input Parameters:") +
+      ggplot2::ggtitle("Fist Order Sensitivity") +
+      ggplot2::xlab("Sample Size") +
+      ggplot2::ylab("Sensitivity Index") +
       ggplot2::theme_bw()+
-      ggplot2::scale_y_continuous(limits = c(-0.05, 1.05))
+      ggplot2::scale_y_continuous(breaks = c(0,0.2,0.4,0.6,0.8,1.0,1.2)) +
+      ggplot2::coord_cartesian(ylim = c(-0.15, 1.15))
+      # ggplot2::theme(legend.position="top", legend.box = "horizontal")
 
 
     total<-ggplot2::ggplot(total_commun_sens_indices, ggplot2::aes(sample_size,
@@ -579,130 +566,59 @@ plotSAConvergence <-function(results_table,
                                                                    colour = input_parameter)) +
       ggplot2::geom_line() +
       ggplot2::geom_point(cex = 0.7) +
-      ggplot2::facet_wrap(~target_statistic, ncol = number_metrics, nrow = length(summ_stat), scales = "free") +
-      ggplot2::scale_color_discrete(name="Input Parameter") +
-      ggplot2::ggtitle("Total Order Sensitivity")+
-      ggplot2::xlab("Sample Size")+
-      ggplot2::ylab("Sensitivity Index")+
-      ggplot2::theme_bw()+
-      ggplot2::scale_y_continuous(limits = c(-0.05, 1.05))
+      ggplot2::facet_wrap(~target_statistic, nrow = number_metrics, ncol = length(summary_stats), scales = "free") +
+      ggplot2::scale_color_discrete(name="Input Parameters:") +
+      ggplot2::ggtitle("Total Order Sensitivity") +
+      ggplot2::xlab("Sample Size") +
+      ggplot2::ylab("Sensitivity Index") +
+      ggplot2::theme_bw() +
+      ggplot2::scale_y_continuous(breaks = c(0,0.2,0.4,0.6,0.8,1.0,1.2)) +
+      ggplot2::coord_cartesian(ylim = c(-0.15, 1.15))
 
-    first
-    dev.new()
-    total
+    ggplot2::ggsave(paste0("FirstConvergence_",commun,".png"), first, width = 20, height = (6 * number_metrics), units = "cm", dpi = 400)
+    ggplot2::ggsave(paste0("TotalConvergence_",commun,".png"), total, width = 20, height = (6 * number_metrics), units = "cm", dpi = 400)
 
-    # for (eachstat in unique(first_commun_sens_indices$target_statistic)) {
-    #   # ggplot2::ggplot(first_commun_sens_indices, aes(sample_size, value, colour = input_parameter)) +
-    #   #   geom_line()
-    #   plot(first_commun_sens_indices$sample_size[first_commun_sens_indices$target_statistic==eachstat], first_commun_sens_indices$value[first_commun_sens_indices$target_statistic==eachstat],xlim=c(0,5),ylim=c(0,1))
-    # }
+}
 
-    # dev.new()
-    # for (eachstat in total_commun_sens_indices$target_statistic) {
-    #   ggplot2::ggplot(total_commun_sens_indices, aes(sample_size, value, colour = input_parameter)) +
-    #     geom_line()
-    # }
+#' Creates heatmaps showing the sensitivity indices for each parameter-municipality combination
+#'
+#' @export
+#' @param results_table results table in long form
+#' @param output_var output variable of interest. Defaults to household patable water vulnerability
+#' @param summary_stat summary statistic of interest. Defaults to mean.
+#' @param at_sample_size sample size to get the data from. Defaults to the maximum available.
 
-
-  }
-
-
-
-  #
-  #   #Plots both Si and STi vs N (Maximum of 5 metrics)
-  #   Ns <- seq(SA_conditions$exp_min, SA_conditions$exp_max)
-  #   numberPlots <- SA_conditions$oMetricNames
-  #   par(mfrow = c(ceiling(numberPlots / 2), 2))
-  #   paramcolors <-
-  #     c(
-  #       "darkcyan",
-  #       "blue4",
-  #       "darkorchid",
-  #       "darkorange2",
-  #       "brown2",
-  #       "chartreuse3",
-  #       "skyblue",
-  #       "orange",
-  #       "magenta"
-  #     )
-  #   for (i in 1:numberPlots) {
-  #     withinThisRange <- range(x[, , i])
-  #     plot(
-  #       Ns,
-  #       x[1, , i],
-  #       ylim = c(withinThisRange[1], withinThisRange[2] + 0.05),
-  #       col = paramcolors[1],
-  #       xlab = "N",
-  #       ylab = ""
-  #     )
-  #     if (i <= (numberPlots / 2)) {
-  #       title(main = bquote(.(oMetricNames[i]) ~ S[i]),
-  #             ylab = bquote(S[i]))
-  #     } else {
-  #       title(main = bquote(.(oMetricNames[i - (numberPlots / 2)]) ~ S[Ti]),
-  #             ylab = bquote(S[Ti]))
-  #     }
-  #     for (j in 2:dim(x)[1]) {
-  #       points(Ns, x[j, , i], col = paramcolors[j])
-  #     }
-  #     legendnames <- paste("x", seq(1:dim(x)[1]))
-  #     legend(
-  #       "right",
-  #       legendnames,
-  #       fill = paramcolors[1:(dim(x)[1])],
-  #       border = "white",
-  #       bty = "n"
-  #     )
-  #   }
-  # }
-
-plotPieCharts <- function(x, expon, metric)
+plotSAHeatmap <- function(results_table,
+                          output_var = "household_potable_water_vulnerability",
+                          summary_stat = "mean",
+                          at_sample_size = max(results_table$sample_size))
   {
-  n <- expon - SA_conditions$exp_min + 1
-  if (n < 1) {
-    stop("Exponent has to be equal or greater than exp_min")
+  if (length(output_var) > 1 | length(summary_stat) > 1) {
+    stop("Please choose a single output variable and a single summary statistic")
   }
-  metrOfInterest <- match(metric, oMetricNames)
-  jump <- (dim(x)[3]) / 2
-  sivals <- abs(x[, n, metrOfInterest])
-  siperc <- round((sivals / sum(sivals)) * 100)
-  silabl <- paste(siperc, " %")
-  #add names of parameters
-  stivals <- abs(x[, n, (metrOfInterest + jump)])
-  stiperc <- round((stivals / sum(stivals)) * 100)
-  stilabl <- paste(stiperc, " %")
-  #same here
-  par(mfrow = c(1, 2))
-  paramcolors <-
-    c(
-      "darkcyan",
-      "blue4",
-      "darkorchid",
-      "darkorange2",
-      "brown2",
-      "chartreuse3",
-      "skyblue",
-      "orange",
-      "magenta"
-    )
-  # if (length(sivals) <= length(paramcolors)) {
-  #   piecolors <- paramcolors[1:length(sivals)]
-  # } else {
-  #   piecolors <- rainbow(length(sivals))
-  # }
-  pie(
-    sivals,
-    main = bquote(S[i]),
-    labels = silabl,
-    col = topo.colors(length(sivals))
-  )
-  pie(
-    stivals,
-    main = bquote(S[Ti]),
-    labels = stilabl,
-    col = topo.colors(length(sivals))
-  )
-  #To do: add percentages and labels
+  statistic <- paste(output_var, summary_stat, sep = "_")
+
+  first_statistic_sens_indices <- subset(results_table, target_statistic == statistic & sample_size == at_sample_size & outcome_name == "first_order_sensitivity_index")
+  total_statistic_sens_indices <- subset(results_table, target_statistic == statistic & sample_size == at_sample_size & outcome_name == "total_order_sensitivity_index")
+
+  f_heatmap <- ggplot2::ggplot(data = first_statistic_sens_indices, mapping = ggplot2::aes(input_parameter, community)) +
+    ggplot2::geom_tile(ggplot2::aes(fill = value), color = "white", size = 0.1) +
+    ggplot2::scale_x_discrete(expand = c(0,0)) +
+    ggplot2::scale_fill_gradient(low = "cadetblue3", high = "coral3", name = "Value", breaks = c(0.25,0.5,0.75,1)) +
+    ggplot2::labs(x = "Input Parameters", y = NULL, title = "First Order Sensitivity Indices") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1, vjust = 1))
+
+
+  t_heatmap <- ggplot2::ggplot(data = total_statistic_sens_indices, mapping = ggplot2::aes(input_parameter, community)) +
+    ggplot2::geom_tile(ggplot2::aes(fill = value), color = "white", size = 0.1) +
+    ggplot2::scale_x_discrete(expand = c(0,0)) +
+    ggplot2::scale_fill_gradient(low = "cadetblue3", high = "coral3", name = "Value", breaks = c(0.25,0.5,0.75,1)) +
+    ggplot2::labs(x = "Input Parameters", y = NULL, title = "Total Order Sensitivity Indices") +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 15, hjust = 1, vjust = 1))
+
+  ggplot2::ggsave(paste0("FirstHeatmap_",statistic,".png"), f_heatmap, width = 20, height = 15, units = "cm", dpi = 400)
+  ggplot2::ggsave(paste0("TotalHeatmap_",statistic,".png"), t_heatmap, width = 20, height = 15, units = "cm", dpi = 400)
+
 }
 
 ################################################################################################
@@ -728,13 +644,3 @@ melt_with_info <- function (mats_array) {
 
   return(long_mat)
 }
-#
-# assign_parameter_name_from_slice <- function(slice_num, SA_params) {
-#   param_num <- slice_num - 2
-#   param_name <- SA_params[[param_num]]$name
-#   return(param_name)
-# }
-
-
-
-

@@ -1,4 +1,5 @@
 library(megadaptr)
+setwd("../submit/")
 
 # the following function is needed to get the params list that the rsp template produces
 write_params_list <- function(line) {
@@ -12,14 +13,14 @@ write_params_list <- function(line) {
 }
 
 
-#setup (no call to rsp template)
-source("../submit/create_config.R")
-create_config("local_test5")
-
-ABMats <- megadaptr::cli_root(c("--db-config","inst/experiment/db-sqlite.json",
+#setup
+ABMats <- megadaptr::cli_root(c("--db-config","../megadaptr/inst/experiment/db-sqlite.json",
                                 "vbsa",
                                 "setup",
-                                "--experiment-config","config.json"))
+                                "--experiment-config", "config.json",
+                                "--experiment-number", "localtest001",
+                                "--maximum-exponent", 2,
+                                "--simulate-function", "one_megadapt_superficial_params_simulator"))
 
 
 #run
@@ -28,20 +29,21 @@ for (mslice in 1:dim(ABMats)[3]) {
   for (mrow in 1:dim(ABMats)[1]) {
     # mats_line <- ABMats[mrow,,mslice]
     params <- write_params_list(ABMats[mrow,,mslice])
-    megadaptr::cli_root(c("--db-config", "inst/experiment/db-sqlite.json",
+    megadaptr::cli_root(c("--db-config", "../megadaptr/inst/experiment/db-sqlite.json",
                           "vbsa",
                           "run",
                           "--experiment-config","config.json",
                           "--id", jobN,
                           "--params", params,
                           "--sample_n", mrow,
-                          "--ABMat", mslice))
+                          "--ABMat", mslice,
+                          "--simulate-function", "one_megadapt_superficial_params_simulator"))
     jobN <- jobN + 1
   }
 }
 
 #reduce
-megadaptr::cli_root(c("--db-config","inst/experiment/db-sqlite.json",
+megadaptr::cli_root(c("--db-config","../megadaptr/inst/experiment/db-sqlite.json",
                       "vbsa",
                       "reduce",
                       "--experiment-config","config.json"))

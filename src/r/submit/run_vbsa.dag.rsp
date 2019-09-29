@@ -6,8 +6,8 @@
 <% } %><%-%>
 <%-%>
 <% dag_template <- function(JobN, ABMats_line, row, slice) { %>
-JOB J<%=JobN%> one_megadapt.sub
-VARS J<%=JobN%> params="list(<%=write_vars_from(ABMats_line)%>)" row="<%=row%>" slice="<%=slice%>" jobN="<%=JobN%>"
+JOB J<%=JobN%> one_megadapt_vbsa.sub
+VARS J<%=JobN%> params="list(<%=write_vars_from(ABMats_line)%>)" row="<%=row%>" slice="<%=slice%>" jobN="<%=JobN%>" sim_func="<%=sim_func%>"
 <% } %><%-%>
 <%-%>
 <% jobN <- 1 %><%-%>
@@ -18,5 +18,5 @@ VARS J<%=JobN%> params="list(<%=write_vars_from(ABMats_line)%>)" row="<%=row%>" 
   }
 } %>
 <%-%>
-JOB R reduce.sub
+JOB R reduce_vbsa.sub
 PARENT <%=paste("J", c(1:(dim(ABMats)[1] * dim(ABMats)[3])), sep = "", collapse = " ")%> CHILD R

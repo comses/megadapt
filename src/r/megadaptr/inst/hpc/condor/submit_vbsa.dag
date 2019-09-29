@@ -1,0 +1,3 @@
+JOB SETUP setup_vbsa.sub
+SUBDAG EXTERNAL RUN run_vbsa.dag
+PARENT SETUP CHILD RUN

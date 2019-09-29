@@ -1,5 +1,5 @@
-executable = one_megadapt.sh
-arguments = $(params) $(row) $(slice) $(jobN)
+executable = /usr/local/bin/singularity
+arguments = run ../../../deploy/megadapt.sif --db-config db-postgres.json vbsa run --experiment-config config.json --id $(jobN) --params $(params) --sample_n $(row) --ABMat $(slice)
 log = log/megadapts/log.megadapts
 output = log/megadapts/O.megadapts$(cluster)
 error = log/megadapts/E.megadapts$(cluster)

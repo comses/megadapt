@@ -23,16 +23,20 @@ cli_create <- function() {
   vbsa_subparser <-
     vbsa_root$add_subparsers(help = 'VBSA subcommands', dest = 'vbsa_command')
 
+  vbsa_setup <-
+    vbsa_subparser$add_parser('setup', help = 'Setup a VBSA experiment')
+  vbsa_setup$add_argument('--experiment-config', help = 'JSON file name describing the model setup', required=TRUE)
+  vbsa_setup$add_argument('--experiment-number', help = 'Cluster ID given by condor used to uniquely identify the experiment', required=TRUE)
+  vbsa_setup$add_argument('--maximum-exponent', help = '2 ^ (maximum exponent) will be the maximum sample size', required=TRUE)
+  vbsa_setup$add_argument('--simulate-function', help = 'Function that takes parameter set and runs megadapt simulation', required=TRUE)
+
   vbsa_run <- vbsa_subparser$add_parser('run', help = 'Run the Megadapt model in VBSA mode')
   vbsa_run$add_argument('--experiment-config', help = 'JSON file describing the model setup', required=TRUE)
   vbsa_run$add_argument('--id', help = 'Row ID of the params combination', required=TRUE)
   vbsa_run$add_argument('--params', help = 'List of the params combination', required=TRUE)
   vbsa_run$add_argument('--sample_n', help = 'Row number from the input matrix', required=TRUE)
   vbsa_run$add_argument('--ABMat', help = 'Slice number from the input matrix', required=TRUE)
-
-  vbsa_setup <-
-    vbsa_subparser$add_parser('setup', help = 'Setup a VBSA experiment')
-  vbsa_setup$add_argument('--experiment-config', help = 'JSON file describing the model setup', required=TRUE)
+  vbsa_run$add_argument('--simulate-function', help = 'Function that takes parameter set and runs megadapt simulation', required=TRUE)
 
   vbsa_reduce <-
     vbsa_subparser$add_parser('reduce', help = 'Reduce the Megadapt model runs and return a sensitivity analysis report')
@@ -165,23 +169,26 @@ cli_vbsa <- function(conn, args) {
   switch(
     args$vbsa_command,
     setup = cli_vbsa_setup(conn = conn,
-                           experiment_config = args$experiment_config),
+                           experiment_config = args$experiment_config,
+                           experiment_number = args$experiment_number,
+                           maximum_exponent = args$maximum_exponent,
+                           simulate_function = args$simulate_function),
     run = cli_vbsa_run(conn = conn,
                        experiment_config = args$experiment_config,
                        id = args$id, params = args$params,
                        sample_n = args$sample_n,
-                       ABMat = args$ABMat),
+                       ABMat = args$ABMat,
+                       simulate_function = args$simulate_function),
     reduce = cli_vbsa_reduce(conn = conn,
                              experiment = args$experiment_config)
   )
 }
 
-cli_vbsa_setup <- function(conn, experiment_config) {
-  if (!fs::file_exists(experiment_config)) {
-    stop(glue::glue('File {experiment_config} does not exist'))
-  }
+cli_vbsa_setup <- function(conn, experiment_config, experiment_number, maximum_exponent, simulate_function) {
 
+  megadaptr:::create_config(clusterID = experiment_number, config_name = experiment_config, exp_max = as.numeric(maximum_exponent))
   config <- jsonlite::read_json(experiment_config, simplifyVector = TRUE)
+
   experiment_table_append(
     conn = conn,
     name = config$experiment_name,
@@ -190,13 +197,13 @@ cli_vbsa_setup <- function(conn, experiment_config) {
     author_name = config$author_name)
 
   # populate params table with vbsa values here
-  SA_conditions <- config$SA_conditions
+  SA_conditions <- list(exp_max = config$megadapt_conds$exp_max)
   SA_params <- config$SA_params
   megadapt_conds <- config$megadapt_conds
 
   abs <- megadaptr:::createLinearMatrices(SA_conditions,SA_params)
 
-  R.rsp::rfile("../submit/run.dag.rsp", args = list(ABMats = abs))
+  R.rsp::rfile("run_vbsa.dag.rsp", args = list(ABMats = abs, sim_func = simulate_function))
 
   long_abs <- megadaptr:::melt_with_info(abs)
 
@@ -210,27 +217,44 @@ cli_vbsa_setup <- function(conn, experiment_config) {
   return(abs)
 }
 
-cli_vbsa_run <- function(conn, experiment_config, id, params, sample_n, ABMat) {
+cli_vbsa_run <- function(conn, experiment_config, id, params, sample_n, ABMat, simulate_function) {
 
   experiment_c <- jsonlite::read_json(experiment_config, simplifyVector = TRUE)
   megadapt_conds <- experiment_c$megadapt_conds
+  summary_funcs <- as.list(megadapt_conds$out_stats)
+  names(summary_funcs) <- megadapt_conds$out_stats
+  out_metric_names <- megadapt_conds$out_metric_names
   params_list <- eval(parse(text = params))
 
-  one_run_results <- megadaptr:::one_megadapt_superficial_params_simulator(params_list, megadapt_conds)
+  one_run_results <- match.fun(simulate_function)(params_list, megadapt_conds)
 
-  # one_run_results <- cbind(one_run_results, "job_id" = id)
-  # one_run_results <- cbind(one_run_results, "sample" = sample_n)
-  # one_run_results <- cbind(one_run_results, "matrix" = ABMat)
-  one_run_results$job_id <- id
-  one_run_results$sample <- sample_n
-  one_run_results$matrix <- ABMat
+  lastT <- max(one_run_results$year)
+
+  if (is.null(out_metric_names)) {
+    out_metric_names <- names(one_run_results)[which(names(clusres) != "censusblock_id" & names(clusres) != "year")]
+  }
+
+  Vlast <- subset(one_run_results, year == lastT, select = c("geographic_id", out_metric_names))
+  Vlast$Mun <- substr(Vlast$geographic_id, start = 1, stop = 5)
+
+  metrics <- dplyr::group_by(Vlast, Mun) %>% dplyr::summarise_at(out_metric_names, summary_funcs, na.rm=TRUE)
+  total <- dplyr::summarise_at(Vlast, out_metric_names, summary_funcs, na.rm=TRUE)
+  total$Mun <- "Global"
+  metrics <- rbind(metrics,total)
+  muns <- community_names()
+  metrics <- dplyr::select(metrics, -Mun)
+  metrics_df <- as.data.frame(metrics)
+  metrics_df$community <- muns
+
+  metrics_df$job_id <- id
+  metrics_df$sample <- sample_n
+  metrics_df$matrix <- ABMat
 
   DBI::dbWriteTable(conn = conn,
                name = experiment_c$results_table,
-               value = one_run_results,
+               value = metrics_df,
                row.names = FALSE,
                append = TRUE)
-  print("here")
 }
 
 cli_vbsa_reduce <- function(conn, experiment_config) {
@@ -241,8 +265,8 @@ cli_vbsa_reduce <- function(conn, experiment_config) {
   target_stats <- colnames(Ys_list)[colnames(Ys_list)!="community" & colnames(Ys_list)!="job_id" & colnames(Ys_list)!="sample" & colnames(Ys_list)!="matrix"]
   communities <- unique(Ys_list$community)
 
-  sample_sizes <- 2^((experiment_c$SA_conditions$exp_min):(experiment_c$SA_conditions$exp_max))
-  max_sample_size <- 2^(experiment_c$SA_conditions$exp_max)
+  sample_sizes <- 2^((experiment_c$megadapt_conds$exp_min):(experiment_c$megadapt_conds$exp_max))
+  max_sample_size <- 2^(experiment_c$megadapt_conds$exp_max)
   k <- length(experiment_c$SA_params)
   param_names <- NULL
   for (pnum in 1:length(experiment_c$SA_params)) {
@@ -290,7 +314,7 @@ cli_vbsa_reduce <- function(conn, experiment_config) {
         SA_results <- rbind(SA_results, new_SA_results)
       }
 
-      summary_outs <- megadaptr:::appl_summary_statistics(matr = Y, summ_stats = experiment_c$SA_conditions$summary_stats)
+      summary_outs <- megadaptr:::appl_summary_statistics(matr = Y, summ_stats = experiment_c$megadapt_conds$out_stats)
 
       new_outs <- data.frame(sample_size = max_sample_size,
                              input_parameter = "Overall",
@@ -305,13 +329,13 @@ cli_vbsa_reduce <- function(conn, experiment_config) {
 
   final_output <- rbind(SA_results, long_outs)
 
-  table_name <- paste("SA_results_", experiment_c$results_table)
+  table_name <- paste("SA_results_", experiment_c$experiment_name)
 
   DBI::dbWriteTable(conn = conn,
                     name = table_name,
                     value = final_output,
                     overwrite = TRUE)
 
-  saveRDS(final_output, "SAresults")
+  saveRDS(final_output, table_name)
 
 }

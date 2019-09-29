@@ -1,0 +1,7 @@
+executable = setup_vbsa.sh
+arguments = $(cluster) 2 "one_megadapt_superficial_params_simulator"
+log = log/log.setup
+output = log/O.setup
+error = log/E.setup
+
+queue

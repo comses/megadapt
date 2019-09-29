@@ -1,0 +1,11 @@
+executable = /usr/local/bin/singularity
+arguments = run ../../../../../../deploy/megadapt.sif --db-config ../../experiment/db-postgres.json vbsa run --experiment-config config.json --id $(jobN) --params $(params) --sample_n $(row) --ABMat $(slice) --simulate-function $(sim_func)
+log = log/megadapts/log.megadapts
+output = log/megadapts/O.megadapts$(cluster)
+error = log/megadapts/E.megadapts$(cluster)
+
+request_memory = 250
+
+Requirements = (Machine != "tawa.lancis.ecologia.unam.mx") && (Machine != "kat03.lancis.ecologia.unam.mx") && (Machine != "kat05.lancis.ecologia.unam.mx") && (Machine != "kat07.lancis.ecologia.unam.mx") && (Machine != "kat08.lancis.ecologia.unam.mx")  && (Machine != "kat09.lancis.ecologia.unam.mx") && (Machine != "mong.lancis.ecologia.unam.mx")
+
+queue

@@ -1,0 +1,7 @@
+executable = /usr/local/bin/singularity
+arguments = run ../../../../../../deploy/megadapt.sif --db-config ../../experiment/db-postgres.json vbsa reduce --experiment-config config.json
+log = log/log.reduce
+output = log/O.reduce
+error = log/E.reduce
+
+queue

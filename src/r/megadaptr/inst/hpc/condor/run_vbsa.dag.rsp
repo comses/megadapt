@@ -1,0 +1,22 @@
+<% write_vars_from <- function(line) { %>
+<% for (p in 1:(length(line)-1)) { %>
+<%=names(line[p])%>=<%=line[p]%>,<%-%>
+<% } %><%-%>
+<%=names(line[p+1])%>=<%=line[p+1]%><%-%>
+<% } %><%-%>
+<%-%>
+<% dag_template <- function(JobN, ABMats_line, row, slice) { %>
+JOB J<%=JobN%> one_megadapt_vbsa.sub
+VARS J<%=JobN%> params="list(<%=write_vars_from(ABMats_line)%>)" row="<%=row%>" slice="<%=slice%>" jobN="<%=JobN%>" sim_func="<%=sim_func%>"
+<% } %><%-%>
+<%-%>
+<% jobN <- 1 %><%-%>
+<% for (mslice in 1:dim(ABMats)[3]) {
+  for (mrow in 1:dim(ABMats)[1]) {
+    dag_template(JobN = jobN, ABMats_line = ABMats[mrow,,mslice], row = mrow, slice = mslice)
+    jobN <- jobN + 1
+  }
+} %>
+<%-%>
+JOB R reduce_vbsa.sub
+PARENT <%=paste("J", c(1:(dim(ABMats)[1] * dim(ABMats)[3])), sep = "", collapse = " ")%> CHILD R
