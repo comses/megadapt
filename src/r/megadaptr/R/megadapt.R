@@ -5,7 +5,9 @@ PK_JOIN_EXPR = c("censusblock_id" = "censusblock_id")
 #' @export
 #' @param path the path to the study area file
 #' @return a study area
-study_area_read <- function(path, layer_name) {
+study_area_read <- function(path) {
+  bits <- unlist(strsplit(path,"/"))
+  layer_name <- strsplit(bits[length(bits)], "[.]")[[1]][[1]]
   sdf <- rgdal::readOGR(dsn = path,
                  layer = layer_name,
                  stringsAsFactors = FALSE,
@@ -269,7 +271,7 @@ megadapt_create <- function(
   }
 
   if (is.null(study_area)) {
-    study_area <- study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v7.gpkg'),'megadapt_wgs84_v7')
+    study_area <- study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v7.gpkg'))
   }
 
   value_function_config <- value_function_config_default()
@@ -333,7 +335,7 @@ megadapt_config_create <- function(overrides) {
   config
 }
 
-megadapt_deserialize <- function(config, study_area_path, layer_name, year, n_steps) {
+megadapt_deserialize <- function(config, study_area_path, year, n_steps) {
   components <- list()
   keys <- c(
     'climate',
@@ -354,7 +356,7 @@ megadapt_deserialize <- function(config, study_area_path, layer_name, year, n_st
 
   value_function_config <- value_function_config_default()
 
-  study_area <- study_area_read(study_area_path, layer_name)
+  study_area <- study_area_read(study_area_path)
 
   climate_fnss <- climate_deserialize(config$climate)
   flooding_fnss <- flooding_deserialize(config$flooding)

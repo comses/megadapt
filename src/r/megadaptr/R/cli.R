@@ -81,20 +81,19 @@ cli_root <- function(args = commandArgs(TRUE)) {
   tryCatch({
     switch(
       parsed$command,
-      run = cli_run(conn = conn, experiment = parsed$experiment, id = parsed$id, study_area = parsed$study_area, layer_name=parsed$layer_name),
+      run = cli_run(conn = conn, experiment = parsed$experiment, id = parsed$id, study_area = parsed$study_area),
       grid = cli_grid(conn = conn, args = parsed),
       vbsa = cli_vbsa(conn = conn, args = parsed)
     )
   }, finally = DBI::dbDisconnect(conn))
 }
 
-cli_run <- function(conn, experiment, id, study_area, layer_name) {
+cli_run <- function(conn, experiment, id, study_area) {
   params_run(
     conn = conn,
     experiment_name = experiment,
     id = id,
-    study_area_path = study_area,
-    layer_name = layer_name)
+    study_area_path = study_area)
 }
 
 cli_grid <- function(conn, args) {
