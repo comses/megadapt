@@ -73,7 +73,7 @@ params_table_create <- function(conn, experiment_name, df) {
   )
 }
 
-params_run <- function(conn, experiment_name, id, study_area_path) {
+params_run <- function(conn, experiment_name, id, study_area_path, layer_name) {
   params_tbl <- dplyr::tbl(conn, glue::glue('{experiment_name}_param'))
   params_df <- params_tbl %>% dplyr::filter(id == !! id) %>% dplyr::collect()
   params <- as.list(params_df %>% dplyr::select(-id, -rep))
@@ -81,6 +81,7 @@ params_run <- function(conn, experiment_name, id, study_area_path) {
   model <- megadapt_deserialize(
     config,
     study_area_path = study_area_path,
+    layer_name = layer_name,
     year = config$year,
     n_steps = config$n_steps)
   results <- simulate(model)
