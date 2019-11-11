@@ -66,9 +66,15 @@ flooding_deserialize <- function(config) {
   index_weights <- as.numeric(config$index_weights)
   names(index_weights) <- names(config$index_weights)
 
+  extreme_index = readr::read_csv(config$extreme_index_path)
+  extreme_occurrence = readr::read_csv(config$extreme_occurrence_path)
+
   flooding_delta_method_fnss_create(
     weights = weights,
-    index_weights = index_weights)
+    index_weights = index_weights,
+    extreme_index = extreme_index,
+    extreme_occurrence = extreme_occurrence
+    )
 }
 
 flooding_config_create <- function(
@@ -80,11 +86,19 @@ flooding_config_create <- function(
     capacity = 1,
     flooding = 1,
     precipitation = 1,
-    runoff = 1)
+    runoff = 1),
+  extreme_index_path = data_dir("extreme_events/bd_ageb_tr.csv"),
+  extreme_occurrence_path = data_dir("extreme_events/extreme_ocurrence.csv")
   ) {
+
+
+
   list(
     weights = weights,
-    index_weights = index_weights
+    index_weights = index_weights,
+    extreme_index_path = extreme_index_path,
+    extreme_occurrence_path = extreme_occurrence_path
+
   )
 }
 
@@ -103,9 +117,11 @@ flooding_delta_method_fnss_create <-
              flooding = 1,
              precipitation = 1,
              runoff = 1
-           )) {
+           ),
+           extreme_index,
+           extreme_occurrence) {
     index_weights <- index_weights / sum(index_weights)
-    prepend_class(list(weights = weights, index_weights = index_weights), 'flooding_delta_method_fnss')
+    prepend_class(list(weights = weights, index_weights = index_weights, extreme_occurrence = extreme_occurrence, extreme_index = extreme_index), 'flooding_delta_method_fnss')
   }
 
 
@@ -116,7 +132,7 @@ flooding_delta_method_fnss_create <-
 #' @inheritParams call_fnss
 #' @param study_data census block cross section with
 call_fnss.flooding_delta_method_fnss <-
-  function(fnss, study_data, ...) {
+  function(fnss, study_data, year, ...) {
     w <- fnss$weights
     index_weights <- fnss$index_weights
     cap_init <- study_data$sewer_system_capacity_max * 0.5
@@ -132,6 +148,12 @@ call_fnss.flooding_delta_method_fnss <-
       w['capacity']*change_capacity +
       w['precipitation']*change_precipitation +
       w['runoff']*change_runoff)
+
+
+
+
+
+
     #flooding_index = flooding_index_calculate(weights = index_weights, study_data = study_data)
     flooding_index <- sapply(
       flooding_event_count,
@@ -140,6 +162,18 @@ call_fnss.flooding_delta_method_fnss <-
       center=4,
       xmin=0,
       xmax=16)
+
+
+
+    sd <- study_data %>%
+      dplyr::inner_join(fnss$extreme_index, by = PK_JOIN_EXPR)
+    year_b <- year
+    extreme_this_year <- fnss$extreme_occurrence %>% dplyr::filter(year == year_b)
+    field <- paste0("tr", extreme_this_year$tr)
+
+    flooding_index <- (0.5 * (1-sd[[field]])) + (0.5 * flooding_index)
+    #flooding_index <- flooding_index^(sd[[field]])
+
 
     tibble::tibble(
       censusblock_id = study_data$censusblock_id,
@@ -166,9 +200,9 @@ value_function.flooding_delta_method_fnss <- function(flooding, study_data) {
 #' @param flooding_fnss A flooding component.
 #' @param study_data A data frame with the spatial units and associated fields.
 #' @return an updated study_data including the initial value of the flooding index.
-flooding_initialize <- function(flooding_fnss, study_data) {
+flooding_initialize <- function(flooding_fnss, study_data, year) {
   study_data %>%
-    dplyr::inner_join(call_fnss(flooding_fnss, study_data = study_data), by = PK_JOIN_EXPR) %>%
+    dplyr::inner_join(call_fnss(flooding_fnss, study_data = study_data, year = year), by = PK_JOIN_EXPR) %>%
     dplyr::mutate(
       initial_flooding_index=flooding_index
     )

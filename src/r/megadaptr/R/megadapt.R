@@ -176,7 +176,8 @@ transition_dtss.megadapt_dtss <- function(megadapt_dtss) {
   step_in_years <- year - megadapt_dtss$initial_year + 1
   climate_changes <- call_fnss(climate_fnss, study_data)
   climate_augmented_data <- apply_data_changes(study_data, climate_changes, join_columns = PK_JOIN_EXPR)
-  flooding_changes <- call_fnss(flooding_fnss, climate_augmented_data)
+
+  flooding_changes <- call_fnss(flooding_fnss, climate_augmented_data, year = year)
   ponding_changes <- call_fnss(ponding_fnss, climate_augmented_data)
 
   resident_changes <- call_fnss(resident_fnss, study_data,step_in_years)
@@ -211,7 +212,7 @@ megadapt_initialize <- function(megadapt) {
 
   study_data <- climate_initialize(megadapt$climate_fnss, study_data = study_data) %>%
     sacmex_initialize(study_data = .) %>%
-    flooding_initialize(megadapt$flooding_fnss, study_data = .) %>%
+    flooding_initialize(megadapt$flooding_fnss, study_data = ., year = year) %>%
     ponding_initialize(megadapt$ponding_fnss, study_data = .) %>%
     resident_initialize(megadapt$resident_fnss, study_data = .) %>%
     water_scarcity_index_sensitivity_initialize(megadapt$water_scarcity_index_sensitivity_fnss, study_data = .) %>%
@@ -271,7 +272,7 @@ megadapt_create <- function(
   }
 
   if (is.null(study_area)) {
-    study_area <- study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v7.gpkg'))
+    study_area <- study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v8.gpkg'))
   }
 
   value_function_config <- value_function_config_default()
