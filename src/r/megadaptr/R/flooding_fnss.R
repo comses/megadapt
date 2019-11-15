@@ -88,7 +88,7 @@ flooding_config_create <- function(
     precipitation = 1,
     runoff = 1),
   extreme_index_path = data_dir("extreme_events/bd_ageb_tr.csv"),
-  extreme_occurrence_path = data_dir("extreme_events/extreme_ocurrence.csv")
+  extreme_occurrence_path = data_dir("extreme_events/extreme_ocurrence_0.csv")
   ) {
 
 
@@ -171,8 +171,8 @@ call_fnss.flooding_delta_method_fnss <-
     extreme_this_year <- fnss$extreme_occurrence %>% dplyr::filter(year == year_b)
     field <- paste0("tr", extreme_this_year$tr)
 
-    flooding_index <- (0.5 * sd[[field]]) + (0.5 * flooding_index)
-    #flooding_index <- flooding_index^(sd[[field]])
+    #flooding_index <- (0.5 * sd[[field]]) + (0.5 * flooding_index)
+    flooding_index <- flooding_index^(sd[[field]])
 
 
     tibble::tibble(
