@@ -88,7 +88,7 @@ flooding_config_create <- function(
     precipitation = 1,
     runoff = 1),
   extreme_index_path = data_dir("extreme_events/bd_ageb_tr.csv"),
-  extreme_occurrence_path = data_dir("extreme_events/extreme_ocurrence.csv")
+  extreme_occurrence_path = data_dir("extreme_events/extreme_ocurrence_0.csv")
   ) {
 
 
