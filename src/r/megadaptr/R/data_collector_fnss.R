@@ -3,7 +3,7 @@ save_results <- function(study_data,
                     year) {
   COLUMNS_TO_SAVE <- c(
     "censusblock_id",
-    "geographic_id",
+    "runoff_presence",
     "sewer_infrastructure_age",
     "potable_water_infrastructure_age",
     "resident_reports_ponding_count_mean",
