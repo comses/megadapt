@@ -222,7 +222,8 @@ resident_infrastructure_invest <-
           household_sewer_intervention_count
         },
         household_sewer_sensitivity := {
-          household_sewer_sensitivity <- suitability$distance_ideal_House_mod_lluvia
+          household_sewer_sensitivity <- scarcity_index_sensitivity
+          #suitability$distance_ideal_House_mod_lluvia
 
           #household_sewer_sensitivity[households_adapt_flooding] <-
          #   1 - (
@@ -237,7 +238,10 @@ resident_infrastructure_invest <-
           household_potable_water_invention_count
         },
         household_potable_water_sensitivity := {
-          household_potable_water_sensitivity<- suitability$distance_ideal_House_mod_agua
+          household_potable_water_sensitivity <- scarcity_index_sensitivity
+          #suitability$distance_ideal_House_mod_agua
+
+
           #  household_potable_water_sensitivity[households_adapt_water_scarcity] <-
         #    1 - (
         #      household_potable_water_invention_count[households_adapt_water_scarcity] / step_in_years
@@ -257,9 +261,9 @@ resident_infrastructure_invest <-
           # (0.5 * resilience_reports) + ( 0.5 * resilience_lacking_infra)
           w_harvest + household_water_storage_tank_percent
         },
-        household_potable_water_vulnerability = ((1 - scarcity_index_exposure) ^ (1 - household_potable_water_sensitivity)) ^ (1 + household_resilience),
+        household_potable_water_vulnerability = ((1 - scarcity_index_exposure) ^ (1 - (1-scarcity_index_sensitivity) )) ^ (1 + household_resilience),
 
-        household_sewer_vulnerability = ((1 - flooding_index) ^ (1 - household_sewer_sensitivity))
+        household_sewer_vulnerability = (1 - flooding_index) ^ (1 - (1-scarcity_index_sensitivity) )
       ) %>%
       dplyr::select(
         censusblock_id,

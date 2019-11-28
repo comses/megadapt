@@ -94,10 +94,10 @@ value_function_config_default <- function() {
 #' scenario
 #' @return a parameter list used to configure a megadapt model
 params_create <-
-  function(new_infrastructure_effectiveness_rate = 0.07,
-           maintenance_effectiveness_rate = 0.07,
+  function(new_infrastructure_effectiveness_rate = 0.1,
+           maintenance_effectiveness_rate = 0.1,
            n_steps = 5,
-           infrastructure_decay_rate = 0.01,
+           infrastructure_decay_rate = 0.02,
            budget = 1200,
            resident_action_efficiency_potable = 0.5,
            resident_action_efficiency_drainage = 0.5,

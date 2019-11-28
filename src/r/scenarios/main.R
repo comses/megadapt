@@ -4,7 +4,10 @@ source('../scenarios/util.R')
 
 megadapt <- megadaptr:::megadapt_deserialize(
   config = list(),
-  study_area_path = megadaptr:::data_dir('censusblocks', 'megadapt_wgs84_v7.gpkg'),
+  study_area_path = megadaptr:::data_dir('censusblocks', 'megadapt_wgs84_v8.gpkg'),
   year = 2020,
-  n_steps = 5)
+  n_steps = 40
+  )
 new_results <- simulate(megadapt)
+
+#write.csv(new_results,"/Users/fidel/Dropbox (LANCIS)/fserrano/megadapt/eventos_extremos/test_sensitivity.csv", row.names = FALSE)
