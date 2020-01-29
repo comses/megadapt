@@ -1,1 +1,1 @@
-{"layer": "Presion_hidraulica_escasez", "center": "0.7650000000000001", "min": "0.1", "max": "2", "k": "0.1815", "show_map": "False", "function_name": "logistic"}
+{"layer": "Presion_hidraulica_escasez", "center": "0.3", "min": "0", "max": "1", "k": "0.1815", "show_map": "False", "function_name": "logistic"}
