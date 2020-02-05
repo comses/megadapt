@@ -93,11 +93,12 @@ call_fnss.water_scarcity_index_exposure_fnss <- function(fnss, study_data, ...) 
 
   fv_viviendas_sagua <- sapply(
     study_data$household_potable_system_lacking_percent,
-    FUN = gaussian,
-    a = 30,
+    FUN = logistica_invertida,
+    center = 0.17,
+    k = 0.08349999999999999,
     xmin = min(study_data$household_potable_system_lacking_percent),
     xmax = max(study_data$household_potable_system_lacking_percent),
-    center = 0
+
   )
 
   fv_zonas_crit = sapply(
