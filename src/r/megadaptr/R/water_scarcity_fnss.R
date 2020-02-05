@@ -122,8 +122,8 @@ call_fnss.water_scarcity_index_exposure_fnss <- function(fnss, study_data, ...) 
   fv_Age_Infrastructure <- sapply(
     study_data$potable_water_infrastructure_age,
     FUN = logistica_invertida,
-    center = 40,
-    k = 0.1,
+    center = 34,
+    k = 0.1325,
     xmax = 100,
     xmin = 0
   )
