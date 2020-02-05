@@ -97,7 +97,7 @@ call_fnss.water_scarcity_index_exposure_fnss <- function(fnss, study_data, ...) 
     center = 0.17,
     k = 0.08349999999999999,
     xmin = min(study_data$household_potable_system_lacking_percent),
-    xmax = max(study_data$household_potable_system_lacking_percent),
+    xmax = max(study_data$household_potable_system_lacking_percent)
 
   )
 
@@ -114,7 +114,7 @@ call_fnss.water_scarcity_index_exposure_fnss <- function(fnss, study_data, ...) 
   fv_dias_sagua = sapply(
     study_data$resident_reports_potable_water_failure_count_per_area,
     FUN = logistica_invertida,
-    k=0.1325,
+    k = 0.1325,
     center = 0,
     xmin = min(study_data$resident_reports_potable_water_failure_count_per_area, na.rm = T),
     xmax = max(study_data$resident_reports_potable_water_failure_count_per_area, na.rm = T)
