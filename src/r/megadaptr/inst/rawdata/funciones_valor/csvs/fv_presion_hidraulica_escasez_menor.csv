@@ -1,0 +1,7 @@
+layer,Presion_hidraulica_escasez
+center,0.15
+min,0
+max,1
+k,0.1815
+show_map,False
+function_name,logistic
