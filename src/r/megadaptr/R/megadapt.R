@@ -53,7 +53,7 @@ value_function_config_default <- function() {
   fv_horas_servicio_escasez <-
     load_value_function_config(value_function_root_dir("fv_horas_servicio_escasez.csv"))
   fv_presion_hidraulica_escasez <-
-    load_value_function_config(value_function_root_dir("fv_presion_hidraulica_escasez.csv"))
+    load_value_function_config(value_function_root_dir("fv_presion_hidraulica_escasez_extrema.csv"))
   fv_subsidencia <-
     load_value_function_config(value_function_root_dir("fv_subsidencia.csv"))
 
