@@ -13,8 +13,12 @@ sacmex_determine_investment_suitability <-
 
     shortage_age <- value_function_config$shortage_age
     shortage_failures <- value_function_config$shortage_failures
-    hydraulic_pressure_failure <-
-      value_function_config$hydraulic_pressure_failure
+    fv_hydraulic_pressure_failure <- value_function_config$hydraulic_pressure_failure
+    fv_infrastructure_age <- value_function_config$infrastructure_age
+    fv_fix_failure_days <- value_function_config$fix_failure_days
+    fv_critical_zones <- value_function_config$critical_zones
+    fv_potable_lacking <- value_function_config$potable_lacking
+
 
     ## Common
     # peticiones de delegaciones
@@ -28,14 +32,12 @@ sacmex_determine_investment_suitability <-
     vf_pond_maintainance <- value_function(sacmex$ponding_fnss, study_data)
     vf_pond_new_infra <- rep(1,length(study_data$ponding_index))
 
-    vf_Age_potable_maintanance <- sapply(
+    f_infrastructure_age <- function_from(fv_infrastructure_age)
+    vf_Age_potable_maintanance <- f_infrastructure_age(
       study_data$potable_water_infrastructure_age,
-      FUN = logistica_invertida,
-      center = 40,
-      k = 0.1,
-      xmax = 100,
-      xmin = 0
+      fv_infrastructure_age
     )
+
     vf_Age_potable_new_infra=rep(1,length(study_data$potable_water_infrastructure_age))
 
     # potable water system capacity
@@ -51,26 +53,22 @@ sacmex_determine_investment_suitability <-
     )
 
     # falta
-    vf_falta_dist <-
-      sapply(
-        100 * study_data$household_potable_system_lacking_percent,
-        FUN = lack_of_infrastructure_vf,
-        saturation = 1,
-        x_max = 100
-      )
+    f_lacking_potable <- function_from(fv_potable_lacking)
+    vf_falta_dist <- f_lacking_potable(
+      study_data$household_potable_system_lacking_percent,
+      fv_potable_lacking)
+
     #  plot(study_data$household_potable_system_lacking_percent,vf_falta_Ab)
     # monto ##!!!#no information about this variable
     vf_monto <- rep(1, length(study_data$censusblock_id))
 
     # hydraulic pressure
-    vf_hid_pressure <- sapply(
+    f_hid_pressure <- function_from(fv_hydraulic_pressure_failure)
+    vf_hid_pressure <- f_hid_pressure(
       study_data$potable_system_pressure,
-      FUN = logistic_vf,
-      k = hydraulic_pressure_failure$k,
-      center = hydraulic_pressure_failure$center,
-      xmax = hydraulic_pressure_failure$max,
-      xmin = hydraulic_pressure_failure$min
+      fv_hydraulic_pressure_failure
     )
+
 
     # Water quality
     vf_WQ <- 1 - study_data$waterquality_index
@@ -755,11 +753,11 @@ sacmex_deserialize <- function(
 }
 
 sacmex_config_create <- function(
-  constructor = 'action_budget',
-  budget = 1000,
-  maintenance_effectiveness_rate = 0.07,
-  new_infrastructure_effectiveness_rate = 0.07,
-  infrastructure_decay_rate = 0.01
+  constructor = 'system_budget',
+  budget = 2000,
+  maintenance_effectiveness_rate = 0.1,
+  new_infrastructure_effectiveness_rate = 0.1,
+  infrastructure_decay_rate = 0.02
 ) {
   constructor <- intersect(constructor, c('action_budget', 'system_budget'))
   list(

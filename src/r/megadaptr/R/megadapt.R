@@ -41,6 +41,8 @@ apply_data_changes <- function(data, changes, join_columns) {
 }
 
 value_function_config_default <- function() {
+  from_fv_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor","base", ...), package = 'megadaptr', mustWork = TRUE)
+
   value_function_root_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor", "csvs", ...), package = 'megadaptr', mustWork = TRUE)
   fv_antiguedad_drenaje <-
     load_value_function_config(value_function_root_dir("fv_antiguedad_drenaje.csv"))
@@ -53,7 +55,16 @@ value_function_config_default <- function() {
   fv_horas_servicio_escasez <-
     load_value_function_config(value_function_root_dir("fv_horas_servicio_escasez.csv"))
   fv_presion_hidraulica_escasez <-
-    load_value_function_config(value_function_root_dir("fv_presion_hidraulica_escasez_extrema.csv"))
+    load_value_function_json(from_fv_dir("pres_hid.json"))
+    #load_value_function_config(value_function_root_dir("fv_presion_hidraulica_escasez_extrema.csv"))
+  fv_infrastructure_age <-
+    load_value_function_json(from_fv_dir("antiguedad.json"))
+  fv_fix_failure_days <-
+    load_value_function_json(from_fv_dir("diassagua.json"))
+  fv_critical_zones <-
+    load_value_function_json(from_fv_dir("zonas_criticas.json"))
+  fv_potable_lacking <-
+    load_value_function_json(from_fv_dir("falta_dist.json"))
   fv_subsidencia <-
     load_value_function_config(value_function_root_dir("fv_subsidencia.csv"))
 
@@ -64,6 +75,10 @@ value_function_config_default <- function() {
     shortage_failures = fv_falla_escasez,
     hours_of_service_failure = fv_horas_servicio_escasez,
     hydraulic_pressure_failure = fv_presion_hidraulica_escasez,
+    infrastructure_age = fv_infrastructure_age,
+    fix_failure_days = fv_fix_failure_days,
+    critical_zones = fv_critical_zones,
+    potable_lacking = fv_potable_lacking,
     subsidence = fv_subsidencia
   )
 }

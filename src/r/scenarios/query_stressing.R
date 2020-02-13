@@ -14,57 +14,51 @@ conn <- dbConnect(drv, dbname = "megadapt",
                   user="fidel",
                   host="localhost")
 
-stress_df <- dbGetQuery(conn,
-"select censusblock_id::char(4),
-stressing_base_result.year,
-sacmex__budget as budget,
-sacmex__constructor as budget_split,
-avg(scarcity_index_exposure) as scarcity_exposure,
-avg(household_potable_water_vulnerability) as scarcity_vulnerability
-from stressing_base_result
-inner join stressing_base_param as p on p.id = stressing_base_result.param_id
-group by budget_split, budget, censusblock_id, stressing_base_result.year;")
+stressing_scenario <- function(scenario_name){
+  paste0("select censusblock_id::char(4),",scenario_name,"_result.year,
+         sacmex__budget as budget,
+         sacmex__constructor as budget_split,
+         avg(scarcity_index_exposure) as scarcity_exposure,
+         avg(household_potable_water_vulnerability) as scarcity_vulnerability
+         from ",scenario_name,"_result
+         inner join ",scenario_name,"_param as p on p.id = ",scenario_name,"_result.param_id
+         group by budget_split, budget, censusblock_id, ",scenario_name,"_result.year;")
+}
 
+base <- dbGetQuery(conn,stressing_scenario("stressing_base"))
+extreme <- dbGetQuery(conn,stressing_scenario("stressing_extreme"))
+abundance <- dbGetQuery(conn,stressing_scenario("stressing_abundance"))
+asentamientos <- dbGetQuery(conn,stressing_scenario("stressing_asentamientos"))
+no_extraction <- dbGetQuery(conn,stressing_scenario("stressing_no_extraction"))
 
-# Get data from non split run
+whole_df <- bind_rows(base %>% mutate(stress = "base"),
+                      extreme %>% mutate(stress = "sequia"),
+                      abundance %>% mutate(stress = "abundancia"),
+                      asentamientos %>% mutate(stress = "asentamientos"),
+                      no_extraction %>% mutate(stress = "sin_extraccion"))
 
-stress_extreme_df <- dbGetQuery(conn,
-    "select censusblock_id::char(4),
-    stressing_extreme_result.year,
-    sacmex__budget as budget,
-    sacmex__constructor as budget_split,
-    avg(scarcity_index_exposure) as scarcity_exposure,
-    avg(household_potable_water_vulnerability) as scarcity_vulnerability
-    from stressing_extreme_result
-    inner join stressing_extreme_param as p on p.id = stressing_extreme_result.param_id
-    group by budget_split, budget, censusblock_id, stressing_extreme_result.year;")
-
-
-
-
-whole_df <- bind_rows(stress_df %>% mutate(less_water = 0), stress_extreme_df %>% mutate(less_water = 1))
-
-# scenarios_ids <- read.csv(file="/Users/fidel/Documents/GitHub/megadapt/src/r/megadaptr/inst/rawdata/climate_landuse_scenarios/index.csv", header=TRUE, sep=",")
-#
-# scenarios_ids <- scenarios_ids %>% select(id,cc_scenario,urban_scenario)
-# names(scenarios_ids)[1] <- "climate__id"
-#
-# whole_df <- left_join(whole_df,scenarios_ids,by="climate__id")
+# whole_df$scarcity_vulnerability_cat <- cut(whole_df$scarcity_vulnerability,
+#                          breaks = c(0,0.065,0.125,0.25,0.5,1),
+#                          labels = c(1,2,3,4,5))
 
 whole_df$scarcity_vulnerability_cat <- cut(whole_df$scarcity_vulnerability,
-                         breaks = c(0,0.065,0.125,0.25,0.5,1),
-                         labels = c(1,2,3,4,5))
+                                           breaks = c(0,0.2,0.4,0.6,0.8,1),
+                                           labels = c(1,2,3,4,5))
 
 
 
 
+
+# whole_df$scaricity_exposure_cat <- cut(whole_df$scarcity_exposure,
+#                           breaks = c(0,0.5,0.75,0.875,0.935,1),
+#                           labels = c(5,4,3,2,1))
 
 whole_df$scaricity_exposure_cat <- cut(whole_df$scarcity_exposure,
-                          breaks = c(0,0.5,0.75,0.875,0.935,1),
-                          labels = c(5,4,3,2,1))
+                                       breaks = c(0,0.2,0.4,0.6,0.8,1),
+                                       labels = c(5,4,3,2,1))
 
 
 
 
-write.csv(whole_df,"/Users/fidel/Dropbox (LANCIS)/fserrano/megadapt/stressing_model/less_water.csv", row.names = FALSE)
+write.csv(whole_df,"/Users/fidel/Dropbox (LANCIS)/fserrano/megadapt/stressing_model/stressing_scenarios_equidista.csv", row.names = FALSE)
 

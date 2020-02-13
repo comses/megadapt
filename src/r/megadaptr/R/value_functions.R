@@ -1,20 +1,44 @@
 # define value functions
 #######################################################################################################
 logistic_vf <- function(x, k, center, xmax, xmin) {
-  x <- max(c(x, xmin))
-  x <- min(c(x, xmax))
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
+  return(1 / (1.0 + exp(-k * ((100 * (x - xmin) / (xmax - xmin)) - (100 * (center - xmin) / (xmax - xmin))))))
+}
+#######################################################################################################
+logistic_vf_p <- function(x, params) {
+  k <- params$k
+  center <- params$center
+  xmax <- params$max
+  xmin <- params$min
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
   return(1 / (1.0 + exp(-k * ((100 * (x - xmin) / (xmax - xmin)) - (100 * (center - xmin) / (xmax - xmin))))))
 }
 #######################################################################################################
 logistica_invertida <- function(x, k, center, xmax, xmin) {
-  x <- max(c(x, xmin))
-  x <- min(c(x, xmax))
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
   return(1.0 - logistic_vf(x, k, center, xmax, xmin))
 }
 #######################################################################################################
+logistica_invertida_p <- function(x, params) {
+  return(1.0 - logistic_vf_p(x, params))
+}
+#######################################################################################################
 gaussian <- function(x, a, center, xmax, xmin) {
-  x <- max(c(x, xmin))
-  x <- min(c(x, xmax))
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
+  return(exp(0.0 - ((((100 * (x - xmin) / (xmax - xmin)) - (100 * (center - xmin) / (xmax - xmin))) / (a))^2)))
+}
+#######################################################################################################
+gaussian_p <- function(x, params) {
+  a <- params$a
+  center <- params$center
+  xmax <- params$max
+  xmin <- params$min
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
   return(exp(0.0 - ((((100 * (x - xmin) / (xmax - xmin)) - (100 * (center - xmin) / (xmax - xmin))) / (a))^2)))
 }
 #######################################################################################################
@@ -24,7 +48,20 @@ campana_invertida <- function(x, a, center, xmax, xmin) {
   return(1.0 - gaussian(x, a, center, xmax, xmin))
 }
 #######################################################################################################
+campana_invertida_p <- function(x, params) {
+  return(1.0 - gaussian_p(x, params))
+}
+#######################################################################################################
 concava_decreciente <- function(x, gama, xmax, xmin) {
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
+  return(((exp(gama * (100.0 - (100.0 * (x - xmin) / (xmax - xmin))))) - 1) / (exp(gama * 100) - 1))
+}
+#######################################################################################################
+concava_decreciente_p <- function(x, params) {
+  gama <- params$gama
+  xmax <- params$max
+  xmin <- params$min
   x <- pmax(x, xmin)
   x <- pmin(x, xmax)
   return(((exp(gama * (100.0 - (100.0 * (x - xmin) / (xmax - xmin))))) - 1) / (exp(gama * 100) - 1))
@@ -36,16 +73,33 @@ concava_creciente <- function(x, gama, xmax, xmin) {
   return(((exp(gama * (100 * (x - xmin) / (xmax - xmin)))) - 1) / (exp(gama * 100) - 1))
 }
 #######################################################################################################
+concava_creciente_p <- function(x, params) {
+  gama <- params$gama
+  xmax <- params$max
+  xmin <- params$min
+  x <- pmax(x, xmin)
+  x <- pmin(x, xmax)
+  return(((exp(gama * (100 * (x - xmin) / (xmax - xmin)))) - 1) / (exp(gama * 100) - 1))
+}
+#######################################################################################################
 convexa_decreciente <- function(x, gama, xmax, xmin) {
   x <- pmax(x, xmin)
   x <- pmin(x, xmax)
   return(1.0 - concava_creciente(x, gama, xmax, xmin))
 }
 #######################################################################################################
+convexa_decreciente_p <- function(x, params) {
+  return(1.0 - concava_creciente_p(x, params))
+}
+#######################################################################################################
 convexa_creciente <- function(x, gama, xmax, xmin) {
   x <- pmax(x, xmin)
   x <- pmin(x, xmax)
   return(1.0 - concava_decreciente(x, gama, xmax, xmin))
+}
+#######################################################################################################
+convexa_creciente_p <- function(x, params) {
+  return(1.0 - concava_decreciente_p(x, params))
 }
 #######################################################################################################
 #######################################################################################################
@@ -133,6 +187,21 @@ Value_Function_cut_offs <- function(x, xcuts = c(0.0625, 0.125, 0.25, 0.5), xmax
 }
 
 
+load_value_function_json <- function(json_path) {
+  the_json <- jsonlite::read_json(path = json_path)
+  df <- as.data.frame(the_json)
+  df <- dplyr::select (df,-c(show_map))
+  params <- as.list(df)
+  param_names <- names(params)
+  numeric_keys <- c('a', 'center', 'gama', 'k', 'min', 'max')
+  for (numeric_key in numeric_keys) {
+    if (numeric_key %in% param_names) {
+      params[[numeric_key]] <- as.numeric(as.character(params[[numeric_key]]))
+    }
+  }
+  params$function_name <- as.character(params$function_name)
+  params
+}
 
 load_value_function_config <- function(path) {
   df <- read.csv(path, stringsAsFactors = FALSE, header = FALSE)
@@ -152,6 +221,25 @@ load_value_function_config <- function(path) {
 
   params
 }
+function_from <- function(params){
+  if (params$function_name == "logistic"){
+    logistic_vf_p
+  }else if (params$function_name == "logistica_invertida"){
+    logistica_invertida_p
+  }else if (params$function_name == "gaussian"){
+    gaussian_p
+  }else if (params$function_name == "campana_invertida"){
+    campana_invertida_p
+  }else if (params$function_name == "concava_decreciente"){
+    concava_decreciente_p
+  }else if (params$function_name == "concava_creciente"){
+    concava_creciente_p
+  }else if (params$function_name == "convexa_decreciente"){
+    convexa_decreciente_p
+  }else if (params$function_name == "convexa_creciente"){
+    convexa_creciente_p
+  }
+}
 
 create_value_function_config <- function(sewer_age,
                                          shortage_age,
@@ -159,6 +247,10 @@ create_value_function_config <- function(sewer_age,
                                          shortage_failures,
                                          hours_of_service_failure,
                                          hydraulic_pressure_failure,
+                                         infrastructure_age,
+                                         fix_failure_days,
+                                         critical_zones,
+                                         potable_lacking,
                                          subsidence) {
   list(
     sewer_age = sewer_age,
@@ -167,6 +259,10 @@ create_value_function_config <- function(sewer_age,
     shortage_failures = shortage_failures,
     hours_of_service_failure = hours_of_service_failure,
     hydraulic_pressure_failure = hydraulic_pressure_failure,
+    infrastructure_age = infrastructure_age,
+    fix_failure_days = fix_failure_days,
+    critical_zones = critical_zones,
+    potable_lacking = potable_lacking,
     subsidence = subsidence
   )
 }

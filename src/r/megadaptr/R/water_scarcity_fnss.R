@@ -55,9 +55,8 @@ water_scarcity_sensitivity_deserialize <-
 
 water_scarcity_sensitivity_config_create <- function(
   weights = list(
-    population=0.2,
-    tanks=0.2,
-    income=0.2  #add water capture
+    population=0.5,
+    income=0.5
   )
 ) {
   list(
@@ -67,9 +66,8 @@ water_scarcity_sensitivity_config_create <- function(
 
 water_scarcity_index_sensitivity_fnss_create <- function(
   weights = c(
-    population=0.2,
-    tanks=0.2,
-    income=0.2  #add water capture
+    population=0.5,
+    income=0.5
   ),
   value_function_config) {
   weights <- weights / sum(weights)
@@ -89,54 +87,43 @@ call_fnss.water_scarcity_index_exposure_fnss <- function(fnss, study_data, ...) 
   #' @param study_data data frame with the data of the study area
   #' @return a data frame with field "censusblock_id" and "scarcity_index"
   weights <- fnss$weights
-  hydraulic_pressure_failure <- fnss$value_function_config$hydraulic_pressure_failure
+  fv_hydraulic_pressure_failure <- fnss$value_function_config$hydraulic_pressure_failure
+  fv_infrastructure_age <- fnss$value_function_config$infrastructure_age
+  fv_fix_failure_days <- fnss$value_function_config$fix_failure_days
+  fv_critical_zones <- fnss$value_function_config$critical_zones
+  fv_potable_lacking <- fnss$value_function_config$potable_lacking
 
-  fv_viviendas_sagua <- sapply(
-    study_data$household_potable_system_lacking_percent,
-    FUN = logistica_invertida,
-    center = 1.32,
-    k = 0.304,
-    xmin = min(study_data$household_potable_system_lacking_percent),
-    xmax = max(study_data$household_potable_system_lacking_percent)
 
-  )
+  f_lacking_potable <- function_from(fv_potable_lacking)
+  fv_viviendas_sagua <- f_lacking_potable(
+      study_data$household_potable_system_lacking_percent,
+      fv_potable_lacking)
 
-  fv_zonas_crit = sapply(
+  f_critical_zones <- function_from(fv_critical_zones)
+  fv_zonas_crit = f_critical_zones(
     study_data$criticalzone,
-    FUN = logistica_invertida,
-    k = 1.284,
-    center = -0.25,
-    xmin = min(study_data$criticalzone),
-    xmax = max(study_data$criticalzone)
+    fv_critical_zones
   )
 
-  #center=1&k=0.255
-  fv_dias_sagua = sapply(
+  f_dias_sagua <- function_from(fv_fix_failure_days)
+  fv_dias_sagua = f_dias_sagua(
     study_data$resident_reports_potable_water_failure_count_per_area,
-    FUN = logistica_invertida,
-    k = 0.402,
-    center = -50.06,
-    xmin = min(study_data$resident_reports_potable_water_failure_count_per_area, na.rm = T),
-    xmax = max(study_data$resident_reports_potable_water_failure_count_per_area, na.rm = T)
+    fv_fix_failure_days
   )
 
-  fv_Age_Infrastructure <- sapply(
+  f_infrastructure_age <- function_from(fv_infrastructure_age)
+  fv_Age_Infrastructure <- f_infrastructure_age(
     study_data$potable_water_infrastructure_age,
-    FUN = logistica_invertida,
-    center = 34,
-    k = 0.1325,
-    xmax = 100,
-    xmin = 0
+    fv_infrastructure_age
   )
 
-  fv_hid_pressure <- sapply(
+  f_hid_pressure <- function_from(fv_hydraulic_pressure_failure)
+  fv_hid_pressure <- f_hid_pressure(
     study_data$potable_system_pressure,
-    FUN = logistic_vf,
-    k = hydraulic_pressure_failure$k,
-    center = hydraulic_pressure_failure$center,
-    xmax = hydraulic_pressure_failure$max,
-    xmin = hydraulic_pressure_failure$min
+    fv_hydraulic_pressure_failure
   )
+
+
 
   scarcity_index_exposure = weights["zonas_crit"]*fv_zonas_crit +
                     weights["days_no_water"]*fv_dias_sagua  +
@@ -192,7 +179,6 @@ call_fnss.water_scarcity_index_sensitivity_fnss <- function(fnss, study_data, ..
 
 
   scarcity_index_sensitivity = weights["population"]*fv_pob_ageb +
-    weights["tanks"]*fv_num_cisternas +
     weights["income"]*fv_ingreso
 
    #need to include water capture
