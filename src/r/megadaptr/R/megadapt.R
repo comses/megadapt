@@ -41,7 +41,7 @@ apply_data_changes <- function(data, changes, join_columns) {
 }
 
 value_function_config_default <- function() {
-  from_fv_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor","increm_cutza", ...), package = 'megadaptr', mustWork = TRUE)
+  from_fv_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor","mejora_efi", ...), package = 'megadaptr', mustWork = TRUE)
 
   value_function_root_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor", "csvs", ...), package = 'megadaptr', mustWork = TRUE)
   fv_antiguedad_drenaje <-
