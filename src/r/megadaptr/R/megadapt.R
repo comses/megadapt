@@ -117,7 +117,8 @@ params_create <-
            resident_action_efficiency_potable = 0.5,
            resident_action_efficiency_drainage = 0.5,
            resilience_threshold = 0.3,
-           climate_scenario=1) {
+           climate_scenario=1,
+           distance_mode = "unnormalized") {
     list(
       new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
       maintenance_effectiveness_rate = maintenance_effectiveness_rate,
@@ -127,7 +128,8 @@ params_create <-
       resident_action_efficiency_potable = resident_action_efficiency_potable,
       resident_action_efficiency_drainage = resident_action_efficiency_drainage,
       resilience_threshold = resilience_threshold,
-      climate_scenario = climate_scenario
+      climate_scenario = climate_scenario,
+      distance_mode = distance_mode,
     )
   }
 
@@ -307,7 +309,8 @@ megadapt_create <- function(
     potable_water_budget = params$budget,
     sewer_budget = params$budget,
     flooding_fnss = flooding_fnss,
-    ponding_fnss = ponding_fnss
+    ponding_fnss = ponding_fnss,
+    distance_mode = params$distance_mode
   )
   water_scarcity_index_sensitivity_fnss = water_scarcity_index_sensitivity_fnss_create(value_function_config = value_function_config)
   water_scarcity_index_exposure_fnss = water_scarcity_index_exposure_fnss_create(value_function_config = value_function_config)

@@ -93,37 +93,16 @@ call_fnss.water_scarcity_index_exposure_fnss <- function(fnss, study_data, ...) 
   fv_critical_zones <- fnss$value_function_config$critical_zones
   fv_potable_lacking <- fnss$value_function_config$potable_lacking
 
-
-  f_lacking_potable <- function_from(fv_potable_lacking)
-  fv_viviendas_sagua <- f_lacking_potable(
-      study_data$household_potable_system_lacking_percent,
-      fv_potable_lacking)
-
-  f_critical_zones <- function_from(fv_critical_zones)
-  fv_zonas_crit = f_critical_zones(
-    study_data$criticalzone,
-    fv_critical_zones
-  )
-
-  f_dias_sagua <- function_from(fv_fix_failure_days)
-  fv_dias_sagua = f_dias_sagua(
-    study_data$resident_reports_potable_water_failure_count_per_area,
-    fv_fix_failure_days
-  )
-
-  f_infrastructure_age <- function_from(fv_infrastructure_age)
-  fv_Age_Infrastructure <- f_infrastructure_age(
-    study_data$potable_water_infrastructure_age,
-    fv_infrastructure_age
-  )
-
-  f_hid_pressure <- function_from(fv_hydraulic_pressure_failure)
-  fv_hid_pressure <- f_hid_pressure(
-    study_data$potable_system_pressure,
-    fv_hydraulic_pressure_failure
-  )
-
-
+  fv_viviendas_sagua <- apply_vf(fv_potable_lacking,
+                                  study_data$household_potable_system_lacking_percent)
+  fv_zonas_crit <- apply_vf(fv_critical_zones,
+                                  study_data$criticalzone)
+  fv_dias_sagua <- apply_vf(fv_fix_failure_days,
+                                  study_data$resident_reports_potable_water_failure_count_per_area)
+  fv_Age_Infrastructure <- apply_vf(fv_infrastructure_age,
+                                         study_data$potable_water_infrastructure_age)
+  fv_hid_pressure <- apply_vf(fv_hydraulic_pressure_failure,
+                                    study_data$potable_system_pressure)
 
   scarcity_index_exposure = weights["zonas_crit"]*fv_zonas_crit +
                     weights["days_no_water"]*fv_dias_sagua  +

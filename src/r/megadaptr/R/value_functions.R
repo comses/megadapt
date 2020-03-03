@@ -241,6 +241,11 @@ function_from <- function(params){
   }
 }
 
+apply_vf <- function(vf, col){
+  f <- function_from(vf)
+  f(col, vf)
+}
+
 create_value_function_config <- function(sewer_age,
                                          shortage_age,
                                          salt_water_quality,

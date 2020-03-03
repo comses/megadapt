@@ -19,23 +19,33 @@ stressing_scenario <- function(scenario_name){
          sacmex__budget as budget,
          sacmex__constructor as budget_split,
          avg(scarcity_index_exposure) as scarcity_exposure,
-         avg(household_potable_water_vulnerability) as scarcity_vulnerability
+         avg(household_potable_water_vulnerability) as scarcity_vulnerability,
+         avg(non_potable_maintenance) as flooding_maintenance_distance,
+         avg(non_potable_new_infrastructure) as flooding_new_infra_distance,
+         avg(potable_maintenance) as scarcity_maintenance_distance,
+         avg(potable_new_infrastructure) as scarcity_new_infra_distance,
+         sum(sacmex_potable_maintenance_intervention_presence::int) as scarcity_maintenance_intervention,
+         sum(sacmex_potable_new_infrastructure_intervention_presence::int) as scarcity_new_infra_intervention,
+         sum(sacmex_sewer_maintenance_intervention_presence::int) as flooding_maintenance_intervention,
+         sum(sacmex_sewer_new_infrastructure_intervention_presence::int) as flooding_new_infra_intervention
          from ",scenario_name,"_result
          inner join ",scenario_name,"_param as p on p.id = ",scenario_name,"_result.param_id
          group by budget_split, budget, censusblock_id, ",scenario_name,"_result.year;")
 }
 
-base <- dbGetQuery(conn,stressing_scenario("stressing_base"))
-extreme <- dbGetQuery(conn,stressing_scenario("stressing_extreme"))
-abundance <- dbGetQuery(conn,stressing_scenario("stressing_abundance"))
-asentamientos <- dbGetQuery(conn,stressing_scenario("stressing_asentamientos"))
-no_extraction <- dbGetQuery(conn,stressing_scenario("stressing_no_extraction"))
+ss_base <- dbGetQuery(conn,stressing_scenario("ss_base"))
+ss_asentamientos <- dbGetQuery(conn,stressing_scenario("ss_asentamientos"))
+ss_increm_cutza <- dbGetQuery(conn,stressing_scenario("ss_increm_cutza"))
+ss_mejora_efi <- dbGetQuery(conn,stressing_scenario("ss_mejora_efi"))
+ss_reduc_cutza <- dbGetQuery(conn,stressing_scenario("ss_reduc_cutza"))
+ss_reduc_agua <- dbGetQuery(conn,stressing_scenario("ss_reduc_agua"))
 
-whole_df <- bind_rows(base %>% mutate(stress = "base"),
-                      extreme %>% mutate(stress = "sequia"),
-                      abundance %>% mutate(stress = "abundancia"),
-                      asentamientos %>% mutate(stress = "asentamientos"),
-                      no_extraction %>% mutate(stress = "sin_extraccion"))
+whole_df <- bind_rows(ss_base %>% mutate(stress = "base"),
+                      ss_asentamientos %>% mutate(stress = "asentamientos"),
+                      ss_increm_cutza %>% mutate(stress = "increm_cutza"),
+                      ss_mejora_efi %>% mutate(stress = "mejora_efi"),
+                      ss_reduc_cutza %>% mutate(stress = "reduc_cutza"),
+                      ss_reduc_agua %>% mutate(stress = "reduc_agua"))
 
 # whole_df$scarcity_vulnerability_cat <- cut(whole_df$scarcity_vulnerability,
 #                          breaks = c(0,0.065,0.125,0.25,0.5,1),
@@ -60,5 +70,5 @@ whole_df$scaricity_exposure_cat <- cut(whole_df$scarcity_exposure,
 
 
 
-write.csv(whole_df,"/Users/fidel/Dropbox (LANCIS)/fserrano/megadapt/stressing_model/stressing_scenarios_equidista.csv", row.names = FALSE)
+write.csv(whole_df,"/Users/fidel/Dropbox (LANCIS)/fserrano/megadapt/stressing_model/ss_equidista_distances.csv", row.names = FALSE)
 

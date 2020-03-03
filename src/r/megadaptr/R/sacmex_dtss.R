@@ -4,8 +4,29 @@
       site_selection$censusblock_id[site_selection$choice_name == choice_name]
     study_data$censusblock_id %in% matching_ids
   }
+sacmex_normalized_invesment_suitablility <-
+  function(sacmex,
+           study_data,
+           mental_models) {
+    suitability <- sacmex_unnormalized_invesment_suitablility(sacmex,
+                                               study_data,
+                                               mental_models)
 
-sacmex_determine_investment_suitability <-
+
+    normalize_list <- function(lista){
+      (lista-min(lista))/(max(lista)-min(lista))
+    }
+
+    suitability %>% dplyr::mutate(
+      non_potable_maintenance = normalize_list(non_potable_maintenance),
+      non_potable_new_infrastructure = normalize_list(non_potable_new_infrastructure),
+      potable_maintenance = normalize_list(potable_maintenance),
+      potable_new_infrastructure = normalize_list(potable_new_infrastructure))
+
+}
+
+
+sacmex_unnormalized_invesment_suitablility <-
   function(sacmex,
            study_data,
            mental_models) {
@@ -553,7 +574,8 @@ sacmex_default_create <-
            params = list(
              maintenance_effectiveness_rate = 0.07,
              new_infrastructure_effectiveness_rate = 0.07
-           )) {
+           ),
+           distance_mode) {
     config <- list(
       params = params,
       sewer_budget = sewer_budget,
@@ -562,7 +584,8 @@ sacmex_default_create <-
       sewer_mental_model_strategy = sewer_mental_model_strategy,
       potable_water_mental_model_strategy = potable_water_mental_model_strategy,
       ponding_fnss = ponding_fnss,
-      flooding_fnss = flooding_fnss
+      flooding_fnss = flooding_fnss,
+      distance_mode = distance_mode
     )
     prepend_class(config, class_name)
   }
@@ -582,7 +605,8 @@ sacmex_seperate_action_budgets_fnss_create <-
            params = list(
              maintenance_effectiveness_rate = 0.07,
              new_infrastructure_effectiveness_rate = 0.07
-           )) {
+           ),
+           distance_mode) {
     sacmex_default_create(
       class_name = 'sacmex_seperate_action_budgets_fnss',
       flooding_fnss = flooding_fnss,
@@ -592,7 +616,8 @@ sacmex_seperate_action_budgets_fnss_create <-
       potable_water_mental_model_strategy = potable_water_mental_model_strategy,
       sewer_budget = sewer_budget,
       sewer_mental_model_strategy = sewer_mental_model_strategy,
-      value_function_config = value_function_config
+      value_function_config = value_function_config,
+      distance_mode = distance_mode
     )
   }
 
@@ -613,11 +638,13 @@ sacmex_invest_and_depreciate <-
     )
 
     params <- sacmex$params
-    site_suitability <- sacmex_determine_investment_suitability(
+    site_suitability <- sacmex$distance_mode(
       sacmex = sacmex,
       study_data = study_data,
       mental_models = mental_models
     )
+    #extended_study_data <- inner_join(study_data,site_suitability, by = PK_JOIN_EXPR)
+    #study_data <- apply_data_changes(study_data,site_suitability, join_columns = PK_JOIN_EXPR)
 
     budget <- create_budget(
       mental_models = mental_models$sacmcx,
@@ -682,7 +709,8 @@ sacmex_fnss_create <-
              new_infrastructure_effectiveness_rate = 0.07
            ),
            flooding_fnss,
-           ponding_fnss) {
+           ponding_fnss,
+           distance_mode) {
     sacmex_default_create(
       class_name = 'sacmex_fnss',
       flooding_fnss = flooding_fnss,
@@ -692,7 +720,8 @@ sacmex_fnss_create <-
       potable_water_mental_model_strategy = potable_water_mental_model_strategy,
       sewer_budget = sewer_budget,
       sewer_mental_model_strategy = sewer_mental_model_strategy,
-      value_function_config = value_function_config
+      value_function_config = value_function_config,
+      distance_mode = distance_mode
     )
   }
 
@@ -730,6 +759,15 @@ sacmex_deserialize <- function(
 
   config <- do.call(sacmex_config_create, config)
 
+
+  dist_env <- new.env(parent = emptyenv())
+  dist_env$normalized <- sacmex_normalized_invesment_suitablility
+  dist_env$unnormalized <- sacmex_unnormalized_invesment_suitablility
+
+  distance_mode <- get(config$distance_mode, envir = dist_env)
+
+
+
   env <- new.env(parent = emptyenv())
   env$action_budget <- sacmex_seperate_action_budgets_fnss_create
   env$system_budget <- sacmex_fnss_create
@@ -737,6 +775,7 @@ sacmex_deserialize <- function(
   constructor <- get(config$constructor, envir = env)
 
   constructor(
+    distance_mode = distance_mode,
     value_function_config = value_function_config,
     sewer_mental_model_strategy = sewer_mental_model_strategy,
     potable_water_mental_model_strategy = potable_water_mental_model_strategy,
@@ -757,12 +796,14 @@ sacmex_config_create <- function(
   budget = 2000,
   maintenance_effectiveness_rate = 0.1,
   new_infrastructure_effectiveness_rate = 0.1,
-  infrastructure_decay_rate = 0.02
+  infrastructure_decay_rate = 0.02,
+  distance_mode = "unnormalized"
 ) {
   constructor <- intersect(constructor, c('action_budget', 'system_budget'))
   list(
     constructor = constructor,
     budget = budget,
+    distance_mode = distance_mode,
     maintenance_effectiveness_rate = maintenance_effectiveness_rate,
     new_infrastructure_effectiveness_rate = new_infrastructure_effectiveness_rate,
     infrastructure_decay_rate = infrastructure_decay_rate

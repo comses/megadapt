@@ -87,7 +87,7 @@ for(p_id in 1:500) {
 
 
 
-  ggsave(paste0('/Users/fidel/Desktop/inundacion/inundacion_',p_id,'.png'),
+  ggsave(paste0('/Users/fidel/Desktop/inundacion_',p_id,'.png'),
          plot = map,
          device = 'png',
          width = 10,
