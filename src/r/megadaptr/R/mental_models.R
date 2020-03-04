@@ -93,7 +93,7 @@ read_cluster_matrix <- function(path) {
   #'
   #' @export
   #' @param path where the cluster matrix csv file is located
-  as.matrix(suppressWarnings(readr::read_csv(path)[,-1]))
+  as.matrix(suppressWarnings(readr::read_csv(path)[, -1]))
 }
 
 read_unweighted_matrix <- function(path) {
@@ -103,13 +103,13 @@ read_unweighted_matrix <- function(path) {
     stop("Unweighted matrix csv must be square")
   }
   labels <- df[, c(1, 2)]
-  data <- as.matrix(df[,-c(1, 2)])
+  data <- as.matrix(df[, -c(1, 2)])
   not_na_indices <- which(!is.na(labels[, 1]))
   cluster_name_change_indices <-
     c(not_na_indices, nrow(labels) + 1) - 1
   cluster_sizes <-
     (cluster_name_change_indices - dplyr::lag(cluster_name_change_indices))[-1]
-  labels[, 1] <- rep(labels[not_na_indices,][[1]], cluster_sizes)
+  labels[, 1] <- rep(labels[not_na_indices, ][[1]], cluster_sizes)
   colnames(labels) <- c('cluster_name', 'node')
   list(labels = labels,
        cluster_sizes = cluster_sizes,
@@ -184,6 +184,8 @@ file_mental_model_strategy <-
     )
   }
 
+
+
 get_limit_df <- function(mental_model, year, study_data) {
   UseMethod('get_limit_df', mental_model)
 }
@@ -216,7 +218,7 @@ get_limit_df.file_constant_mental_model <-
 #'
 #' @export
 #' @return potable, sewer and household mental models
-mental_model_constant_strategies <- function() {
+mental_model_constant_strategies <- function(config) {
   mm_file_path <-
     function(path)
       system.file(
@@ -243,6 +245,51 @@ mental_model_constant_strategies <- function() {
   )
 }
 
+#' Create constant mental model strategies
+#'
+#' @export
+#' @return potable, sewer and household mental models
+mental_model_time_series_strategies <- function(config) {
+  mm_file_path <-
+    function(path)
+      system.file(
+        fs::path('rawdata', 'mental_models', path),
+        package = 'megadaptr',
+        mustWork = TRUE
+      )
+  potable_water_cluster <-
+    read_cluster_matrix(mm_file_path('potable_water_cluster_sacmex.csv'))
+  resident_cluster <-
+    read_cluster_matrix(mm_file_path('resident_cluster.csv'))
+
+  mental_model_strategies = list(
+    potable_water_sacmex_limit_strategy = file_mental_model_strategy(
+      paths = config$potable,
+      limit_df_picker = function(year, study_area) {
+        if (year > config$change_year) {
+          2
+        } else{
+          1
+        }
+      },
+
+      cluster = potable_water_cluster
+    ),
+    sewer_water_sacmex_limit_strategy = file_mental_model_strategy(
+      paths = config$sewer,
+      limit_df_picker = function(year, study_area) {
+        if (year > config$change_year) {
+          2
+        } else{
+          1
+        }
+      },
+
+      cluster = sewer_water_cluster
+    ),
+    resident_limit_strategy = mental_model_file_constant_strategy_create(mm_file_path('resident_unweighted.csv'), cluster = resident_cluster)
+  )
+}
 
 #' A function to calculate a new set of weights to modify the supermatrix in the
 #' block (risk, Environtment) in the "sewer_system_sacmex_unweighted" matrix.
@@ -287,7 +334,8 @@ mental_model_update_risks <-
         ponding_current_sum_for_precipitation / ponding_historic_sum_for_precipitation * get_um_value('Encharcamientos', 'Precipitacion'),
         flooding_current_sum_for_precipitation / flooding_historic_sum_for_precipitation * get_um_value('Inundaciones', 'Precipitacion')
       )
-    weight_precipitation <- weight_precipitation /  sum(weight_precipitation)
+    weight_precipitation <-
+      weight_precipitation /  sum(weight_precipitation)
 
     weight_runoff <-
       c(
@@ -298,12 +346,10 @@ mental_model_update_risks <-
 
     block <-
       matrix(
-        c(
-          0.0, 0.0,
+        c(0.0, 0.0,
           weight_runoff,
           0.9, 0.1,
-          weight_precipitation
-        ),
+          weight_precipitation),
         nrow = 2,
         ncol = 4
       )
@@ -339,23 +385,27 @@ mental_model_coupled_create <- function(path, cluster) {
 #' @return A limit vector object.
 get_limit_df.mental_model_coupled <-
   function(mental_model, year, study_data) {
-    w <- mental_model_update_risks(mental_model$unweighted_matrix_meta, study_data)
+    w <-
+      mental_model_update_risks(mental_model$unweighted_matrix_meta, study_data)
     labels <-
       mental_model$unweighted_matrix_meta$labels$cluster_name
     col_cluster_inds <- which(labels == "Biof\xedsico")
     row_cluster_inds <- which(labels == "Riesgos_poblacion")
 
-    mental_model$unweighted_matrix_meta$data[row_cluster_inds, col_cluster_inds] <- w
+    mental_model$unweighted_matrix_meta$data[row_cluster_inds, col_cluster_inds] <-
+      w
     weighted_matrix_meta <-
-      create_weighted_matrix(unweighted_matrix_meta = mental_model$unweighted_matrix_meta,
-                             cluster = mental_model$cluster)
+      create_weighted_matrix(
+        unweighted_matrix_meta = mental_model$unweighted_matrix_meta,
+        cluster = mental_model$cluster
+      )
     create_limit_df(weighted_matrix_meta)
   }
 
 #' Mental model default constructuctor few sewer model with feedback
 #'
 #' @export
-mental_model_sacmex_coupled_strategies <- function() {
+mental_model_sacmex_coupled_strategies <- function(config) {
   mm_file_path <-
     function(path)
       system.file(
@@ -385,15 +435,18 @@ mental_model_sacmex_coupled_strategies <- function() {
 mental_model_deserialize <- function(config) {
   config <- do.call(mental_model_config_create, config)
   env <- new.env(parent = emptyenv())
+  env$time_series <- mental_model_time_series_strategies
   env$coupled <- mental_model_sacmex_coupled_strategies
   env$constant <- mental_model_constant_strategies
   strategy <- get(config$strategy, envir = env)
-  strategy()
+  strategy(config$config)
 }
 
-mental_model_config_create <- function(strategy = 'coupled') {
-  strategy <- intersect(strategy, c('coupled', 'constant'))
-  list(
-    strategy = strategy
-  )
-}
+mental_model_config_create <-
+  function(strategy = 'coupled',
+           config = list()) {
+    strategy <-
+      intersect(strategy, c('coupled', 'constant', 'time_series'))
+    list(strategy = strategy,
+         config = config)
+  }

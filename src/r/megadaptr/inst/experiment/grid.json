@@ -11,6 +11,15 @@
     },
     "climate": {
       "id": [1, 2, 3]
+    },
+    "mental_models": {
+      "strategy" : "time_series",
+      "config" : {"potable": ["inst/mental_models/potable_water_sacmex_unweighted_stage1.csv",
+                                  "inst/mental_models/potable_water_sacmex_unweighted_stage2.csv"],
+                    "sewer": ["inst/mental_models/sewer_water_sacmex_unweighted_stage1.csv",
+                                "inst/mental_models/sewer_water_sacmex_unweighted_stage2.csv"],
+                    "change_year" : 20}
+
     }
   },
   "n_reps": 2,
