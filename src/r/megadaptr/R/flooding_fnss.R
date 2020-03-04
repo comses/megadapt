@@ -159,7 +159,7 @@ call_fnss.flooding_delta_method_fnss <-
       flooding_event_count,
       FUN=logistica_invertida,
       k=0.13,
-      center=4,
+      center=1,
       xmin=0,
       xmax=16)
 
