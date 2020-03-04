@@ -32,6 +32,10 @@ sacmex_unnormalized_invesment_suitablility <-
            mental_models) {
     value_function_config <- sacmex$value_function_config
 
+
+    hydraulic_pressure_failure <-
+      value_function_config$hydraulic_pressure_failure
+
     shortage_age <- value_function_config$shortage_age
     shortage_failures <- value_function_config$shortage_failures
     fv_hydraulic_pressure_failure <- value_function_config$hydraulic_pressure_failure
