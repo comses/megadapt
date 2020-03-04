@@ -53,10 +53,18 @@ sacmex_unnormalized_invesment_suitablility <-
     vf_pond_maintainance <- value_function(sacmex$ponding_fnss, study_data)
     vf_pond_new_infra <- rep(1,length(study_data$ponding_index))
 
-    f_infrastructure_age <- function_from(fv_infrastructure_age)
-    vf_Age_potable_maintanance <- f_infrastructure_age(
+    # f_infrastructure_age <- function_from(fv_infrastructure_age)
+    # vf_Age_potable_maintanance <- f_infrastructure_age(
+    #   study_data$potable_water_infrastructure_age,
+    #   fv_infrastructure_age
+    # )
+    vf_Age_potable_maintanance <- sapply(
       study_data$potable_water_infrastructure_age,
-      fv_infrastructure_age
+      FUN = logistica_invertida,
+      center = 40,
+      k = 0.1,
+      xmax = 100,
+      xmin = 0
     )
 
     vf_Age_potable_new_infra=rep(1,length(study_data$potable_water_infrastructure_age))
@@ -74,20 +82,36 @@ sacmex_unnormalized_invesment_suitablility <-
     )
 
     # falta
-    f_lacking_potable <- function_from(fv_potable_lacking)
-    vf_falta_dist <- f_lacking_potable(
-      study_data$household_potable_system_lacking_percent,
-      fv_potable_lacking)
+    # f_lacking_potable <- function_from(fv_potable_lacking)
+    # vf_falta_dist <- f_lacking_potable(
+    #   study_data$household_potable_system_lacking_percent,
+    #   fv_potable_lacking)
+    vf_falta_dist <-
+      sapply(
+        100 * study_data$household_potable_system_lacking_percent,
+        FUN = lack_of_infrastructure_vf,
+        saturation = 1,
+        x_max = 100
+      )
+
 
     #  plot(study_data$household_potable_system_lacking_percent,vf_falta_Ab)
     # monto ##!!!#no information about this variable
     vf_monto <- rep(1, length(study_data$censusblock_id))
 
     # hydraulic pressure
-    f_hid_pressure <- function_from(fv_hydraulic_pressure_failure)
-    vf_hid_pressure <- f_hid_pressure(
+    # f_hid_pressure <- function_from(fv_hydraulic_pressure_failure)
+    # vf_hid_pressure <- f_hid_pressure(
+    #   study_data$potable_system_pressure,
+    #   fv_hydraulic_pressure_failure
+    # )
+    vf_hid_pressure <- sapply(
       study_data$potable_system_pressure,
-      fv_hydraulic_pressure_failure
+      FUN = logistic_vf,
+      k = hydraulic_pressure_failure$k,
+      center = hydraulic_pressure_failure$center,
+      xmax = hydraulic_pressure_failure$max,
+      xmin = hydraulic_pressure_failure$min
     )
 
 
