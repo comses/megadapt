@@ -191,8 +191,15 @@ get_limit_df <- function(mental_model, year, study_data) {
 }
 
 get_limit_df.file_mental_model <-
+  mm_file_path <-
+  function(path)
+    system.file(
+      fs::path('rawdata', 'mental_models', path),
+      package = 'megadaptr',
+      mustWork = TRUE
+    )
   function(mental_model, year, study_data) {
-    mental_model$limit_dfs[[mental_model$limit_df_picker(year, study_area)]]
+    mm_file_path(mental_model$limit_dfs[[mental_model$limit_df_picker(year, study_area)]])
   }
 
 mental_model_file_constant_strategy_create <-
