@@ -39,9 +39,13 @@ apply_data_changes <- function(data, changes, join_columns) {
       by = join_columns
     )
 }
+value_function_config_create <- function(function_folder){
+  value_function_deserialize(list(function_folder = function_folder))
+}
 
-value_function_config_default <- function() {
-  from_fv_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor","base", ...), package = 'megadaptr', mustWork = TRUE)
+
+value_function_deserialize <- function(config) {
+  from_fv_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor",config$function_folder, ...), package = 'megadaptr', mustWork = TRUE)
 
   value_function_root_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor", "csvs", ...), package = 'megadaptr', mustWork = TRUE)
   fv_antiguedad_drenaje <-
@@ -341,7 +345,8 @@ megadapt_config_create <- function(overrides) {
     resident = resident_config_create,
     sacmex = sacmex_config_create,
     water_scarcity_exposure = water_scarcity_exposure_config_create,
-    water_scarcity_sensitivity = water_scarcity_sensitivity_config_create
+    water_scarcity_sensitivity = water_scarcity_sensitivity_config_create,
+    value_functions = value_function_config_create
   )
   for (subconfig_name in names(subconfigs)) {
     if (is.null(overrides[[subconfig_name]])) {
@@ -364,7 +369,8 @@ megadapt_deserialize <- function(config, study_area_path, year, n_steps) {
     'resident',
     'sacmex',
     'water_scarcity_exposure',
-    'water_scarcity_sensitivity'
+    'water_scarcity_sensitivity',
+    'value_functions'
   )
 
   for (key in keys) {
@@ -373,7 +379,7 @@ megadapt_deserialize <- function(config, study_area_path, year, n_steps) {
     }
   }
 
-  value_function_config <- value_function_config_default()
+  value_function_config <- value_function_deserialize(config$value_functions)
 
   study_area <- study_area_read(study_area_path)
 

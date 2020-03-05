@@ -172,8 +172,16 @@ find_cluster_given_weighted_and_unweighted <-
 
 file_mental_model_strategy <-
   function(paths, limit_df_picker, cluster) {
+    mm_file_path <-
+      function(path)
+        system.file(
+          fs::path('rawdata', 'mental_models', path),
+          package = 'megadaptr',
+          mustWork = TRUE
+        )
+
     limit_dfs <-
-      lapply(paths,
+      lapply(mm_file_path(paths),
              create_limit_df_from_unweighted_matrix_file,
              cluster = cluster)
 
@@ -274,9 +282,9 @@ mental_model_time_series_strategies <- function(config) {
       paths = config$potable,
       limit_df_picker = function(year, study_area) {
         if (year > config$change_year) {
-          2
+          "stage2"
         } else{
-          1
+          "stage1"
         }
       },
 
@@ -286,9 +294,9 @@ mental_model_time_series_strategies <- function(config) {
       paths = config$sewer,
       limit_df_picker = function(year, study_area) {
         if (year > config$change_year) {
-          2
+          "stage2"
         } else{
-          1
+          "stage1"
         }
       },
 
