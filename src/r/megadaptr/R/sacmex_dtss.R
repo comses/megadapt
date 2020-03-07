@@ -393,27 +393,31 @@ sacmex_work_plan_max_chooser <-
 sacmex_work_plan_sewer_potable_split <-
   function(site_suitability,
            budget) {
-    potable_water_budget <- budget$potable_water
-    sewer_budget <- budget$sewer
-    non_potable_water_site_suitability <- site_suitability %>%
-      dplyr::select(censusblock_id,
-                    non_potable_maintenance,
-                    non_potable_new_infrastructure)
-    n_non_potable_water_census_blocks = min(sewer_budget, nrow(site_suitability))
-    non_potable_infrastructure_plan <-
-      sacmex_work_plan_max_chooser(non_potable_water_site_suitability,
-                                   sewer_budget)
+    # potable_water_budget <- budget$potable_water
+    # sewer_budget <- budget$sewer
+    # non_potable_water_site_suitability <- site_suitability %>%
+    #   dplyr::select(censusblock_id,
+    #                 non_potable_maintenance,
+    #                 non_potable_new_infrastructure)
+    # n_non_potable_water_census_blocks = min(sewer_budget, nrow(site_suitability))
+    # non_potable_infrastructure_plan <-
+    #   sacmex_work_plan_max_chooser(non_potable_water_site_suitability,
+    #                                sewer_budget)
+    #
+    # potable_water_site_suitability <- site_suitability %>%
+    #   dplyr::select(censusblock_id,
+    #                 potable_maintenance,
+    #                 potable_new_infrastructure)
+    # n_potable_water_census_blocks = min(potable_water_budget, nrow(site_suitability))
+    # potable_infrastructure_plan <-
+    #   sacmex_work_plan_max_chooser(potable_water_site_suitability, potable_water_budget)
+    #
+    # dplyr::bind_rows(non_potable_infrastructure_plan,
+    #                  potable_infrastructure_plan)
+    budget1 <- budget$sewer
+    sacmex_work_plan_max_chooser(site_suitability,budget1)
 
-    potable_water_site_suitability <- site_suitability %>%
-      dplyr::select(censusblock_id,
-                    potable_maintenance,
-                    potable_new_infrastructure)
-    n_potable_water_census_blocks = min(potable_water_budget, nrow(site_suitability))
-    potable_infrastructure_plan <-
-      sacmex_work_plan_max_chooser(potable_water_site_suitability, potable_water_budget)
 
-    dplyr::bind_rows(non_potable_infrastructure_plan,
-                     potable_infrastructure_plan)
   }
 
 
