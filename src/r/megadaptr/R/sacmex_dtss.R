@@ -811,8 +811,8 @@ sacmex_deserialize <- function(
     value_function_config = value_function_config,
     sewer_mental_model_strategy = sewer_mental_model_strategy,
     potable_water_mental_model_strategy = potable_water_mental_model_strategy,
-    sewer_budget = config$budget,
-    potable_water_budget = config$budget,
+    sewer_budget = round(config$budget/2),
+    potable_water_budget = round(config$budget/2),
     params = list(
       maintenance_effectiveness_rate = config$maintenance_effectiveness_rate,
       new_infrastructure_effectiveness_rate = config$new_infrastructure_effectiveness_rate,

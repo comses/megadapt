@@ -158,8 +158,8 @@ call_fnss.flooding_delta_method_fnss <-
     flooding_index <- sapply(
       flooding_event_count,
       FUN=logistica_invertida,
-      k=0.13,
-      center=1,
+      k=0.059,
+      center=5,
       xmin=0,
       xmax=16)
 
