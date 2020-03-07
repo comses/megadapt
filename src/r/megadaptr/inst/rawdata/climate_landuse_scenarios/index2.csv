@@ -1,13 +1,13 @@
-id,path,urban_scenario_path,cc_scenario,emissions_scenario,time_horizon,urban_scenario
-1,escorrentias_excl_0_ff85.csv,e04_s6_flores_v2_noairport_no11_excl_0,8.5 far future ,8.5,far_future,Sin restricciones
-2,escorrentias_excl_0_nf85.csv,e04_s6_flores_v2_noairport_no11_excl_0,8.5 near future,8.5,near_future,Sin restricciones
-3,escorrentias_excl_0_ff45.csv,e04_s6_flores_v2_noairport_no11_excl_0,4.5 far future,4.5,far_future,Sin restricciones
-4,escorrentias_excl_0_nf45.csv,e04_s6_flores_v2_noairport_no11_excl_0,4.5 near future,4.5,near_future,Sin restricciones
-5,escorrentias_excl_total_ff85_c.csv,e04_s6_flores_v2_noairport_no11_excl_total,8.5 far future ,8.5,far_future,Sin crecimiento
-6,escorrentias_excl_total_nf85_c.csv,e04_s6_flores_v2_noairport_no11_excl_total,8.5 near future,8.5,near_future,Sin crecimiento
-7,escorrentias_excl_total_ff45_c.csv,e04_s6_flores_v2_noairport_no11_excl_total,4.5 far future,4.5,far_future,Sin crecimiento
-8,escorrentias_excl_total_nf45_c.csv,e04_s6_flores_v2_noairport_no11_excl_total,4.5 near future,4.5,near_future,Sin crecimiento
-9,escorrentias_noairport_no11_ff85.csv,e04_s6_flores_v2_noairport_no11,8.5 far future ,8.5,far_future,Tendencial
-10,escorrentias_noairport_no11_nf85.csv,e04_s6_flores_v2_noairport_no11,8.5 near future,8.5,near_future,Tendencial
-11,escorrentias_noairport_no11_ff45.csv,e04_s6_flores_v2_noairport_no11,4.5 far future,4.5,far_future,Tendencial
-12,escorrentias_noairport_no11_nf45_c.csv,e04_s6_flores_v2_noairport_no11,4.5 near future,4.5,near_future,Tendencial
+"id","path","urban_scenario_path","cc_scenario","emissions_scenario","time_horizon","urban_scenario"
+1,"escorrentias_excl_0_ff85.csv","e04_s6_flores_v2_noairport_no11_excl_0","8.5 far future",8.5,"far_future","Sin restricciones"
+2,"escorrentias_excl_0_nf85.csv","e04_s6_flores_v2_noairport_no11_excl_0","8.5 near future",8.5,"near_future","Sin restricciones"
+3,"escorrentias_excl_0_ff45.csv","e04_s6_flores_v2_noairport_no11_excl_0","4.5 far future",4.5,"far_future","Sin restricciones"
+4,"escorrentias_excl_0_nf45.csv","e04_s6_flores_v2_noairport_no11_excl_0","4.5 near future",4.5,"near_future","Sin restricciones"
+5,"escorrentias_excl_total_ff85_c.csv","e04_s6_flores_v2_noairport_no11_excl_total","8.5 far future",8.5,"far_future","Sin crecimiento"
+6,"escorrentias_excl_total_nf85_c.csv","e04_s6_flores_v2_noairport_no11_excl_total","8.5 near future",8.5,"near_future","Sin crecimiento"
+7,"escorrentias_excl_total_ff45_c.csv","e04_s6_flores_v2_noairport_no11_excl_total","4.5 far future",4.5,"far_future","Sin crecimiento"
+8,"escorrentias_excl_total_nf45_c.csv","e04_s6_flores_v2_noairport_no11_excl_total","4.5 near future",4.5,"near_future","Sin crecimiento"
+9,"escorrentias_noairport_no11_ff85.csv","e04_s6_flores_v2_noairport_no11","8.5 far future",8.5,"far_future","Tendencial"
+10,"escorrentias_noairport_no11_nf85.csv","e04_s6_flores_v2_noairport_no11","8.5 near future",8.5,"near_future","Tendencial"
+11,"escorrentias_noairport_no11_ff45.csv","e04_s6_flores_v2_noairport_no11","4.5 far future",4.5,"far_future","Tendencial"
+12,"escorrentias_noairport_no11_nf45_c.csv","e04_s6_flores_v2_noairport_no11","4.5 near future",4.5,"near_future","Tendencial"
