@@ -414,7 +414,7 @@ sacmex_work_plan_sewer_potable_split <-
     #
     # dplyr::bind_rows(non_potable_infrastructure_plan,
     #                  potable_infrastructure_plan)
-    budget1 <- budget$sewer
+    budget1 <- budget$sewer + budget$potable_water
     sacmex_work_plan_max_chooser(site_suitability,budget1)
 
 
