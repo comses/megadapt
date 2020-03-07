@@ -134,7 +134,7 @@ params_create <-
       resident_action_efficiency_drainage = resident_action_efficiency_drainage,
       resilience_threshold = resilience_threshold,
       climate_scenario = climate_scenario,
-      distance_mode = distance_mode,
+      distance_mode = distance_mode
     )
   }
 
@@ -294,7 +294,7 @@ megadapt_create <- function(
   }
 
   if (is.null(study_area)) {
-    study_area <- study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v8.gpkg'))
+    study_area <- study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v12.gpkg'))
   }
 
   value_function_config <- value_function_config_default()
