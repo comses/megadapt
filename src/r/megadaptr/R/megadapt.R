@@ -46,7 +46,7 @@ value_function_config_create <- function(function_folder = "base"){
 
 value_function_deserialize <- function(config) {
 
-  from_fv_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor", "reduc_cutza", ...), package = 'megadaptr', mustWork = TRUE)
+  from_fv_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor", "reduc_agua", ...), package = 'megadaptr', mustWork = TRUE)
 
   value_function_root_dir <- function(...) system.file(fs::path("rawdata", "funciones_valor", "csvs", ...), package = 'megadaptr', mustWork = TRUE)
   fv_antiguedad_drenaje <-
