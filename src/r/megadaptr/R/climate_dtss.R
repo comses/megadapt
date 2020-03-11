@@ -60,7 +60,7 @@ climate_fnss_create <- function(id = 1) {
 call_fnss.climate_fnss <- function(fnss, study_data) {
   # create a vector of alternative years for sampling
   # and sample one of them each year
-  year_sampled_from_scenario <- sample(size = 1, x = 1993:2013)
+  year_sampled_from_scenario <- sample(size = 1, x = 2000:2013)
 
   # subset the data.frame of scenario for the year sampled
   sampled_rain_runoff_scenario <- subset(fnss$scenario, year == year_sampled_from_scenario)
