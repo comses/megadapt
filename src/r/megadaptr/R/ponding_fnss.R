@@ -151,7 +151,7 @@ call_fnss.ponding_delta_method_fnss <- function(fnss, study_data, ...) {
 
   change_capacity <- ifelse(cap_init > 0, (study_data$sewer_system_capacity - cap_init)/cap_init, 0)
   change_precipitation <- (study_data$precipitation_volume - precip_mean)/precip_mean
-  change_runoff <- pmax(pmin((study_data$runoff_volume - runoff_mean)/runoff_mean,1),-1)
+  change_runoff <- ifelse(runoff_mean > 0, pmax(pmin((study_data$runoff_volume - runoff_mean)/runoff_mean,1),-1), 0)
   #change_runoff <- (change_runoff - mean(change_runoff))/var(change_runoff)^0.5
   ponding_mean <- study_data$resident_reports_ponding_count_mean
   ponding_event_count = ponding_mean * (1 -
