@@ -294,7 +294,7 @@ megadapt_create <- function(
   }
 
   if (is.null(study_area)) {
-    study_area <- study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v12.gpkg'))
+    study_area <- study_area_read(data_dir('censusblocks', 'megadapt_wgs84_v15.gpkg'))
   }
 
   value_function_config <- value_function_config_default()
